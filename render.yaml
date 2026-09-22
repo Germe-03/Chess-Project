@@ -1,0 +1,11 @@
+# render.com Blueprint — deployt den Schach-Assistenten als Web Service.
+# In render.com: New + -> Blueprint -> dieses Repo wählen. Oder manuell einen
+# Web Service mit den unten stehenden Build-/Start-Befehlen anlegen.
+services:
+  - type: web
+    name: chess-project
+    runtime: python
+    plan: free
+    branch: main
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn Code.main:app --host 0.0.0.0 --port $PORT

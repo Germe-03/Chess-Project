@@ -1,0 +1,613 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Schach-Assistent — AI Operations</title>
+<style>
+  /* ---- Design-Tokens (Ästhetik: wenige Farben, ruhig, klare Hierarchie) ---- */
+  :root{
+    --bg:#f4f5f7; --surface:#ffffff; --surface-2:#eef0f3; --border:#d8dce2;
+    --text:#1c2430; --muted:#5b6675; --primary:#2f6df6; --primary-ink:#ffffff;
+    --primary-weak:#e7f0ff; --good:#1f9d57; --warn:#b4690e; --bad:#c23b3b;
+    --focus:#1552d6; --shadow:0 1px 2px rgba(16,24,40,.06),0 4px 16px rgba(16,24,40,.08);
+    --sq-light:#efe4cf; --sq-dark:#b48a63; --sq-from:#f6e27a; --sq-to:#8fd18f;
+    --radius:14px;
+  }
+  :root[data-theme="dark"]{
+    --bg:#12161d; --surface:#1b212b; --surface-2:#222a36; --border:#333d4c;
+    --text:#e8ecf2; --muted:#9aa6b6; --primary:#5b8bff; --primary-ink:#0b1220;
+    --primary-weak:#1c2942; --good:#4cc281; --warn:#e0a34a; --bad:#e97070;
+    --focus:#7aa2ff; --shadow:0 1px 2px rgba(0,0,0,.4);
+    --sq-light:#c9ba9c; --sq-dark:#6d5136; --sq-from:#b9a032; --sq-to:#4f9d55;
+  }
+  @media (prefers-color-scheme:dark){
+    :root:not([data-theme="light"]){
+      --bg:#12161d; --surface:#1b212b; --surface-2:#222a36; --border:#333d4c;
+      --text:#e8ecf2; --muted:#9aa6b6; --primary:#5b8bff; --primary-ink:#0b1220;
+      --primary-weak:#1c2942; --good:#4cc281; --warn:#e0a34a; --bad:#e97070;
+      --focus:#7aa2ff; --shadow:0 1px 2px rgba(0,0,0,.4);
+      --sq-light:#c9ba9c; --sq-dark:#6d5136; --sq-from:#b9a032; --sq-to:#4f9d55;
+    }
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--text);
+    font:15px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;}
+  .wrap{max-width:1060px;margin:0 auto;padding:20px 16px 56px;}
+  a{color:var(--primary)}
+  h1,h2,h3{line-height:1.2;margin:0}
+  .muted{color:var(--muted)}
+  button{font:inherit}
+  :focus-visible{outline:3px solid var(--focus);outline-offset:2px;border-radius:8px}
+
+  /* ---- Kopfzeile ---- */
+  header{display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin-bottom:18px}
+  .brand{display:flex;flex-direction:column;gap:2px;margin-right:auto}
+  .brand h1{font-size:20px;font-weight:700;letter-spacing:-.01em}
+  .brand p{margin:0;font-size:13px;color:var(--muted)}
+  .tools{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+  .icon-btn{background:var(--surface);border:1px solid var(--border);color:var(--text);
+    height:38px;padding:0 12px;border-radius:10px;cursor:pointer;display:inline-flex;
+    align-items:center;gap:8px}
+  .icon-btn:hover{background:var(--surface-2)}
+  .status{display:inline-flex;align-items:center;gap:8px;height:38px;padding:0 12px;
+    border:1px solid var(--border);border-radius:10px;background:var(--surface);font-size:13px}
+  .dot{width:9px;height:9px;border-radius:50%;background:var(--muted);flex:0 0 auto}
+  .status[data-state="online"] .dot{background:var(--good)}
+  .status[data-state="offline"] .dot{background:var(--bad)}
+  .status[data-state="checking"] .dot{background:var(--warn)}
+
+  /* ---- Einstellungen ---- */
+  .settings{margin:0 0 18px;background:var(--surface);border:1px solid var(--border);
+    border-radius:var(--radius);padding:14px 16px;box-shadow:var(--shadow)}
+  .settings label{display:block;font-size:13px;color:var(--muted);margin-bottom:6px}
+  .settings .row{display:flex;gap:10px;flex-wrap:wrap;align-items:end}
+  input[type=text]{width:100%;height:40px;padding:0 12px;border:1px solid var(--border);
+    border-radius:10px;background:var(--surface);color:var(--text);font:inherit}
+  input[type=text]:focus{border-color:var(--primary)}
+
+  /* ---- Layout ---- */
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:18px;align-items:start}
+  @media (max-width:820px){.grid{grid-template-columns:1fr}}
+  .card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);
+    padding:18px;box-shadow:var(--shadow)}
+  .card h2{font-size:15px;font-weight:700;margin-bottom:4px}
+  .card .hint{font-size:13px;color:var(--muted);margin:0 0 14px}
+
+  /* ---- Upload / Dropzone ---- */
+  .drop{border:2px dashed var(--border);border-radius:12px;background:var(--surface-2);
+    padding:26px 16px;text-align:center;cursor:pointer;transition:border-color .15s,background .15s}
+  .drop:hover{border-color:var(--primary)}
+  .drop.drag{border-color:var(--primary);background:var(--primary-weak)}
+  .drop .big{font-weight:600;margin:8px 0 4px}
+  .drop .sub{font-size:13px;color:var(--muted)}
+  .drop svg{width:34px;height:34px;stroke:var(--muted)}
+  .preview{margin-top:14px;display:none}
+  .preview.show{display:block}
+  .preview img{width:100%;max-height:280px;object-fit:contain;background:var(--surface-2);
+    border:1px solid var(--border);border-radius:10px}
+  .preview .row{display:flex;justify-content:space-between;align-items:center;margin-top:8px;gap:10px}
+  .filename{font-size:13px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+  .actions{margin-top:16px;display:flex;gap:10px;flex-wrap:wrap}
+  .btn-primary{background:var(--primary);color:var(--primary-ink);border:none;height:44px;
+    padding:0 20px;border-radius:11px;font-weight:600;cursor:pointer;display:inline-flex;
+    align-items:center;gap:9px}
+  .btn-primary:hover{filter:brightness(1.05)}
+  .btn-primary:disabled{opacity:.5;cursor:not-allowed;filter:none}
+  .btn-ghost{background:transparent;border:1px solid var(--border);color:var(--text);height:44px;
+    padding:0 16px;border-radius:11px;cursor:pointer}
+  .btn-ghost:hover{background:var(--surface-2)}
+  .link-btn{background:none;border:none;color:var(--primary);cursor:pointer;padding:6px 0;
+    font:inherit;text-align:left}
+
+  details.fen{margin-top:14px}
+  details.fen summary{cursor:pointer;color:var(--primary)}
+  details.fen .row{display:flex;gap:10px;margin-top:10px}
+
+  /* ---- Ergebnis ---- */
+  .placeholder{color:var(--muted);text-align:center;padding:28px 8px}
+  .placeholder svg{width:40px;height:40px;stroke:var(--muted);margin-bottom:8px}
+  .spinner{width:22px;height:22px;border:3px solid var(--border);border-top-color:var(--primary);
+    border-radius:50%;animation:spin .8s linear infinite;display:inline-block;vertical-align:-4px}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  @media (prefers-reduced-motion:reduce){.spinner{animation-duration:2s}}
+  .loading{text-align:center;padding:26px 8px;color:var(--muted)}
+
+  .msg{border-radius:11px;padding:12px 14px;font-size:14px;display:flex;gap:10px;align-items:flex-start}
+  .msg.error{background:color-mix(in srgb,var(--bad) 12%,transparent);
+    border:1px solid color-mix(in srgb,var(--bad) 45%,transparent);color:var(--text)}
+  .msg.demo{background:color-mix(in srgb,var(--warn) 14%,transparent);
+    border:1px solid color-mix(in srgb,var(--warn) 45%,transparent);color:var(--text)}
+  .msg strong{display:block;margin-bottom:2px}
+
+  /* ---- Schachbrett ---- */
+  .board-wrap{display:flex;gap:12px;align-items:center;margin:6px 0 4px}
+  .ranks{display:grid;grid-template-rows:repeat(8,1fr);font-size:11px;color:var(--muted);
+    height:min(72vw,360px);align-items:center}
+  .board{width:min(72vw,360px);height:min(72vw,360px);display:grid;
+    grid-template-columns:repeat(8,1fr);grid-template-rows:repeat(8,1fr);
+    border:1px solid var(--border);border-radius:8px;overflow:hidden}
+  .files{display:grid;grid-template-columns:repeat(8,1fr);width:min(72vw,360px);
+    margin-left:22px;font-size:11px;color:var(--muted);text-align:center;margin-top:2px}
+  .sq{display:flex;align-items:center;justify-content:center;font-size:min(8vw,30px);
+    line-height:1;position:relative;user-select:none}
+  .sq.light{background:var(--sq-light)} .sq.dark{background:var(--sq-dark)}
+  .sq.from::after,.sq.to::after{content:"";position:absolute;inset:0;opacity:.75}
+  .sq.from::after{background:var(--sq-from)}
+  .sq.to::after{background:var(--sq-to)}
+  .sq .pc{position:relative;z-index:1;filter:drop-shadow(0 1px 1px rgba(0,0,0,.35))}
+  .pc.white{color:#fff} .pc.black{color:#111}
+
+  .result-head{display:flex;align-items:baseline;justify-content:space-between;gap:10px;margin-top:8px}
+  .move{font-size:26px;font-weight:800;letter-spacing:.01em}
+  .side{font-size:13px;color:var(--muted)}
+  .evalbar{height:12px;border-radius:99px;background:var(--surface-2);overflow:hidden;
+    border:1px solid var(--border);margin:12px 0 6px}
+  .evalbar > div{height:100%;background:var(--primary);width:50%;transition:width .3s}
+  @media (prefers-reduced-motion:reduce){.evalbar > div{transition:none}}
+  .evaltext{font-size:13px;color:var(--muted)}
+  dl.kv{display:grid;grid-template-columns:auto 1fr;gap:4px 14px;margin:14px 0 0;font-size:13px}
+  dl.kv dt{color:var(--muted)} dl.kv dd{margin:0;font-variant-numeric:tabular-nums}
+  footer{margin-top:26px;font-size:12px;color:var(--muted);text-align:center}
+
+  /* ---- Figuren-Palette ---- */
+  .palette{display:flex;flex-direction:column;gap:8px;margin:4px 0 0}
+  .pal-row{display:flex;gap:6px;flex-wrap:wrap}
+  .pal-tools{display:flex;gap:6px;margin-top:2px}
+  .pal{width:40px;height:40px;border:1px solid var(--border);border-radius:9px;background:var(--surface);
+    display:flex;align-items:center;justify-content:center;font-size:27px;line-height:1;cursor:grab;
+    user-select:none;touch-action:none}
+  .pal:hover{background:var(--surface-2)}
+  .pal:active{cursor:grabbing}
+  .pal.sel{outline:3px solid var(--focus);outline-offset:1px}
+  .pal.white{color:#fff;text-shadow:0 0 1px #333,0 1px 1px rgba(0,0,0,.4)}
+  .pal.black{color:#111}
+  .pal.trash{font-size:20px;color:var(--muted)}
+  .pal.trash.sel{outline-color:var(--bad)}
+  .pal.drop-hl{border-color:var(--bad);background:color-mix(in srgb,var(--bad) 14%,transparent)}
+
+  /* ---- Editor-Brett ---- */
+  .board.editor .sq{cursor:pointer}
+  .board.editor .sq.drop-hl{box-shadow:inset 0 0 0 3px var(--primary)}
+  .board.editor .pc{cursor:grab}
+  .board.editor .pc:active{cursor:grabbing}
+
+  /* ---- Segmented control (Zugpartei) ---- */
+  .segmented{border:0;padding:0;margin:14px 0 2px;min-width:0}
+  .segmented legend{font-size:13px;color:var(--muted);margin-bottom:6px;padding:0}
+  .seg{display:inline-flex;align-items:center;gap:7px;border:1px solid var(--border);background:var(--surface);
+    padding:9px 14px;border-radius:10px;cursor:pointer;margin-right:8px;font-size:14px}
+  .seg input{accent-color:var(--primary)}
+  .seg.on{border-color:var(--primary);background:var(--primary-weak)}
+
+  /* ---- Coming soon ---- */
+  .soon{margin-top:18px;padding:14px 16px;border:1px dashed var(--border);border-radius:12px;
+    background:var(--surface-2);opacity:.85}
+  .soon-head{display:flex;align-items:center;gap:10px;margin-bottom:6px}
+  .soon-head h3{font-size:14px;font-weight:700;color:var(--muted)}
+  .badge{font-size:11px;font-weight:700;letter-spacing:.03em;text-transform:uppercase;
+    color:var(--primary);background:var(--primary-weak);border:1px solid color-mix(in srgb,var(--primary) 40%,transparent);
+    padding:2px 8px;border-radius:99px}
+
+  [hidden]{display:none!important}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="brand">
+      <h1>♞ Schach-Assistent</h1>
+      <p>AI Operations · optimalen Zug aus einem Screenshot der Stellung</p>
+    </div>
+    <div class="tools">
+      <span class="status" id="status" data-state="unknown" role="status" aria-live="polite">
+        <span class="dot"></span><span id="statusText">Server nicht geprüft</span>
+      </span>
+      <button class="icon-btn" id="settingsToggle" aria-expanded="false" aria-controls="settings">⚙︎ Server</button>
+      <button class="icon-btn" id="themeToggle" aria-label="Farbschema wechseln">◐ Ansicht</button>
+    </div>
+  </header>
+
+  <section class="settings" id="settings" hidden>
+    <div class="row">
+      <div style="flex:1;min-width:240px">
+        <label for="apiBase">Server-Adresse (API)</label>
+        <input type="text" id="apiBase" spellcheck="false" placeholder="z. B. http://127.0.0.1:8000 oder leer für gleichen Server">
+      </div>
+      <button class="btn-ghost" id="testBtn" style="height:40px">Verbindung testen</button>
+    </div>
+    <p class="hint" style="margin:10px 0 0">Leer lassen, wenn die Oberfläche vom selben Server (render.com) ausgeliefert wird. Die Adresse wird nur lokal in deinem Browser gespeichert.</p>
+  </section>
+
+  <div class="grid">
+    <!-- ================= EINGABE ================= -->
+    <section class="card" aria-labelledby="in-h">
+      <h2 id="in-h">1 · Stellung stellen</h2>
+      <p class="hint">Figuren per Drag&amp;Drop auf das Brett ziehen. Aus der Palette platzieren, zwischen Feldern verschieben, in den Papierkorb ziehen zum Entfernen.</p>
+
+      <!-- Figuren-Palette -->
+      <div class="palette" id="palette" aria-label="Figuren-Palette">
+        <div class="pal-row" data-color="white"></div>
+        <div class="pal-row" data-color="black"></div>
+        <div class="pal-tools">
+          <div class="pal trash" id="trash" title="Zum Entfernen hierher ziehen" aria-label="Papierkorb – Figur entfernen">🗑</div>
+        </div>
+      </div>
+      <p class="hint" id="palHint" style="margin:8px 0 12px">Tipp: Auf eine Palette-Figur tippen, dann auf ein Feld – so geht es auch ohne Ziehen.</p>
+
+      <!-- Editor-Brett -->
+      <div class="board-wrap">
+        <div class="ranks"><span>8</span><span>7</span><span>6</span><span>5</span><span>4</span><span>3</span><span>2</span><span>1</span></div>
+        <div class="board editor" id="editorBoard" aria-label="Brett – Figuren hier platzieren"></div>
+      </div>
+      <div class="files"><span>a</span><span>b</span><span>c</span><span>d</span><span>e</span><span>f</span><span>g</span><span>h</span></div>
+
+      <!-- Zugpartei -->
+      <fieldset class="segmented" id="sideToMove">
+        <legend>Wer ist am Zug?</legend>
+        <label class="seg on"><input type="radio" name="side" value="w" checked> Weiss am Zug</label>
+        <label class="seg"><input type="radio" name="side" value="b"> Schwarz am Zug</label>
+      </fieldset>
+
+      <div class="actions">
+        <button class="btn-primary" id="analyzeBtn">Optimalen Zug berechnen</button>
+        <button class="btn-ghost" id="startBtn">Grundstellung</button>
+        <button class="btn-ghost" id="clearBtn">Leeren</button>
+      </div>
+
+      <details class="fen">
+        <summary>Stattdessen Stellung als FEN eingeben</summary>
+        <p class="hint" style="margin:10px 0 0">Nützlich, wenn du eine Stellung bereits als FEN hast.</p>
+        <div class="row">
+          <input type="text" id="fenInput" spellcheck="false"
+                 placeholder="rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1">
+          <button class="btn-ghost" id="fenBtn" style="height:40px;white-space:nowrap">Zug berechnen</button>
+        </div>
+      </details>
+
+      <!-- Screenshot-Upload: geplant -->
+      <div class="soon" aria-disabled="true">
+        <div class="soon-head">
+          <h3>Screenshot hochladen</h3>
+          <span class="badge">Coming soon</span>
+        </div>
+        <p class="hint" style="margin:0">Bald: Screenshot einer Stellung hochladen und automatisch erkennen lassen. Bis dahin die Stellung oben von Hand setzen.</p>
+      </div>
+    </section>
+
+    <!-- ================= ERGEBNIS ================= -->
+    <section class="card" aria-labelledby="out-h">
+      <h2 id="out-h">2 · Empfohlener Zug</h2>
+      <p class="hint">Erkannte Stellung und optimaler Zug. Die Erkennung kannst du bei Bedarf korrigieren.</p>
+
+      <div id="output" aria-live="polite">
+        <div class="placeholder" id="empty">
+          <svg viewBox="0 0 24 24" fill="none" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+          <div>Noch kein Ergebnis.</div>
+          <div style="font-size:13px">Stelle links die Position, wähle die Zugpartei und berechne den optimalen Zug.</div>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <footer>
+    Schach-Assistent · FHNW AI Operations · Prototyp nach den MMI-Prinzipien (Norman · ISO 9241-110 · direkte Manipulation)
+  </footer>
+</div>
+
+<script>
+"use strict";
+const PIECES = {K:"♔",Q:"♕",R:"♖",B:"♗",N:"♘",P:"♙",k:"♚",q:"♛",r:"♜",b:"♝",n:"♞",p:"♟"};
+const NAMES  = {k:"König",q:"Dame",r:"Turm",b:"Läufer",n:"Springer",p:"Bauer"};
+const START  = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
+const $ = s => document.querySelector(s);
+const store = { // localStorage defensiv
+  get(k,d){ try{ const v=localStorage.getItem(k); return v===null?d:v; }catch{ return d; } },
+  set(k,v){ try{ localStorage.setItem(k,v); }catch{} }
+};
+
+/* ---------- Individualisierbarkeit: Theme ---------- */
+(function initTheme(){
+  const t = store.get("sa_theme","");
+  if(t) document.documentElement.setAttribute("data-theme",t);
+  $("#themeToggle").addEventListener("click",()=>{
+    const cur = document.documentElement.getAttribute("data-theme");
+    const dark = cur ? cur==="dark"
+                     : matchMedia("(prefers-color-scheme:dark)").matches;
+    const next = dark ? "light" : "dark";
+    document.documentElement.setAttribute("data-theme",next);
+    store.set("sa_theme",next);
+  });
+})();
+
+/* ---------- Server-Einstellungen ---------- */
+$("#apiBase").value = store.get("sa_api","");
+$("#settingsToggle").addEventListener("click",()=>{
+  const s = $("#settings"); const open = s.hidden;
+  s.hidden = !open; $("#settingsToggle").setAttribute("aria-expanded",String(open));
+});
+$("#apiBase").addEventListener("change",e=>{ store.set("sa_api",e.target.value.trim()); });
+$("#testBtn").addEventListener("click",checkApi);
+function apiBase(){ return ($("#apiBase").value || store.get("sa_api","")).trim().replace(/\/+$/,""); }
+
+function setStatus(state,text){
+  const el=$("#status"); el.dataset.state=state; $("#statusText").textContent=text;
+}
+async function checkApi(){
+  setStatus("checking","Server wird geprüft …");
+  try{
+    const res = await fetch((apiBase()||"") + "/health", {method:"GET"});
+    if(res.ok){ setStatus("online","Server verbunden"); return true; }
+    // /health optional -> versuche Wurzel/docs
+    const res2 = await fetch((apiBase()||"") + "/docs", {method:"GET"});
+    if(res2.ok){ setStatus("online","Server verbunden"); return true; }
+    setStatus("offline","Server antwortet nicht"); return false;
+  }catch{
+    setStatus("offline","Kein Server erreichbar"); return false;
+  }
+}
+
+/* ---------- Brett-Editor: Zustand ---------- */
+const FILES = ["a","b","c","d","e","f","g","h"];
+let editorState = fenToState(START);   // { "e1":"K", ... }
+
+function fenToState(fen){
+  const state={}, rows=fen.split(/\s+/)[0].split("/");
+  for(let r=0;r<8;r++){ let f=0;
+    for(const ch of rows[r]){ if(/\d/.test(ch)) f+=+ch; else { state[FILES[f]+(8-r)]=ch; f++; } }
+  }
+  return state;
+}
+function stateToFen(){
+  let placement="";
+  for(let rank=8;rank>=1;rank--){ let empty=0,row="";
+    for(let f=0;f<8;f++){ const p=editorState[FILES[f]+rank];
+      if(p){ if(empty){row+=empty;empty=0;} row+=p; } else empty++; }
+    if(empty) row+=empty;
+    placement += row + (rank>1?"/":"");
+  }
+  const side=document.querySelector('input[name="side"]:checked').value;
+  return `${placement} ${side} - - 0 1`;
+}
+
+/* ---------- Palette + Brett aufbauen ---------- */
+function buildPalette(){
+  const rows={white:"KQRBNP", black:"kqrbnp"};
+  document.querySelectorAll(".pal-row").forEach(row=>{
+    const color=row.dataset.color; row.innerHTML="";
+    for(const p of rows[color]){
+      const el=document.createElement("div");
+      el.className=`pal ${color}`; el.textContent=PIECES[p];
+      el.draggable=true; el.dataset.piece=p; el.tabIndex=0; el.setAttribute("role","button");
+      el.setAttribute("aria-label",`${color==="white"?"weisse":"schwarze"} ${NAMES[p.toLowerCase()]} platzieren`);
+      row.appendChild(el);
+    }
+  });
+}
+function renderEditor(){
+  let html="";
+  for(let r=0;r<8;r++) for(let f=0;f<8;f++){
+    const sq=FILES[f]+(8-r), shade=((r+f)%2===0)?"light":"dark", p=editorState[sq];
+    const piece = p ? `<span class="pc ${p===p.toUpperCase()?"white":"black"}" draggable="true">${PIECES[p]}</span>` : "";
+    const label = p ? `${sq}, ${p===p.toUpperCase()?"weisse":"schwarze"} ${NAMES[p.toLowerCase()]}` : `${sq}, leer`;
+    html += `<div class="sq ${shade}" data-square="${sq}" role="button" tabindex="0" aria-label="${label}">${piece}</div>`;
+  }
+  $("#editorBoard").innerHTML=html;
+}
+
+/* ---------- Auswahl per Klick (Alternative zu Drag&Drop, auch für Tastatur/Touch) ---------- */
+let selectedPiece=null; // "K".."p", "trash" oder null
+function selectPalette(el){
+  const val = el.id==="trash" ? "trash" : el.dataset.piece;
+  const already = el.classList.contains("sel");
+  document.querySelectorAll(".pal").forEach(x=>x.classList.remove("sel"));
+  selectedPiece = already ? null : val;
+  if(!already) el.classList.add("sel");
+}
+
+/* ---------- Drag & Drop ---------- */
+let dragData=null;
+function onDragStart(e){
+  const pal=e.target.closest(".pal[data-piece]");
+  const pc=e.target.closest(".board.editor .pc");
+  if(pal){ dragData={piece:pal.dataset.piece, from:null}; }
+  else if(pc){ const sq=pc.closest(".sq").dataset.square; dragData={piece:editorState[sq], from:sq}; }
+  else return;
+  try{ e.dataTransfer.setData("text/plain", JSON.stringify(dragData)); e.dataTransfer.effectAllowed="copyMove"; }catch{}
+}
+function readDrag(e){ try{ return JSON.parse(e.dataTransfer.getData("text/plain")); }catch{ return dragData; } }
+function place(sq,piece,from){ if(from && from!==sq) delete editorState[from]; editorState[sq]=piece; renderEditor(); }
+function removeAt(sq){ delete editorState[sq]; renderEditor(); }
+
+const palette=$("#palette"), trash=$("#trash"), eboard=$("#editorBoard");
+palette.addEventListener("dragstart", onDragStart);
+palette.addEventListener("click", e=>{ const pal=e.target.closest(".pal"); if(pal) selectPalette(pal); });
+palette.addEventListener("keydown", e=>{ const pal=e.target.closest(".pal");
+  if(pal && (e.key==="Enter"||e.key===" ")){ e.preventDefault(); selectPalette(pal); } });
+
+trash.addEventListener("dragover", e=>{ e.preventDefault(); trash.classList.add("drop-hl"); });
+trash.addEventListener("dragleave", ()=>trash.classList.remove("drop-hl"));
+trash.addEventListener("drop", e=>{ e.preventDefault(); trash.classList.remove("drop-hl");
+  const d=readDrag(e); if(d && d.from) removeAt(d.from); dragData=null; });
+
+eboard.addEventListener("dragstart", onDragStart);
+eboard.addEventListener("dragover", e=>{ const sq=e.target.closest(".sq"); if(!sq) return; e.preventDefault();
+  document.querySelectorAll("#editorBoard .sq.drop-hl").forEach(x=>x.classList.remove("drop-hl")); sq.classList.add("drop-hl"); });
+eboard.addEventListener("dragleave", e=>{ const sq=e.target.closest(".sq"); if(sq) sq.classList.remove("drop-hl"); });
+eboard.addEventListener("drop", e=>{ const sq=e.target.closest(".sq"); if(!sq) return; e.preventDefault();
+  sq.classList.remove("drop-hl"); const d=readDrag(e); if(d && d.piece) place(sq.dataset.square, d.piece, d.from); dragData=null; });
+eboard.addEventListener("click", e=>{ const sq=e.target.closest(".sq"); if(!sq) return;
+  if(selectedPiece==="trash") removeAt(sq.dataset.square);
+  else if(selectedPiece) place(sq.dataset.square, selectedPiece, null); });
+eboard.addEventListener("keydown", e=>{ const sq=e.target.closest(".sq"); if(!sq) return;
+  if(e.key==="Enter"||e.key===" "){ e.preventDefault();
+    if(selectedPiece==="trash") removeAt(sq.dataset.square);
+    else if(selectedPiece) place(sq.dataset.square, selectedPiece, null); }
+  else if(e.key==="Delete"||e.key==="Backspace"){ e.preventDefault(); removeAt(sq.dataset.square); } });
+
+/* ---------- Aktionen ---------- */
+$("#analyzeBtn").addEventListener("click",computeFromEditor);
+$("#startBtn").addEventListener("click",()=>{ editorState=fenToState(START); renderEditor(); });
+$("#clearBtn").addEventListener("click",()=>{ editorState={}; renderEditor(); });
+document.querySelectorAll('input[name="side"]').forEach(r=>r.addEventListener("change",()=>{
+  document.querySelectorAll(".seg").forEach(s=>s.classList.toggle("on", s.querySelector("input").checked));
+}));
+$("#fenBtn").addEventListener("click",()=>{
+  const fen=$("#fenInput").value.trim();
+  if(!isValidFen(fen)){ showError("Die Stellung ist noch unvollständig","Erwartet werden 8 durch «/» getrennte Reihen und danach die Zugfarbe (w oder b). Beispiel steht im grauen Platzhaltertext."); return; }
+  computeFromFen(fen);
+});
+
+function computeFromEditor(){
+  const vals=Object.values(editorState);
+  if(vals.filter(p=>p==="K").length!==1 || vals.filter(p=>p==="k").length!==1){
+    showError("Die Stellung ist noch nicht spielbar","Es braucht genau einen weissen und einen schwarzen König. Ziehe die fehlenden Könige aufs Brett und berechne erneut.");
+    return;
+  }
+  computeFromFen(stateToFen());
+}
+async function computeFromFen(fen){
+  showLoading("Optimaler Zug wird berechnet …");
+  try{
+    const res=await fetch((apiBase()||"")+"/best-move",{
+      method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({fen})});
+    if(!res.ok) throw new Error("HTTP "+res.status);
+    const data=await res.json(); setStatus("online","Server verbunden");
+    renderResult(normalize({fen,...data}),false);
+  }catch(err){
+    demoFallback("Der Server ist gerade nicht erreichbar.");
+  }
+}
+
+/* Antwort-Felder tolerant lesen (verschiedene mögliche Namen) */
+function normalize(d){
+  return {
+    fen: d.fen || d.position || $("#fenInput").value.trim() || START,
+    move: d.best_move || d.bestmove || d.move || d.uci || "",
+    san: d.san || "",
+    evaluation: (d.evaluation ?? d.value ?? d.score ?? d.win_prob ?? null),
+  };
+}
+
+/* ---------- Rendern ---------- */
+function showLoading(text){
+  $("#output").innerHTML=`<div class="loading"><span class="spinner"></span><div style="margin-top:8px">${text}</div></div>`;
+}
+function showError(title,body){
+  $("#output").innerHTML=`<div class="msg error"><span>⚠️</span><div><strong>${esc(title)}</strong>${esc(body)}</div></div>`;
+}
+function demoFallback(reason){
+  const demo={ fen:"r1bqkbnr/pppp1ppp/2n5/1B2p3/4P3/5N2/PPPP1PPP/RNBQK2R b KQkq - 3 3",
+               move:"a7a6", san:"a6", evaluation:0.15 };
+  renderResult(demo,true,reason);
+  setStatus("offline","Kein Server — Demo");
+}
+
+function renderResult(r,isDemo,reason){
+  const fen=isValidFen(r.fen)?r.fen:START;
+  const side = fen.split(/\s+/)[1]==="b" ? "Schwarz am Zug" : "Weiss am Zug";
+  const from=r.move?r.move.slice(0,2):null, to=r.move?r.move.slice(2,4):null;
+  const moveLabel = r.san || (r.move ? `${r.move.slice(0,2)}–${r.move.slice(2,4)}` : "—");
+  const ev = evalView(r.evaluation, fen);
+
+  let html="";
+  if(isDemo){
+    html+=`<div class="msg demo"><span>🔌</span><div><strong>Demoergebnis (kein Server verbunden)</strong>${esc(reason||"")} So sieht die Antwort mit angebundenem Server aus. Server-Adresse unter «⚙︎ Server».</div></div>`;
+  }
+  html+=`<div class="board-wrap">
+      <div class="ranks">${[8,7,6,5,4,3,2,1].map(n=>`<span>${n}</span>`).join("")}</div>
+      <div class="board" role="img" aria-label="Erkannte Stellung mit hervorgehobenem Zug">${boardHtml(fen,from,to)}</div>
+    </div>
+    <div class="files">${["a","b","c","d","e","f","g","h"].map(f=>`<span>${f}</span>`).join("")}</div>
+
+    <div class="result-head">
+      <span class="move" aria-label="Empfohlener Zug ${esc(moveLabel)}">${esc(moveLabel)}</span>
+      <span class="side">${side}</span>
+    </div>
+    <div class="evalbar" aria-hidden="true"><div style="width:${ev.pct}%"></div></div>
+    <div class="evaltext">${esc(ev.text)}</div>
+
+    <dl class="kv">
+      <dt>Zug (UCI)</dt><dd>${esc(r.move||"—")}</dd>
+      <dt>Erkannte FEN</dt><dd style="word-break:break-all">${esc(fen)}</dd>
+    </dl>
+
+    <details class="fen" open style="margin-top:16px">
+      <summary>Erkennung korrigieren</summary>
+      <p class="hint" style="margin:10px 0 0">Stimmt die erkannte Stellung nicht? FEN anpassen und neu berechnen.</p>
+      <div class="row">
+        <input type="text" id="fenFix" spellcheck="false" value="${esc(fen)}">
+        <button class="btn-ghost" id="fixBtn" style="height:40px;white-space:nowrap">Neu berechnen</button>
+      </div>
+    </details>`;
+  $("#output").innerHTML=html;
+  const fix=$("#fixBtn");
+  if(fix) fix.addEventListener("click",()=>{
+    const v=$("#fenFix").value.trim();
+    if(!isValidFen(v)){ alert("Die FEN ist unvollständig. Bitte 8 Reihen und die Zugfarbe angeben."); return; }
+    computeFromFen(v);
+  });
+}
+
+function boardHtml(fen,from,to){
+  const rows=fen.split(/\s+/)[0].split("/");
+  let out="";
+  for(let r=0;r<8;r++){
+    let file=0;
+    for(const ch of rows[r]){
+      if(/\d/.test(ch)){ // leere Felder
+        for(let k=0;k<+ch;k++){ out+=cell(r,file,""); file++; }
+      }else{ out+=cell(r,file,ch); file++; }
+    }
+  }
+  function cell(r,f,piece){
+    const sq="abcdefgh"[f]+(8-r);
+    const shade=((r+f)%2===0)?"light":"dark";
+    const hl = sq===from?" from" : sq===to?" to" : "";
+    let inner="", label=sq+", leer";
+    if(piece){
+      const white=piece===piece.toUpperCase();
+      inner=`<span class="pc ${white?"white":"black"}">${PIECES[piece]}</span>`;
+      label=`${sq}, ${white?"weisser":"schwarzer"} ${NAMES[piece.toLowerCase()]}`;
+    }
+    return `<div class="sq ${shade}${hl}" title="${sq}" aria-label="${label}">${inner}</div>`;
+  }
+  return out;
+}
+
+/* Bewertung -> Balken + Text (aus Sicht der Zugpartei) */
+function evalView(v,fen){
+  if(v===null||v===undefined||isNaN(+v)) return {pct:50,text:"Keine Bewertung vom Server geliefert."};
+  v=+v; let white;
+  if(Math.abs(v)<=1){ white = v; }            // Value/Win-Prob-artig [-1,1]
+  else { white = 2/(1+Math.exp(-v/300))-1; }   // Centipawns -> logistisch
+  const blackToMove = fen.split(/\s+/)[1]==="b";
+  const mover = blackToMove ? -white : white;   // + = Vorteil für Zugpartei
+  const pct = Math.round((mover+1)/2*100);
+  let text;
+  if(Math.abs(mover)<0.08) text="Die Stellung ist ungefähr ausgeglichen.";
+  else if(mover>0)  text=`Vorteil für die Zugpartei (${pct}%).`;
+  else              text=`Nachteil für die Zugpartei (${pct}%).`;
+  return {pct,text};
+}
+
+/* ---------- Hilfsfunktionen ---------- */
+function isValidFen(fen){
+  if(!fen) return false;
+  const p=fen.split(/\s+/); if(p.length<2) return false;
+  const rows=p[0].split("/"); if(rows.length!==8) return false;
+  return rows.every(row=>{
+    let n=0; for(const c of row){ if(/\d/.test(c)) n+=+c; else if(/[prnbqkPRNBQK]/.test(c)) n++; else return false; }
+    return n===8;
+  }) && /^[wb]$/.test(p[1]);
+}
+function esc(s){ return String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c])); }
+
+/* Beim Laden: Editor aufbauen, Server unaufdringlich prüfen */
+buildPalette();
+renderEditor();
+checkApi();
+</script>
+</body>
+</html>
