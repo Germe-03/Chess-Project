@@ -4,3 +4,4 @@ pydantic==2.9.2
 python-multipart==0.0.9
 chess==1.11.1
 pillow==10.4.0
+numpy==2.1.3

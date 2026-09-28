@@ -12,6 +12,7 @@
     --primary-weak:#e7f0ff; --good:#1f9d57; --warn:#b4690e; --bad:#c23b3b;
     --focus:#1552d6; --shadow:0 1px 2px rgba(16,24,40,.06),0 4px 16px rgba(16,24,40,.08);
     --sq-light:#efe4cf; --sq-dark:#b48a63; --sq-from:#f6e27a; --sq-to:#8fd18f;
+    --marker:rgba(20,30,45,.42);
     --radius:14px;
   }
   :root[data-theme="dark"]{
@@ -20,6 +21,7 @@
     --primary-weak:#1c2942; --good:#4cc281; --warn:#e0a34a; --bad:#e97070;
     --focus:#7aa2ff; --shadow:0 1px 2px rgba(0,0,0,.4);
     --sq-light:#c9ba9c; --sq-dark:#6d5136; --sq-from:#b9a032; --sq-to:#4f9d55;
+    --marker:rgba(236,243,255,.5);
   }
   @media (prefers-color-scheme:dark){
     :root:not([data-theme="light"]){
@@ -28,6 +30,7 @@
       --primary-weak:#1c2942; --good:#4cc281; --warn:#e0a34a; --bad:#e97070;
       --focus:#7aa2ff; --shadow:0 1px 2px rgba(0,0,0,.4);
       --sq-light:#c9ba9c; --sq-dark:#6d5136; --sq-from:#b9a032; --sq-to:#4f9d55;
+      --marker:rgba(236,243,255,.5);
     }
   }
   *{box-sizing:border-box}
@@ -173,6 +176,14 @@
   .board.editor .pc{cursor:grab}
   .board.editor .pc:active{cursor:grabbing}
 
+  /* ---- Zugvorschau: ausgewählte Figur und ihre erreichbaren Felder ---- */
+  .board.editor .sq.sel-from{box-shadow:inset 0 0 0 3px var(--focus)}
+  .board.editor .sq.target::before,
+  .board.editor .sq.capture::before{content:"";position:absolute;z-index:0;pointer-events:none}
+  .board.editor .sq.target::before{width:30%;height:30%;border-radius:50%;background:var(--marker)}
+  .board.editor .sq.capture::before{inset:6%;border-radius:50%;border:3px solid var(--marker)}
+  .board.editor .sq.no-moves{box-shadow:inset 0 0 0 3px var(--bad)}
+
   /* ---- Segmented control (Zugpartei) ---- */
   .segmented{border:0;padding:0;margin:14px 0 2px;min-width:0}
   .segmented legend{font-size:13px;color:var(--muted);margin-bottom:6px;padding:0}
@@ -234,7 +245,7 @@
           <div class="pal trash" id="trash" title="Zum Entfernen hierher ziehen" aria-label="Papierkorb – Figur entfernen">🗑</div>
         </div>
       </div>
-      <p class="hint" id="palHint" style="margin:8px 0 12px">Tipp: Auf eine Palette-Figur tippen, dann auf ein Feld – so geht es auch ohne Ziehen.</p>
+      <p class="hint" id="palHint" style="margin:8px 0 12px">Tipp: Auf eine Palette-Figur tippen, dann auf ein Feld – so geht es auch ohne Ziehen. Tippst du eine Figur an, die bereits auf dem Brett steht, zeigt das Brett ihre möglichen Züge.</p>
 
       <!-- Editor-Brett -->
       <div class="board-wrap">
@@ -390,15 +401,53 @@ function renderEditor(){
   for(let r=0;r<8;r++) for(let f=0;f<8;f++){
     const sq=FILES[f]+(8-r), shade=((r+f)%2===0)?"light":"dark", p=editorState[sq];
     const piece = p ? `<span class="pc ${p===p.toUpperCase()?"white":"black"}" draggable="true">${PIECES[p]}</span>` : "";
-    const label = p ? `${sq}, ${p===p.toUpperCase()?"weisse":"schwarze"} ${NAMES[p.toLowerCase()]}` : `${sq}, leer`;
-    html += `<div class="sq ${shade}" data-square="${sq}" role="button" tabindex="0" aria-label="${label}">${piece}</div>`;
+    let label = p ? `${sq}, ${p===p.toUpperCase()?"weisse":"schwarze"} ${NAMES[p.toLowerCase()]}` : `${sq}, leer`;
+    let cls = `sq ${shade}`;
+    if(sq===selectedSquare){
+      cls += legalTargets.size ? " sel-from" : " sel-from no-moves";
+      label += ", ausgewählt";
+    }else if(legalTargets.has(sq)){
+      cls += p ? " capture" : " target";
+      label += p ? ", schlagbar" : ", erreichbar";
+    }
+    html += `<div class="${cls}" data-square="${sq}" role="button" tabindex="0" aria-label="${label}">${piece}</div>`;
   }
   $("#editorBoard").innerHTML=html;
+}
+
+/* ---------- Zugvorschau: welche Felder kann die gewählte Figur erreichen? ----------
+   Die Regelprüfung macht der Server mit python-chess. Dadurch stimmen Fesselungen,
+   Rochade und vor allem die König-Regel: Felder, auf denen er im Schach stünde,
+   tauchen gar nicht erst auf. */
+let selectedSquare=null;
+let legalTargets=new Set();
+
+function clearSelection(){
+  if(selectedSquare===null && legalTargets.size===0) return;
+  selectedSquare=null; legalTargets=new Set(); renderEditor();
+}
+
+async function showMoves(sq){
+  if(!editorState[sq] || selectedSquare===sq){ clearSelection(); return; }
+  selectedSquare=sq; legalTargets=new Set(); renderEditor();
+  try{
+    const res=await fetch((apiBase()||"")+"/legal-moves",{
+      method:"POST",headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({fen:stateToFen(), square:sq})});
+    if(!res.ok) throw new Error("HTTP "+res.status);
+    const data=await res.json();
+    if(selectedSquare!==sq) return;          // inzwischen woanders hingeklickt
+    legalTargets=new Set(data.targets||[]);
+    renderEditor();
+  }catch{
+    if(selectedSquare===sq){ legalTargets=new Set(); renderEditor(); }
+  }
 }
 
 /* ---------- Auswahl per Klick (Alternative zu Drag&Drop, auch für Tastatur/Touch) ---------- */
 let selectedPiece=null; // "K".."p", "trash" oder null
 function selectPalette(el){
+  clearSelection();                       // Zugvorschau und Palette schliessen sich aus
   const val = el.id==="trash" ? "trash" : el.dataset.piece;
   const already = el.classList.contains("sel");
   document.querySelectorAll(".pal").forEach(x=>x.classList.remove("sel"));
@@ -417,8 +466,17 @@ function onDragStart(e){
   try{ e.dataTransfer.setData("text/plain", JSON.stringify(dragData)); e.dataTransfer.effectAllowed="copyMove"; }catch{}
 }
 function readDrag(e){ try{ return JSON.parse(e.dataTransfer.getData("text/plain")); }catch{ return dragData; } }
-function place(sq,piece,from){ if(from && from!==sq) delete editorState[from]; editorState[sq]=piece; renderEditor(); }
-function removeAt(sq){ delete editorState[sq]; renderEditor(); }
+function place(sq,piece,from){
+  if(from && from!==sq) delete editorState[from];
+  editorState[sq]=piece;
+  selectedSquare=null; legalTargets=new Set();   // Stellung geändert -> Vorschau gilt nicht mehr
+  renderEditor();
+}
+function removeAt(sq){
+  delete editorState[sq];
+  selectedSquare=null; legalTargets=new Set();
+  renderEditor();
+}
 
 const palette=$("#palette"), trash=$("#trash"), eboard=$("#editorBoard");
 palette.addEventListener("dragstart", onDragStart);
@@ -437,19 +495,24 @@ eboard.addEventListener("dragover", e=>{ const sq=e.target.closest(".sq"); if(!s
 eboard.addEventListener("dragleave", e=>{ const sq=e.target.closest(".sq"); if(sq) sq.classList.remove("drop-hl"); });
 eboard.addEventListener("drop", e=>{ const sq=e.target.closest(".sq"); if(!sq) return; e.preventDefault();
   sq.classList.remove("drop-hl"); const d=readDrag(e); if(d && d.piece) place(sq.dataset.square, d.piece, d.from); dragData=null; });
+function activateSquare(sq){
+  if(selectedPiece==="trash"){ removeAt(sq); return; }
+  if(selectedPiece){ place(sq, selectedPiece, null); return; }
+  // Auf ein vorgeschlagenes Feld geklickt: Zug ausführen statt nur anzeigen.
+  if(selectedSquare && legalTargets.has(sq)){ place(sq, editorState[selectedSquare], selectedSquare); return; }
+  showMoves(sq);
+}
 eboard.addEventListener("click", e=>{ const sq=e.target.closest(".sq"); if(!sq) return;
-  if(selectedPiece==="trash") removeAt(sq.dataset.square);
-  else if(selectedPiece) place(sq.dataset.square, selectedPiece, null); });
+  activateSquare(sq.dataset.square); });
 eboard.addEventListener("keydown", e=>{ const sq=e.target.closest(".sq"); if(!sq) return;
-  if(e.key==="Enter"||e.key===" "){ e.preventDefault();
-    if(selectedPiece==="trash") removeAt(sq.dataset.square);
-    else if(selectedPiece) place(sq.dataset.square, selectedPiece, null); }
-  else if(e.key==="Delete"||e.key==="Backspace"){ e.preventDefault(); removeAt(sq.dataset.square); } });
+  if(e.key==="Enter"||e.key===" "){ e.preventDefault(); activateSquare(sq.dataset.square); }
+  else if(e.key==="Delete"||e.key==="Backspace"){ e.preventDefault(); removeAt(sq.dataset.square); }
+  else if(e.key==="Escape"){ clearSelection(); } });
 
 /* ---------- Aktionen ---------- */
 $("#analyzeBtn").addEventListener("click",computeFromEditor);
-$("#startBtn").addEventListener("click",()=>{ editorState=fenToState(START); renderEditor(); });
-$("#clearBtn").addEventListener("click",()=>{ editorState={}; renderEditor(); });
+$("#startBtn").addEventListener("click",()=>{ editorState=fenToState(START); clearSelection(); renderEditor(); });
+$("#clearBtn").addEventListener("click",()=>{ editorState={}; clearSelection(); renderEditor(); });
 document.querySelectorAll('input[name="side"]').forEach(r=>r.addEventListener("change",()=>{
   document.querySelectorAll(".seg").forEach(s=>s.classList.toggle("on", s.querySelector("input").checked));
 }));

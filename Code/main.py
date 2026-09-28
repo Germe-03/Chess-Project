@@ -7,7 +7,8 @@ Kern-Use-Case (CUJ): Screenshot einer Stellung  ->  optimaler Zug.
 
 Pipeline (zweistufig):
     1) Bild -> Stellung erkennen (Computer Vision)   [hier noch PLATZHALTER]
-    2) Stellung -> bester Zug (Engine / RL-Agent)    [hier einfache Heuristik]
+    2) Stellung -> bester Zug: RL-Agent, wo er zuständig ist (Endspiele mit drei
+       Figuren, trainiert in Code/rl/), sonst die Material-Heuristik
 
 Start (lokal):
     .venv aktivieren, dann aus dem Projekt-Wurzelverzeichnis:
@@ -26,6 +27,10 @@ from fastapi import FastAPI, File, HTTPException, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 from pydantic import BaseModel, Field
+
+from .rl.engine import material_evaluation, material_move, value_move
+from .rl.features import board_to_features
+from .rl.valuenet import ValueNet
 
 # --------------------------------------------------------------------------- #
 # App-Grundgerüst
@@ -47,7 +52,9 @@ app.add_middleware(
 )
 
 WEB_DIR = Path(__file__).resolve().parent.parent / "web"
+MODEL_DIR = Path(__file__).resolve().parent.parent / "models"
 START_FEN = chess.STARTING_FEN
+GAMMA = 0.99
 
 
 # --------------------------------------------------------------------------- #
@@ -62,56 +69,62 @@ class MoveResponse(BaseModel):
     best_move: str = Field(..., description="Empfohlener Zug in UCI-Notation, z. B. e2e4")
     san: str = Field("", description="Empfohlener Zug in lesbarer SAN-Notation, z. B. e4")
     evaluation: float = Field(
-        0.0, description="Bewertung in Centipawns aus Sicht von Weiss (+ = Vorteil Weiss)"
+        0.0,
+        description=(
+            "Bewertung aus Sicht von Weiss (+ = Vorteil Weiss). Skala je nach Engine: "
+            "Centipawns bei 'material', erwarteter Partieausgang in [-1, 1] bei 'rl'."
+        ),
     )
     side_to_move: str = Field(..., description="'white' oder 'black'")
     recognition: str = Field(
         "n/a", description="Wie die Stellung ermittelt wurde: 'fen', 'placeholder', ..."
     )
+    engine: str = Field(
+        "material", description="Welche Engine den Zug gewählt hat: 'rl' oder 'material'"
+    )
+
+
+class LegalMovesRequest(BaseModel):
+    fen: str = Field(..., description="Stellung in FEN-Notation", examples=[START_FEN])
+    square: str = Field(..., description="Ausgangsfeld der Figur, z. B. 'e1'", examples=["e2"])
+
+
+class LegalMovesResponse(BaseModel):
+    square: str = Field(..., description="Abgefragtes Ausgangsfeld")
+    targets: list[str] = Field(
+        default_factory=list, description="Felder, die diese Figur regelkonform erreichen kann"
+    )
+    in_check: bool = Field(False, description="Steht diese Partei im Schach?")
 
 
 # --------------------------------------------------------------------------- #
-# Business-Logik (Platzhalter — später durch RL-Agent / stärkere Engine ersetzen)
+# Zug-Auswahl: RL-Agent wo zuständig, sonst die Material-Heuristik
 # --------------------------------------------------------------------------- #
-PIECE_VALUES = {
-    chess.PAWN: 100,
-    chess.KNIGHT: 320,
-    chess.BISHOP: 330,
-    chess.ROOK: 500,
-    chess.QUEEN: 900,
-    chess.KING: 0,
+# Die trainierten Modelle sind Endspiel-Spezialisten (König + Dame bzw. König +
+# Turm gegen König). Ausserhalb dieser Stellungen bleibt es bei der Heuristik —
+# eine ehrliche Zuständigkeitsgrenze ist besser als ein Modell, das weit
+# ausserhalb seiner Trainingsverteilung rät.
+RL_MODEL_FILES = {
+    chess.QUEEN: MODEL_DIR / "value_kqk.npz",
+    chess.ROOK: MODEL_DIR / "value_krk.npz",
+}
+RL_AGENTS = {
+    piece_type: ValueNet.load(path)
+    for piece_type, path in RL_MODEL_FILES.items()
+    if path.exists()
 }
 
 
-def material_evaluation(board: chess.Board) -> float:
-    """Einfache Materialbilanz in Centipawns, positiv = Vorteil Weiss."""
-    score = 0
-    for piece_type, value in PIECE_VALUES.items():
-        score += value * len(board.pieces(piece_type, chess.WHITE))
-        score -= value * len(board.pieces(piece_type, chess.BLACK))
-    return float(score)
-
-
-def choose_best_move(board: chess.Board) -> chess.Move | None:
-    """
-    PLATZHALTER-'Engine': material-gieriger Ein-Zug-Blick.
-
-    Bewertet jeden legalen Zug nach der Materialbilanz danach (aus Sicht der
-    Zugpartei) und wählt den besten. Liefert immer einen LEGALEN Zug — genug,
-    damit die UI end-to-end funktioniert. Wird später durch den RL-Agenten
-    (bzw. eine echte Suche) ersetzt.
-    """
-    best_move, best_score = None, float("-inf")
-    white_to_move = board.turn == chess.WHITE
-    for move in board.legal_moves:
-        board.push(move)
-        score = material_evaluation(board)
-        if not white_to_move:
-            score = -score  # aus Sicht der ziehenden Partei
-        board.pop()
-        if score > best_score:
-            best_score, best_move = score, move
-    return best_move
+def select_agent(board: chess.Board) -> ValueNet | None:
+    """Passendes Endspiel-Modell für die Stellung, sonst None."""
+    pieces = board.piece_map()
+    if len(pieces) != 3:
+        return None
+    for piece in pieces.values():
+        agent = RL_AGENTS.get(piece.piece_type)
+        if agent is not None:
+            return agent
+    return None
 
 
 def analyse(board: chess.Board, recognition: str) -> MoveResponse:
@@ -119,18 +132,28 @@ def analyse(board: chess.Board, recognition: str) -> MoveResponse:
     if board.is_game_over():
         raise HTTPException(status_code=422, detail=f"Partie beendet: {board.result()}")
 
-    move = choose_best_move(board)
+    agent = select_agent(board)
+    if agent is not None:
+        move = value_move(board, agent, GAMMA)
+        value = float(agent.value(board_to_features(board)[None, :])[0])
+        evaluation = value if board.turn == chess.WHITE else -value
+        engine = "rl"
+    else:
+        move = material_move(board)
+        evaluation = material_evaluation(board)
+        engine = "material"
+
     if move is None:
         raise HTTPException(status_code=422, detail="Keine legalen Züge in dieser Stellung.")
 
-    san = board.san(move)
     return MoveResponse(
         fen=board.fen(),
         best_move=move.uci(),
-        san=san,
-        evaluation=material_evaluation(board),
+        san=board.san(move),
+        evaluation=evaluation,
         side_to_move="white" if board.turn == chess.WHITE else "black",
         recognition=recognition,
+        engine=engine,
     )
 
 
@@ -155,6 +178,36 @@ def best_move(req: FenRequest) -> MoveResponse:
     """Optimalen Zug zu einer als FEN gegebenen Stellung berechnen."""
     board = board_from_fen(req.fen)
     return analyse(board, recognition="fen")
+
+
+@app.post("/legal-moves", response_model=LegalMovesResponse, tags=["schach"])
+def legal_moves(req: LegalMovesRequest) -> LegalMovesResponse:
+    """
+    Erreichbare Felder einer einzelnen Figur — für die Zugvorschau im Brett-Editor.
+
+    Die Regelprüfung übernimmt python-chess. Dadurch sind Fesselungen, Rochade und
+    En passant automatisch korrekt, und für den König gilt insbesondere: Felder,
+    auf denen er im Schach stünde, sind nicht dabei.
+
+    Anders als beim Spielen wird hier die Zugpartei auf die Farbe der angeklickten
+    Figur gesetzt. Im Editor soll man ja auch die Seite anschauen dürfen, die
+    gerade nicht am Zug ist.
+    """
+    board = board_from_fen(req.fen)
+    try:
+        square = chess.parse_square(req.square)
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Ungültiges Feld.")
+
+    piece = board.piece_at(square)
+    if piece is None:
+        return LegalMovesResponse(square=req.square, targets=[])
+
+    board.turn = piece.color
+    targets = sorted(
+        {chess.square_name(move.to_square) for move in board.legal_moves if move.from_square == square}
+    )
+    return LegalMovesResponse(square=req.square, targets=targets, in_check=board.is_check())
 
 
 @app.post("/best-move-from-image", response_model=MoveResponse, tags=["schach"])
@@ -185,5 +238,8 @@ async def best_move_from_image(image: UploadFile = File(...)) -> MoveResponse:
 def index():
     index_file = WEB_DIR / "index.html"
     if index_file.exists():
-        return FileResponse(index_file)
+        # Ohne no-cache liefert der Browser nach einer UI-Änderung weiter die
+        # alte Seite aus — beim Entwickeln verwirrend, in Produktion unkritisch,
+        # weil die Datei ohnehin klein ist.
+        return FileResponse(index_file, headers={"Cache-Control": "no-cache"})
     return {"message": "UI nicht gefunden. API-Doku unter /docs."}
