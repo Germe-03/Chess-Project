@@ -8,12 +8,20 @@ zwischen zwei Stellungen:
 
     Belohnung = r_Ende  −  gamma · Φ(s')  −  Φ(s)
 
-Das ist Potential-Based Reward Shaping (Ng, Harada & Russell 1999). Über eine
-ganze Partie heben sich die Φ-Terme paarweise weg; übrig bleibt der echte Ausgang
-minus einer Konstanten, die vom Verhalten des Agenten unabhängig ist. Deshalb
-kann der Agent das System nicht ausnutzen: Eine Figur ins Zentrum und wieder
-zurück ergibt exakt null, und wer mit Material-Vorsprung verliert, zahlt den
-Vorschuss am Ende vollständig zurück.
+Das ist Potential-Based Reward Shaping (Ng, Harada & Russell 1999). Die
+Eigenschaft, auf die es ankommt, ist
+
+    V_geshaped(s) = V*(s) - Phi(s)
+
+Weil Phi(s) für alle Züge aus derselben Stellung derselbe Wert ist, verschiebt es
+die Reihenfolge der Züge nicht: Die beste Wahl bleibt die beste Wahl.
+
+Achtung, hier lauert ein Irrtum: Das übliche Teleskop-Argument - die Phi-Terme
+höben sich über eine Episode paarweise weg - gilt in der Negamax-Form NICHT.
+Dort steht -gamma*Phi(s') und im nächsten Halbzug -Phi(s'); beide haben dasselbe
+Vorzeichen und addieren sich. An einer echten Partie nachgerechnet summierten
+sich die Belohnungen auf +17.35 statt auf null. Die Policy-Invarianz gilt
+trotzdem, aber über die Gleichung oben.
 
 Φ wird immer aus Sicht der Partei berechnet, die am Zug ist, und ist an
 Endstellungen zwingend 0 — ohne das bricht die Garantie.

@@ -177,6 +177,9 @@ def main() -> None:
     parser.add_argument("--seed", type=int, default=0)
     parser.add_argument("--resume", default=None,
                         help="Vorhandenes Modell laden und weitertrainieren statt bei null zu beginnen")
+    parser.add_argument("--widen", type=int, default=None,
+                        help="Beim Fortsetzen die versteckte Schicht auf diese Breite bringen, "
+                             "ohne die gelernte Funktion zu verändern (Net2Net)")
     parser.add_argument("--out", default=None)
     parser.add_argument("--log", default=None)
     args = parser.parse_args()
@@ -194,6 +197,8 @@ def main() -> None:
     # Wert festhalten.
     if args.resume:
         net = ValueNet.load(args.resume)
+        if args.widen and args.widen > net.hidden_size:
+            net = net.widened(args.widen, seed=args.seed)
     else:
         net = ValueNet(hidden_size=args.hidden, seed=args.seed, shaped=args.shaping)
 
@@ -206,7 +211,11 @@ def main() -> None:
         ("Lernrate", args.lr),
         ("Hidden-Units", net.hidden_size),
         ("Shaping", "ja" if net.shaped else "nein (nur Partieausgang)"),
-        ("Start", f"Fortsetzung von {args.resume}" if args.resume else "neues Netz"),
+        (
+            "Start",
+            (f"Fortsetzung von {args.resume}" + (f", verbreitert auf {args.widen}" if args.widen else ""))
+            if args.resume else "neues Netz",
+        ),
         ("epsilon", f"{args.eps_start} -> {args.eps_end} über {eps_episodes} Episoden"),
         (
             "Curriculum",

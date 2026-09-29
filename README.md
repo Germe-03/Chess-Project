@@ -247,12 +247,31 @@ kommt deshalb eine Grundbewertung Φ dazu (`Code/rl/shaping.py`), die als
 Belohnung = r_Ende  −  gamma · Φ(s')  −  Φ(s)
 ```
 
-Das ist Potential-Based Reward Shaping (Ng, Harada & Russell 1999). Über eine
-ganze Partie heben sich die Φ-Terme paarweise weg; übrig bleibt der echte Ausgang
-minus einer Konstanten, die vom Verhalten des Agenten unabhängig ist. Genau
-deshalb ist das System nicht ausnutzbar: Eine Figur ins Zentrum und wieder zurück
-ergibt exakt null, und wer mit Materialvorsprung verliert, zahlt den Vorschuss
-am Ende vollständig zurück.
+Das ist Potential-Based Reward Shaping (Ng, Harada & Russell 1999). Entscheidend
+ist, dass für die geshapte Bewertung
+
+```
+V_geshaped(s) = V*(s) − Φ(s)
+```
+
+gilt. Weil `Φ(s)` für alle Züge aus derselben Stellung derselbe Wert ist,
+verschiebt es die Reihenfolge der Züge nicht — die beste Wahl bleibt die beste
+Wahl. Das Shaping ändert also nur, **wann** die Rückmeldung kommt, nicht **was**
+sich lohnt.
+
+**Eine Falle, in die wir zuerst getappt sind:** Das übliche Teleskop-Argument —
+die Φ-Terme höben sich über eine Episode paarweise weg, übrig bleibe nur der
+Ausgang — gilt hier **nicht**. In der Negamax-Form steht `−γ·Φ(s')` und im
+nächsten Halbzug `−Φ(s')`; beide haben dasselbe Vorzeichen und addieren sich,
+statt sich aufzuheben. An einer echten Partie nachgerechnet summierten sich die
+Belohnungen auf **+17.35** statt auf null. Das Teleskop gilt für einen
+Einzelagenten, nicht für zwei abwechselnde Parteien. Die Policy-Invarianz bleibt
+trotzdem bestehen, aber über die Gleichung oben.
+
+Dass in der Praxis nichts ausufert, lässt sich an den Lernzielen einer Episode
+ablesen: Sie liegen zwischen −0.34 und +0.40, wechseln bei 304 von 333 Halbzügen
+das Vorzeichen und haben einen Mittelwert von +0.02 — genau das Bild, das man bei
+abwechselnder Bewertung zweier Seiten erwartet.
 
 Φ besteht aus vier Teilen, alle in Bauerneinheiten, zusammen gestaucht auf ±0.5:
 
@@ -338,23 +357,32 @@ Punktewertung zählt ein Remis als halben Sieg.
 
 | Paarung | Sieg | Remis | Niederlage | Punkte |
 |---|---|---|---|---|
-| **v2 gegen v1** | **52 %** | 48 % | **0 %** | 76 % |
-| v2 gegen Material-Heuristik | 100 % | 0 % | 0 % | 100 % |
-| v2 gegen Stockfish (Elo 1320) | 10 % | **36 %** | 54 % | **28 %** |
+| **v3 gegen v2** | **100 %** | 0 % | **0 %** | **100 %** |
+| v2 gegen v1 | 52 % | 48 % | 0 % | 76 % |
+| v3 gegen Material-Heuristik | 100 % | 0 % | 0 % | 100 % |
+| **v3 gegen Stockfish (Elo 1320)** | **24 %** | 10 % | 66 % | **29 %** |
+| v2 gegen Stockfish (Elo 1320) | 16 % | 22 % | 62 % | 27 % |
 | v1 gegen Stockfish (Elo 1320) | 12 % | 20 % | 68 % | 22 % |
 | Material-Heuristik gegen Stockfish | 0 % | 6 % | 94 % | 3 % |
 | nur Φ, untrainiert, gegen Material | 50 % | 50 % | 0 % | 75 % |
 
-Drei Dinge lassen sich daraus ablesen.
+Vier Dinge lassen sich daraus ablesen.
 
-**Das Training wirkt.** v2 verliert keine einzige Partie gegen v1. Gegen
-Stockfish steigt die Punktequote von 22 auf 28 Prozent.
+**Jede Version schlägt ihren Vorgänger.** v2 verliert keine Partie gegen v1, v3
+gewinnt alle 50 gegen v2.
 
-**Gelernt wurde Verteidigung, nicht Angriff.** Die Siege gegen Stockfish blieben
-gleich (12 → 10 Prozent), aber die Remis haben sich fast verdoppelt (20 → 36
-Prozent) und die Niederlagen fielen von 68 auf 54 Prozent. Für eine Belohnung,
-die Sieg und Remis klar trennt, ist das die naheliegende erste Stufe: Niederlagen
-zu vermeiden ist leichter, als Gewinne zu erzwingen.
+**Der Spielstil kippt von Sicherheit auf Gewinn.** v2 hatte vor allem gelernt,
+nicht zu verlieren: gegen Stockfish 16 Prozent Siege bei 22 Prozent Remis. v3
+dreht das um — 24 Prozent Siege bei nur noch 10 Prozent Remis. Unter dem Strich
+ändert das gegen den stärkeren Gegner wenig (27 auf 29 Punkteprozent), gegen den
+gleich starken Vorgänger ist es vernichtend.
+
+**Der TD-Fehler taugt nicht als Fortschrittsmass.** Bei v3 blieb er über alle
+3 000 Episoden flach bei 0.11 und lag damit sogar über dem Endwert von v2
+(0.099) — während v3 gleichzeitig 100 Prozent gegen v2 gewinnt. Er misst, wie
+gut der Agent seine **eigenen** Partien vorhersagt; werden die Partien länger und
+schwerer, kann er steigen, obwohl die Spielstärke wächst. Nur der direkte
+Vergleich zählt.
 
 **Etwa die Hälfte der Spielstärke ist handgeschrieben.** Ein völlig untrainiertes
 Netz schlägt mit Φ allein die Material-Heuristik bereits mit 75 Punkteprozent.
@@ -368,8 +396,25 @@ nicht, weil die Engine eine Quiescence-Suche anhängt und die Blätter mit einem
 neuronalen Netz bewertet. Erst die Elo-Begrenzung macht den Vergleich
 aussagekräftig; Knotenlimits allein wirken nicht.
 
-**Lernverlauf v1 → v2:** Der TD-Fehler fiel über 5 000 Episoden von 0.124 auf
-0.099 und lief danach flach. Trainingsdauer 104 Minuten.
+**Was jede Version ausmacht:**
+
+| | Episoden | Netz | Abbruchlimit | Dauer |
+|---|---|---|---|---|
+| v1 | 1 000 | 128 Neuronen, 99 k Parameter | 160 Halbzüge | – |
+| v2 | 5 000 | 128 Neuronen, 99 k Parameter | 160 Halbzüge | 104 min |
+| **v3** | 3 000 | **512 Neuronen, 397 k Parameter** | **400 Halbzüge** | 134 min |
+
+Zwei Änderungen machten v3 aus. Das Netz wurde per **Net2Net** verbreitert, also
+funktionserhaltend: v3 startete exakt auf v2-Niveau statt bei null, die Abweichung
+lag bei 6·10⁻⁸. Gemessen kostet die vierfache Kapazität nur 3 Prozent Rechenzeit,
+weil nicht das Netz der Flaschenhals ist, sondern Φ mit seiner SEE-Rechnung
+(3.7 von 6.7 ms pro Halbzug).
+
+Und das **Abbruchlimit** stieg von 160 auf 400 Halbzüge. Das war der grössere
+Hebel: Bei v2 endeten 55 Prozent der Episoden am Limit, der Agent bekam dort also
+nie ein echtes Ergebnis zu sehen, sondern bootstrappte aus der eigenen Schätzung.
+Bei v3 sind es noch 1.9 Prozent. Gemessen an 30 Partien mit Limit 600 endet
+**jede** Partie von selbst, im Median bei Halbzug 238.
 
 ## Grenzen und nächste Schritte
 

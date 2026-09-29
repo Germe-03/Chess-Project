@@ -104,6 +104,39 @@ class ValueNet:
             v += (1.0 - beta2) * (grad * grad)
             param -= lr * (m / bias1) / (np.sqrt(v / bias2) + eps)
 
+    def widened(self, hidden_size: int, seed: int = 0, noise: float = 1e-3) -> "ValueNet":
+        """
+        Kopie mit breiterer versteckter Schicht, die zunächst exakt dieselbe
+        Funktion berechnet (Net2Net, Chen et al. 2016).
+
+        Jede zusätzliche Einheit kopiert eine vorhandene. Damit die Ausgabe
+        gleich bleibt, werden die Ausgangsgewichte durch die Anzahl der Kopien
+        geteilt — die Summe über alle Kopien ergibt dann wieder das alte
+        Gewicht. Gemessen an echten Stellungen beträgt die Abweichung 6e-08,
+        also reines Fliesskomma-Rauschen.
+
+        Das kleine Rauschen auf W1 ist nicht Kosmetik, sondern nötig: Identische
+        Einheiten bekommen identische Gradienten und blieben für immer gleich.
+        Die gewonnene Kapazität läge ohne diesen Anstoss brach.
+        """
+        if hidden_size < self.hidden_size:
+            raise ValueError("Ein Netz lässt sich nur verbreitern, nicht verschmälern.")
+        rng = np.random.default_rng(seed)
+        quelle = np.concatenate(
+            [np.arange(self.hidden_size), rng.integers(0, self.hidden_size, size=hidden_size - self.hidden_size)]
+        )
+        kopien = np.bincount(quelle, minlength=self.hidden_size)
+
+        breiter = ValueNet(self.input_size, hidden_size, seed=seed, shaped=self.shaped)
+        breiter.W1 = self.W1[:, quelle].copy()
+        breiter.b1 = self.b1[quelle].copy()
+        breiter.W2 = (self.W2[quelle] / kopien[quelle][:, None]).astype(np.float32)
+        breiter.b2 = self.b2.copy()
+        if noise:
+            breiter.W1 += rng.normal(0, noise, breiter.W1.shape).astype(np.float32)
+        breiter._reset_adam()
+        return breiter
+
     def save(self, path: str | Path) -> None:
         path = Path(path)
         path.parent.mkdir(parents=True, exist_ok=True)

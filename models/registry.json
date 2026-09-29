@@ -1,5 +1,5 @@
 {
-  "active": "v2",
+  "active": "v3",
   "versions": [
     {
       "name": "v1",
@@ -24,6 +24,19 @@
         "punkte_vs_stockfish_1320": 0.28,
         "punkte_vs_material": 1.0,
         "punkte_vs_v1": 0.76
+      }
+    },
+    {
+      "name": "v3",
+      "file": "full_v3.npz",
+      "trained": "2026-09-29",
+      "episodes": 3000,
+      "parent": "v2",
+      "notes": "Netz von 128 auf 512 Neuronen verbreitert (Net2Net, funktionserhaltend), Abbruchlimit von 160 auf 400 Halbzüge. Gewinnt 100 Prozent gegen v2.",
+      "results": {
+        "punkte_vs_stockfish_1320": 0.29,
+        "punkte_vs_material": 1.0,
+        "punkte_vs_v2": 1.0
       }
     }
   ]
