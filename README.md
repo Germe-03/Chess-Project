@@ -207,8 +207,9 @@ Stellungen (`difficulty = 1`).
 ```bash
 python -m Code.rl.train --task kqk --episodes 30000
 python -m Code.rl.train --task krk --episodes 30000
-python -m Code.rl.train --task full --shaping --episodes 5000 --max-plies 160
-python -m Code.rl.train --task full --resume models/full_v2.npz --episodes 5000 --eps-start 0.3
+python -m Code.rl.train --task full --shaping --episodes 5000 --max-plies 400
+python -m Code.rl.train --task full --resume models/full_v2.npz --widen 512 \
+    --episodes 3000 --max-plies 400 --eval-opponent stockfish
 python -m Code.rl.evaluate --task kqk --model models/value_kqk.npz --games 200
 python -m Code.rl.evaluate --task full --model models/full_v2.npz --stockfish
 ```
@@ -235,6 +236,27 @@ Heuristik ihr Maximum von +100 Prozent erreichte, stand danach kein Fortschritt
 mehr auf der Platte, und ein fünfstündiger Lauf war am Ende nicht zu gebrauchen.
 Wer als Messlatte etwas wählt, das sättigen kann, darf die Speicherung nicht
 davon abhängig machen.
+
+### Die Wahl des Prüfgegners
+
+`--eval-opponent` bestimmt, woran der Fortschritt während des Trainings gemessen
+wird. Die Material-Heuristik ist ab rund 1 000 Episoden erschöpft — der Agent
+schlägt sie dann in jeder Partie, und eine Messlatte bei +100 Prozent misst
+nichts mehr. Für längere Läufe gehört deshalb
+
+```bash
+--eval-opponent stockfish --stockfish-elo 1320
+```
+
+dazu. Der Unterschied ist sofort sichtbar: Wo die Heuristik konstant +100 Prozent
+zurückmeldet, liefert Stockfish Werte wie −16.7 Prozent, die sich mit dem
+Training bewegen können.
+
+Die Engine wird **einmal für den ganzen Lauf** geöffnet, und zwar vor der ersten
+Episode. Fehlt die Programmdatei, bricht das Training sofort mit einer klaren
+Meldung ab, statt nach einer Stunde Rechnen bei der ersten Prüfung. Ein
+ausdrücklich angegebener Pfad wird dabei nie stillschweigend durch eine andere
+gefundene Engine ersetzt.
 
 ## Zwischenbelohnungen für ganze Partien
 

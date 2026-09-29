@@ -62,6 +62,7 @@ import argparse
 import csv
 import time
 from collections import deque
+from contextlib import ExitStack
 from pathlib import Path
 
 import numpy as np
@@ -71,6 +72,7 @@ from .evaluate import endgame_trial, make_policy, match
 from .features import FEATURE_SIZE, board_to_features
 from .positions import OPENING_PLIES, sample_start
 from .shaping import potential
+from .stockfish import stockfish_policy
 from .valuenet import ValueNet
 
 
@@ -126,24 +128,29 @@ def play_episode(
     return X, returns, result, plies
 
 
-def run_eval(net: ValueNet, task: str, gamma: float, games: int, max_plies: int) -> tuple[float, dict]:
+def run_eval(
+    net: ValueNet, task: str, gamma: float, games: int, max_plies: int, opponent=None
+) -> tuple[float, dict]:
     """
     Zwischenstand für die Lernkurve und die Auswahl des besten Modells.
 
     Endspiele werden an der Mattquote gegen einen Zufallsgegner gemessen, ganze
-    Partien an Siegen minus Niederlagen gegen die Material-Heuristik.
+    Partien an Siegen minus Niederlagen gegen den übergebenen Gegner.
 
-    Zwei bewusste Entscheidungen für ganze Partien. Gegner ist die Heuristik und
-    nicht der Zufall, weil genau das die Frage ist: Schlägt der gelernte Agent
-    die bisherige Engine? Und gewertet wird die Differenz statt nur der Siege,
-    weil früh im Training fast alles remis endet oder ins Zuglimit läuft - eine
-    reine Siegquote bliebe lange bei null, und als bestes Modell würde der erste
-    Zwischenstand gespeichert. Nach Stunden Training wäre das Ergebnis weg.
+    Gewertet wird die Differenz statt nur der Siege, weil früh im Training fast
+    alles remis endet oder ins Zuglimit läuft - eine reine Siegquote bliebe lange
+    bei null.
+
+    Zur Wahl des Gegners: Die Material-Heuristik ist als Massstab ab etwa 1000
+    Episoden erschöpft, der Agent schlägt sie dann in jeder Partie. Eine Messlatte
+    bei +100 Prozent misst nichts mehr, und die Auswahl des besten Modells wird
+    zum Zufall. Für längere Läufe gehört deshalb --eval-opponent stockfish dazu.
     """
     rng = np.random.default_rng(99)
     agent = make_policy("rl", rng, net, gamma)
     if task == "full":
-        stats = match(agent, make_policy("material", rng), rng, games, max_plies)
+        gegner = opponent if opponent is not None else make_policy("material", rng)
+        stats = match(agent, gegner, rng, games, max_plies)
         return stats["win_rate"] - stats["loss_rate"], stats
     stats = endgame_trial(agent, make_policy("random", rng), task, rng, games, max_plies)
     return stats["mate_rate"], stats
@@ -173,6 +180,14 @@ def main() -> None:
     parser.add_argument("--max-plies", type=int, default=120)
     parser.add_argument("--eval-every", type=int, default=1000)
     parser.add_argument("--eval-games", type=int, default=100)
+    parser.add_argument("--eval-opponent", default="material", choices=("material", "stockfish"),
+                        help="Gegner der Zwischenprüfung bei ganzen Partien. Die Heuristik ist ab "
+                             "etwa 1000 Episoden erschöpft und misst dann nichts mehr")
+    parser.add_argument("--stockfish", nargs="?", const="", default=None,
+                        help="Pfad zur Stockfish-Programmdatei; leer heisst automatisch suchen")
+    parser.add_argument("--stockfish-elo", type=int, default=1320,
+                        help="Spielstärke des Prüfgegners (Minimum 1320)")
+    parser.add_argument("--stockfish-depth", type=int, default=1, help="Suchtiefe des Prüfgegners")
     parser.add_argument("--log-every", type=int, default=250)
     parser.add_argument("--seed", type=int, default=0)
     parser.add_argument("--resume", default=None,
@@ -224,6 +239,12 @@ def main() -> None:
             else f"difficulty 0 -> 1 über {curriculum_episodes} Episoden",
         ),
         ("max. Halbzüge", args.max_plies),
+        (
+            "Prüfgegner",
+            f"Stockfish Elo {args.stockfish_elo}, Tiefe {args.stockfish_depth}"
+            if args.task == "full" and args.eval_opponent == "stockfish"
+            else ("Material-Heuristik" if args.task == "full" else "Zufall"),
+        ),
         ("Seed", args.seed),
     ):
         print(f"  {key:<16} {value}")
@@ -238,11 +259,27 @@ def main() -> None:
     # -inf statt 0, weil der Wert bei ganzen Partien negativ sein kann
     # (mehr Niederlagen als Siege gegen die Heuristik).
     best_score = float("-inf")
-    eval_label = "gegen Heuristik (Siege - Niederlagen)" if args.task == "full" else "gegen Zufall (Mattquote)"
+    if args.task != "full":
+        eval_label = "gegen Zufall (Mattquote)"
+    elif args.eval_opponent == "stockfish":
+        eval_label = f"gegen Stockfish Elo {args.stockfish_elo} (Siege - Niederlagen)"
+    else:
+        eval_label = "gegen Heuristik (Siege - Niederlagen)"
     started = time.time()
 
-    with log_path.open("w", newline="", encoding="utf-8") as log_file, \
-            eval_path.open("w", newline="", encoding="utf-8") as eval_file:
+    with ExitStack() as stack:
+        # Die Engine einmal für den ganzen Lauf öffnen, nicht je Prüfung. Und
+        # bewusst vor der ersten Episode: Fehlt die Programmdatei, soll das
+        # sofort auffallen und nicht erst nach einer Stunde Rechnen.
+        eval_opponent = None
+        if args.task == "full" and args.eval_opponent == "stockfish":
+            eval_opponent = stack.enter_context(
+                stockfish_policy(
+                    args.stockfish or None, depth=args.stockfish_depth, elo=args.stockfish_elo
+                )
+            )
+        log_file = stack.enter_context(log_path.open("w", newline="", encoding="utf-8"))
+        eval_file = stack.enter_context(eval_path.open("w", newline="", encoding="utf-8"))
         log_writer = csv.writer(log_file)
         log_writer.writerow(["episode", "difficulty", "epsilon", "plies", "result", "td_error"])
         eval_writer = csv.writer(eval_file)
@@ -275,7 +312,9 @@ def main() -> None:
                 log_file.flush()
 
             if args.eval_every > 0 and episode % args.eval_every == 0:
-                score, stats = run_eval(net, args.task, args.gamma, args.eval_games, args.max_plies)
+                score, stats = run_eval(
+                    net, args.task, args.gamma, args.eval_games, args.max_plies, eval_opponent
+                )
                 eval_writer.writerow([
                     episode,
                     f"{score:.4f}",
@@ -298,10 +337,14 @@ def main() -> None:
                     marker = "  <- bester Stand"
                 print(f"   Evaluation {eval_label}: {score:+6.1%}{marker}", flush=True)
 
-    net.save(out_path)
-    if best_score == float("-inf"):   # es lief gar keine Zwischenevaluation
-        net.save(best_path)
-        best_score, _ = run_eval(net, args.task, args.gamma, args.eval_games, args.max_plies)
+        # Noch innerhalb des Blocks, damit die Engine für eine abschliessende
+        # Messung offen ist und gegen denselben Gegner gemessen wird.
+        net.save(out_path)
+        if best_score == float("-inf"):   # es lief gar keine Zwischenevaluation
+            net.save(best_path)
+            best_score, _ = run_eval(
+                net, args.task, args.gamma, args.eval_games, args.max_plies, eval_opponent
+            )
 
     minutes = (time.time() - started) / 60
     print(f"\nFertig in {minutes:.1f} Minuten. Bestes Modell {eval_label}: {best_score:+.1%} -> {out_path}")

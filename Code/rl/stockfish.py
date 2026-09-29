@@ -45,7 +45,12 @@ def find_stockfish(path: str | None = None) -> str | None:
     zuletzt tools/stockfish/ im Projekt. Letzteres ist per .gitignore
     ausgeschlossen — die Datei ist über 100 MB gross und gehört nicht ins Repo.
     """
-    candidates = [path, os.environ.get("STOCKFISH_PATH"), shutil.which("stockfish")]
+    # Eine ausdrücklich angegebene Datei wird nicht stillschweigend übergangen:
+    # Wer einen Pfad nennt, will genau diese Engine und keine andere.
+    if path:
+        return str(path) if Path(path).exists() else None
+
+    candidates = [os.environ.get("STOCKFISH_PATH"), shutil.which("stockfish")]
     if TOOLS_DIR.is_dir():
         candidates += [str(found) for found in sorted(TOOLS_DIR.glob("stockfish*")) if found.is_file()]
     for candidate in candidates:
