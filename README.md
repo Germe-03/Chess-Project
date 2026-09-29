@@ -1,8 +1,9 @@
 # Chess-Project — Schach-Assistent
 
 FHNW **AI Operations**. Web-Service, der zu einer Schachstellung den besten Zug
-liefert. In Endspielen mit drei Figuren entscheidet ein selbst trainierter
-Reinforcement-Learning-Agent, sonst weiterhin eine Material-Heuristik.
+liefert — und gegen den man auch selbst spielen kann. Die Züge kommen von
+Reinforcement-Learning-Agenten, die per Self-Play trainiert wurden: zwei
+Endspiel-Spezialisten und ein versioniertes Modell für ganze Partien.
 Oberfläche nach den Prinzipien der Mensch-Maschine-Interaktion.
 
 ## Lokal starten (Aufgabe 1.1 — DevOps lokal)
@@ -37,26 +38,69 @@ gross. Damit bleibt die 512-MB-Instanz auf render.com ausreichend.
 ## Projektstruktur
 
 ```
-Code/main.py       FastAPI-App (API + liefert die UI aus)
-Code/rl/           Reinforcement Learning: Umgebung, Training, Agent
-web/index.html     Oberfläche (Brett-Editor, Zugpartei, Ergebnis)
-models/            trainierte Modelle (.npz)
-logs/              Trainingsprotokolle (nicht im Repo)
-requirements.txt   Abhängigkeiten
-render.yaml        render.com Blueprint
+Code/main.py        FastAPI-App (API + liefert beide Oberflächen aus)
+Code/rl/            Reinforcement Learning: Umgebung, Training, Agent, Registry
+web/index.html      Analyse: Stellung stellen, besten Zug berechnen
+web/spielen.html    gegen die gewählte Modellversion spielen
+models/             trainierte Modelle (.npz) und registry.json
+logs/               Trainingsprotokolle (nicht im Repo)
+tools/              Stockfish für die Auswertung (nicht im Repo, 103 MB)
+requirements.txt    Abhängigkeiten
+render.yaml         render.com Blueprint
 ```
+
+Stockfish wird **nur zum Messen** gebraucht, nie zum Ausliefern. Die Datei lädt
+beim Start ein eigenes neuronales Netz nach und würde die 512-MB-Instanz
+sprengen; sie ist deshalb per `.gitignore` ausgeschlossen.
 
 ## API
 
-| Endpoint                     | Eingabe                  | Ausgabe                                              |
-|------------------------------|--------------------------|------------------------------------------------------|
-| `GET /health`                | –                        | `{"status":"ok"}`                                    |
-| `POST /best-move`            | `{"fen": "..."}`         | `{best_move, san, evaluation, side_to_move, engine}` |
-| `POST /best-move-from-image` | Bild (multipart `image`) | dito, Stellungserkennung noch Platzhalter            |
+| Endpoint                     | Eingabe                        | Ausgabe                                     |
+|------------------------------|--------------------------------|---------------------------------------------|
+| `GET /health`                | –                              | `{"status":"ok"}`                           |
+| `GET /versions`              | –                              | verfügbare Modellversionen, aktive markiert |
+| `POST /best-move`            | `{fen, version?}`              | `{best_move, san, evaluation, engine, version}` |
+| `POST /legal-moves`          | `{fen, square}`                | erreichbare Felder dieser Figur             |
+| `POST /spielen/zug`          | `{fen, move, version?}`        | Stellung nach beiden Zügen, Status          |
+| `POST /best-move-from-image` | Bild (multipart `image`)       | dito, Stellungserkennung noch Platzhalter   |
 
 Das Feld `engine` sagt, wer den Zug gewählt hat: `rl` oder `material`. Die Skala
 von `evaluation` hängt davon ab — Centipawns bei `material`, erwarteter
-Partieausgang in `[-1, 1]` bei `rl`.
+Partieausgang in `[-1, 1]` bei `rl`. `version` nennt das antwortende Modell,
+etwa `v2` oder `endspiel-queen`.
+
+## Oberflächen
+
+| Adresse | Zweck |
+|---|---|
+| `/` | Stellung von Hand setzen und den besten Zug berechnen lassen. Eine Figur antippen zeigt ihre regelkonformen Züge — inklusive Fesselung und der Regel, dass der König nicht ins Schach ziehen darf. |
+| `/spielen` | Eine ganze Partie gegen die gewählte Modellversion spielen, mit Farbwahl, Zugliste und Zurücknehmen. |
+| `/docs` | Automatisch erzeugte API-Dokumentation |
+
+Der Server hält dabei **keine Partie im Speicher**. Der Browser schickt die
+Stellung als FEN mit und bekommt die neue zurück. Dadurch braucht es weder
+Sitzungen noch eine Datenbank, und der Dienst verträgt Neustarts und mehrere
+Instanzen — Voraussetzung für render.com und später Azure.
+
+## Modellversionen
+
+Die Vollpartien-Modelle sind versioniert, jede Version ist eine eigene Datei und
+wird nie überschrieben. Das Manifest `models/registry.json` hält fest, was eine
+Version ausmacht: Episodenzahl, Elternversion, Datum und gemessene Resultate.
+
+```bash
+python -m Code.rl.registry                  # Versionen anzeigen
+python -m Code.rl.registry --activate v1    # Rollback auf eine ältere Version
+```
+
+Umgeschaltet wird auf zwei Ebenen. Global über den Eintrag `active` im Manifest,
+und **pro Anfrage** über das Feld `version`. Das zweite erlaubt den direkten
+Vergleich: dieselbe Stellung von v1 und v2 rechnen lassen, ohne Neustart. In der
+Grundstellung empfiehlt v1 `b3`, v2 dagegen `e4` — der Lernfortschritt ist so
+unmittelbar sichtbar.
+
+Die Endspielmodelle sind bewusst **nicht** versioniert. Sie lösen eine feste
+Aufgabe und ändern sich nicht mehr; bei genau drei Figuren antworten immer sie.
 
 ---
 
@@ -163,15 +207,34 @@ Stellungen (`difficulty = 1`).
 ```bash
 python -m Code.rl.train --task kqk --episodes 30000
 python -m Code.rl.train --task krk --episodes 30000
-python -m Code.rl.train --task full --shaping --episodes 10000 --max-plies 160
+python -m Code.rl.train --task full --shaping --episodes 5000 --max-plies 160
+python -m Code.rl.train --task full --resume models/full_v2.npz --episodes 5000 --eps-start 0.3
 python -m Code.rl.evaluate --task kqk --model models/value_kqk.npz --games 200
+python -m Code.rl.evaluate --task full --model models/full_v2.npz --stockfish
 ```
 
+Mit `--resume` setzt ein Lauf auf einem vorhandenen Modell auf, statt bei null zu
+beginnen. Das Ergebnis wird danach als neue Version eingetragen:
+
+```bash
+python -m Code.rl.registry --register v3 --file full_v3.npz --episodes 5000 --parent v2 --notes "..."
+```
+
+Für den Stockfish-Vergleich muss die Programmdatei unter `tools/stockfish/`
+liegen oder über `STOCKFISH_PATH` erreichbar sein.
+
 Wichtigste Optionen: `--td-lambda`, `--gamma`, `--lr`, `--hidden`, `--eps-start` /
-`--eps-end`, `--curriculum-episodes`, `--seed`. Das Training schreibt eine
-Lernkurve nach `logs/train_<task>.csv` (pro Episode) und die Zwischenevaluationen
-nach `logs/train_<task>_eval.csv`. Gespeichert wird das **beste** Modell laut
-Zwischenevaluation, nicht das letzte.
+`--eps-end`, `--curriculum-episodes`, `--resume`, `--seed`. Das Training schreibt
+eine Lernkurve nach `logs/train_<task>.csv` (pro Episode) und die
+Zwischenevaluationen nach `logs/train_<task>_eval.csv`.
+
+Gespeichert wird bei **jeder** Zwischenevaluation der aktuelle Stand, zusätzlich
+der beste unter `<name>_best.npz`. Das ist wörtlich zu nehmen: Eine frühere
+Fassung speicherte nur bei einer Verbesserung — als die Wertung gegen die
+Heuristik ihr Maximum von +100 Prozent erreichte, stand danach kein Fortschritt
+mehr auf der Platte, und ein fünfstündiger Lauf war am Ende nicht zu gebrauchen.
+Wer als Messlatte etwas wählt, das sättigen kann, darf die Speicherung nicht
+davon abhängig machen.
 
 ## Zwischenbelohnungen für ganze Partien
 
@@ -267,12 +330,56 @@ nur λ verschieden):
 | 0.0 (reines TD(0)) | 24.2 % |
 | 0.9 | **44.2 %** |
 
+### Ganze Partien
+
+Trainiert mit Reward Shaping und Zufallseröffnung. Gemessen über 25 Partien × 2
+Seeds je Paarung, Farben abwechselnd, Abbruch nach 160 Halbzügen. Die
+Punktewertung zählt ein Remis als halben Sieg.
+
+| Paarung | Sieg | Remis | Niederlage | Punkte |
+|---|---|---|---|---|
+| **v2 gegen v1** | **52 %** | 48 % | **0 %** | 76 % |
+| v2 gegen Material-Heuristik | 100 % | 0 % | 0 % | 100 % |
+| v2 gegen Stockfish (Elo 1320) | 10 % | **36 %** | 54 % | **28 %** |
+| v1 gegen Stockfish (Elo 1320) | 12 % | 20 % | 68 % | 22 % |
+| Material-Heuristik gegen Stockfish | 0 % | 6 % | 94 % | 3 % |
+| nur Φ, untrainiert, gegen Material | 50 % | 50 % | 0 % | 75 % |
+
+Drei Dinge lassen sich daraus ablesen.
+
+**Das Training wirkt.** v2 verliert keine einzige Partie gegen v1. Gegen
+Stockfish steigt die Punktequote von 22 auf 28 Prozent.
+
+**Gelernt wurde Verteidigung, nicht Angriff.** Die Siege gegen Stockfish blieben
+gleich (12 → 10 Prozent), aber die Remis haben sich fast verdoppelt (20 → 36
+Prozent) und die Niederlagen fielen von 68 auf 54 Prozent. Für eine Belohnung,
+die Sieg und Remis klar trennt, ist das die naheliegende erste Stufe: Niederlagen
+zu vermeiden ist leichter, als Gewinne zu erzwingen.
+
+**Etwa die Hälfte der Spielstärke ist handgeschrieben.** Ein völlig untrainiertes
+Netz schlägt mit Φ allein die Material-Heuristik bereits mit 75 Punkteprozent.
+Der Abstand von dort zu v2 ist das, was das Lernen beigetragen hat — und der
+Abstand der Heuristik zu Stockfish (3 gegen 28 Prozent) zeigt, dass der gelernte
+Agent in einer anderen Liga spielt als die Engine, die er ersetzt hat.
+
+**Warum Stockfish auf Elo 1320:** Ohne Begrenzung gewinnt Stockfish 20 von 20
+Partien gegen alles hier — auch gegen die Heuristik. Selbst `depth 1` reicht
+nicht, weil die Engine eine Quiescence-Suche anhängt und die Blätter mit einem
+neuronalen Netz bewertet. Erst die Elo-Begrenzung macht den Vergleich
+aussagekräftig; Knotenlimits allein wirken nicht.
+
+**Lernverlauf v1 → v2:** Der TD-Fehler fiel über 5 000 Episoden von 0.124 auf
+0.099 und lief danach flach. Trainingsdauer 104 Minuten.
+
 ## Grenzen und nächste Schritte
 
-- Der Agent ist ein **Endspiel-Spezialist**. Die API setzt ihn nur bei genau drei
-  Figuren auf dem Brett ein; sonst übernimmt die Heuristik. Das ist eine bewusste
-  Zuständigkeitsgrenze statt eines Modells, das ausserhalb seiner
-  Trainingsverteilung rät.
+- Gegen Stockfish holt der Vollpartien-Agent 28 Punkteprozent, verliert also die
+  Mehrheit der Partien. Für ein Verfahren mit einem Halbzug Vorausschau und
+  98 000 Parametern ist das zu erwarten und wird hier bewusst so ausgewiesen.
+- Die Material-Heuristik kommt nur noch zum Zug, wenn gar kein Modell zuständig
+  ist. Sie bleibt trotzdem im Code, weil erst sie die Resultate einordnet.
+- Die Bilderkennung (`/best-move-from-image`) ist weiterhin ein **Platzhalter**
+  und liefert unabhängig vom hochgeladenen Bild die Grundstellung.
 - Beim Shaping ist ein Teil der Spielstärke handgeschrieben (Material, Zentrum,
   Abtausch, Schach); `V` lernt nur noch die Korrektur darüber hinaus. Für die
   Endspielmodelle gilt das nicht — die sind ohne Shaping trainiert.

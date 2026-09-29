@@ -30,6 +30,7 @@ import numpy as np
 
 from .engine import material_evaluation, material_move, random_move, terminal_value, value_move
 from .positions import sample_start
+from .stockfish import stockfish_policy
 from .valuenet import ValueNet
 
 
@@ -109,6 +110,36 @@ def _aggregate(runs: list[dict]) -> dict:
     return {k: (float(np.nanmean([r[k] for r in runs])), float(np.nanstd([r[k] for r in runs]))) for k in keys}
 
 
+def _against_stockfish(
+    task: str, net: ValueNet | None, games: int, max_plies: int, seeds: int, gamma: float,
+    path: str | None, depth: int | None, elo: int | None,
+    nodes: int | None = None, skill: int | None = None, label_suffix: str = "stockfish",
+) -> dict:
+    """Dieselben Strategien gegen Stockfish, als härteren Massstab."""
+    results: dict[str, dict] = {}
+    with stockfish_policy(path, depth=depth, nodes=nodes, elo=elo, skill=skill) as engine_policy:
+        contenders: list[tuple[str, object]] = []
+        if net is not None:
+            contenders.append(("rl", net))
+            if net.shaped:
+                contenders.append(("nur Shaping", ValueNet(hidden_size=net.hidden_size, seed=0, shaped=True)))
+        for label, model in contenders:
+            runs = []
+            for seed in range(seeds):
+                rng = np.random.default_rng(1000 + seed)
+                runs.append(
+                    match(make_policy("rl", rng, model, gamma), engine_policy, rng, games, max_plies)
+                )
+            results[f"{label} vs {label_suffix}"] = _aggregate(runs)
+
+        runs = []
+        for seed in range(seeds):
+            rng = np.random.default_rng(1000 + seed)
+            runs.append(match(make_policy("material", rng), engine_policy, rng, games, max_plies))
+        results[f"material vs {label_suffix}"] = _aggregate(runs)
+    return results
+
+
 def evaluate_task(task: str, net: ValueNet | None, games: int, max_plies: int, seeds: int, gamma: float) -> dict:
     """Jede Strategie tritt gegen denselben Zufallsgegner an, damit die Zeilen vergleichbar sind."""
     results: dict[str, dict] = {}
@@ -133,6 +164,20 @@ def evaluate_task(task: str, net: ValueNet | None, games: int, max_plies: int, s
                 match(make_policy("rl", rng, net, gamma), make_policy("material", rng), rng, games, max_plies)
             )
         results["rl vs material"] = _aggregate(runs)
+
+        # Kontrollversuch: dasselbe Verfahren mit einem untrainierten Netz. Weil
+        # V(s) dann nichts beiträgt, misst diese Zeile allein die Stärke des
+        # handgeschriebenen Φ. Erst der Abstand zur Zeile darüber ist das, was
+        # das Lernen tatsächlich gebracht hat.
+        if net.shaped:
+            runs = []
+            for seed in range(seeds):
+                rng = np.random.default_rng(1000 + seed)
+                blank = ValueNet(hidden_size=net.hidden_size, seed=0, shaped=True)
+                runs.append(
+                    match(make_policy("rl", rng, blank, gamma), make_policy("material", rng), rng, games, max_plies)
+                )
+            results["nur Shaping vs material"] = _aggregate(runs)
     return results
 
 
@@ -168,10 +213,32 @@ def main() -> None:
     parser.add_argument("--seeds", type=int, default=3)
     parser.add_argument("--max-plies", type=int, default=120)
     parser.add_argument("--gamma", type=float, default=0.99)
+    parser.add_argument("--stockfish", nargs="?", const="", default=None,
+                        help="Zusätzlich gegen Stockfish messen; optional der Pfad zur Programmdatei")
+    parser.add_argument("--stockfish-depth", type=int, default=1, help="Suchtiefe von Stockfish")
+    parser.add_argument("--stockfish-elo", type=int, default=1320,
+                        help="Spielstärke von Stockfish (Minimum 1320). Gemessen die einzige "
+                             "Einstellung, bei der unser Agent überhaupt punktet - ohne sie "
+                             "verliert auch die Material-Heuristik 100 Prozent der Partien")
+    parser.add_argument("--stockfish-skill", type=int, default=None,
+                        help="Alternativer Schwächungsschalter, 0 bis 20 (wirkt stärker als Elo)")
     args = parser.parse_args()
 
     net = ValueNet.load(args.model) if args.model else None
     results = evaluate_task(args.task, net, args.games, args.max_plies, args.seeds, args.gamma)
+
+    if args.stockfish is not None and args.task != "full":
+        print("Hinweis: Der Stockfish-Vergleich spielt ganze Partien und passt nicht zu den Endspielaufgaben.")
+    elif args.stockfish is not None:
+        results.update(
+            _against_stockfish(
+                args.task, net, args.games, args.max_plies, args.seeds, args.gamma,
+                args.stockfish or None, args.stockfish_depth, args.stockfish_elo,
+                skill=args.stockfish_skill,
+                label_suffix=f"stockfish (Elo {args.stockfish_elo})",
+            )
+        )
+
     print_results(args.task, results, args.games, args.seeds)
 
 

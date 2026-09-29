@@ -8,6 +8,9 @@ __pycache__/
 # Trainingsprotokolle (jederzeit reproduzierbar; die Modelle in models/ gehören ins Repo)
 logs/
 
+# Stockfish, nur Auswertungswerkzeug und über 100 MB gross
+tools/
+
 # IDE
 .idea/
 .vscode/

@@ -215,6 +215,7 @@
       <span class="status" id="status" data-state="unknown" role="status" aria-live="polite">
         <span class="dot"></span><span id="statusText">Server nicht geprüft</span>
       </span>
+      <a class="icon-btn" href="/spielen" style="text-decoration:none;line-height:38px">♟ Spielen</a>
       <button class="icon-btn" id="settingsToggle" aria-expanded="false" aria-controls="settings">⚙︎ Server</button>
       <button class="icon-btn" id="themeToggle" aria-label="Farbschema wechseln">◐ Ansicht</button>
     </div>
@@ -227,8 +228,12 @@
         <input type="text" id="apiBase" spellcheck="false" placeholder="z. B. http://127.0.0.1:8000 oder leer für gleichen Server">
       </div>
       <button class="btn-ghost" id="testBtn" style="height:40px">Verbindung testen</button>
+      <div style="min-width:200px">
+        <label for="modelVersion">Modellversion</label>
+        <select id="modelVersion" style="width:100%;height:40px;padding:0 10px;border:1px solid var(--border);border-radius:10px;background:var(--surface);color:var(--text);font:inherit"></select>
+      </div>
     </div>
-    <p class="hint" style="margin:10px 0 0">Leer lassen, wenn die Oberfläche vom selben Server (render.com) ausgeliefert wird. Die Adresse wird nur lokal in deinem Browser gespeichert.</p>
+    <p class="hint" style="margin:10px 0 0">Server-Adresse leer lassen, wenn die Oberfläche vom selben Server (render.com) ausgeliefert wird. Die Modellversion gilt nur für Stellungen mit mehr als drei Figuren — Endspiele beantworten immer die Spezialmodelle.</p>
   </section>
 
   <div class="grid">
@@ -534,7 +539,8 @@ async function computeFromFen(fen){
   showLoading("Optimaler Zug wird berechnet …");
   try{
     const res=await fetch((apiBase()||"")+"/best-move",{
-      method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({fen})});
+      method:"POST",headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({fen, version: $("#modelVersion").value || null})});
     if(!res.ok) throw new Error("HTTP "+res.status);
     const data=await res.json(); setStatus("online","Server verbunden");
     renderResult(normalize({fen,...data}),false);
@@ -667,10 +673,23 @@ function isValidFen(fen){
 }
 function esc(s){ return String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c])); }
 
+/* ---------- Modellversionen für den Wähler laden ---------- */
+async function ladeVersionen(){
+  try{
+    const res = await fetch((apiBase()||"")+"/versions");
+    if(!res.ok) return;
+    const data = await res.json();
+    $("#modelVersion").innerHTML = data.versions.map(v =>
+      `<option value="${v.name}"${v.name===data.active?" selected":""}>${v.name} · ${v.episodes} Episoden${v.name===data.active?" (aktiv)":""}</option>`
+    ).join("");
+  }catch{ /* ohne Wähler weiterarbeiten */ }
+}
+
 /* Beim Laden: Editor aufbauen, Server unaufdringlich prüfen */
 buildPalette();
 renderEditor();
 checkApi();
+ladeVersionen();
 </script>
 </body>
 </html>

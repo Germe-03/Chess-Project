@@ -69,7 +69,7 @@ import numpy as np
 from .engine import score_moves, terminal_value
 from .evaluate import endgame_trial, make_policy, match
 from .features import FEATURE_SIZE, board_to_features
-from .positions import sample_start
+from .positions import OPENING_PLIES, sample_start
 from .shaping import potential
 from .valuenet import ValueNet
 
@@ -127,14 +127,25 @@ def play_episode(
 
 
 def run_eval(net: ValueNet, task: str, gamma: float, games: int, max_plies: int) -> tuple[float, dict]:
-    """Zwischenstand gegen einen Zufallsgegner, immer auf gleichverteilten Stellungen."""
+    """
+    Zwischenstand für die Lernkurve und die Auswahl des besten Modells.
+
+    Endspiele werden an der Mattquote gegen einen Zufallsgegner gemessen, ganze
+    Partien an Siegen minus Niederlagen gegen die Material-Heuristik.
+
+    Zwei bewusste Entscheidungen für ganze Partien. Gegner ist die Heuristik und
+    nicht der Zufall, weil genau das die Frage ist: Schlägt der gelernte Agent
+    die bisherige Engine? Und gewertet wird die Differenz statt nur der Siege,
+    weil früh im Training fast alles remis endet oder ins Zuglimit läuft - eine
+    reine Siegquote bliebe lange bei null, und als bestes Modell würde der erste
+    Zwischenstand gespeichert. Nach Stunden Training wäre das Ergebnis weg.
+    """
     rng = np.random.default_rng(99)
     agent = make_policy("rl", rng, net, gamma)
-    opponent = make_policy("random", rng)
     if task == "full":
-        stats = match(agent, opponent, rng, games, max_plies)
-        return stats["win_rate"], stats
-    stats = endgame_trial(agent, opponent, task, rng, games, max_plies)
+        stats = match(agent, make_policy("material", rng), rng, games, max_plies)
+        return stats["win_rate"] - stats["loss_rate"], stats
+    stats = endgame_trial(agent, make_policy("random", rng), task, rng, games, max_plies)
     return stats["mate_rate"], stats
 
 
@@ -164,6 +175,8 @@ def main() -> None:
     parser.add_argument("--eval-games", type=int, default=100)
     parser.add_argument("--log-every", type=int, default=250)
     parser.add_argument("--seed", type=int, default=0)
+    parser.add_argument("--resume", default=None,
+                        help="Vorhandenes Modell laden und weitertrainieren statt bei null zu beginnen")
     parser.add_argument("--out", default=None)
     parser.add_argument("--log", default=None)
     args = parser.parse_args()
@@ -171,9 +184,18 @@ def main() -> None:
     eps_episodes = args.eps_episodes or max(1, int(0.7 * args.episodes))
     curriculum_episodes = args.curriculum_episodes if args.curriculum_episodes is not None else int(0.5 * args.episodes)
     out_path = Path(args.out or f"models/value_{args.task}.npz")
+    best_path = out_path.with_name(f"{out_path.stem}_best{out_path.suffix}")
     log_path = Path(args.log or f"logs/train_{args.task}.csv")
     eval_path = log_path.with_name(f"{log_path.stem}_eval.csv")
     log_path.parent.mkdir(parents=True, exist_ok=True)
+
+    # Das Netz zuerst bauen: Beim Fortsetzen kommt die Shaping-Einstellung aus
+    # der Modelldatei, nicht vom Aufruf - und das Protokoll soll den echten
+    # Wert festhalten.
+    if args.resume:
+        net = ValueNet.load(args.resume)
+    else:
+        net = ValueNet(hidden_size=args.hidden, seed=args.seed, shaped=args.shaping)
 
     print("Hyperparameter")
     for key, value in (
@@ -182,10 +204,16 @@ def main() -> None:
         ("gamma", args.gamma),
         ("lambda", args.td_lambda),
         ("Lernrate", args.lr),
-        ("Hidden-Units", args.hidden),
-        ("Shaping", "ja" if args.shaping else "nein (nur Partieausgang)"),
+        ("Hidden-Units", net.hidden_size),
+        ("Shaping", "ja" if net.shaped else "nein (nur Partieausgang)"),
+        ("Start", f"Fortsetzung von {args.resume}" if args.resume else "neues Netz"),
         ("epsilon", f"{args.eps_start} -> {args.eps_end} über {eps_episodes} Episoden"),
-        ("Curriculum", f"difficulty 0 -> 1 über {curriculum_episodes} Episoden"),
+        (
+            "Curriculum",
+            f"Zufallseröffnung, 0 bis {OPENING_PLIES} Halbzüge"
+            if args.task == "full"
+            else f"difficulty 0 -> 1 über {curriculum_episodes} Episoden",
+        ),
         ("max. Halbzüge", args.max_plies),
         ("Seed", args.seed),
     ):
@@ -193,13 +221,15 @@ def main() -> None:
     print(f"  {'Modell':<16} {out_path}")
     print(f"  {'Logs':<16} {log_path} / {eval_path}\n")
 
-    net = ValueNet(hidden_size=args.hidden, seed=args.seed, shaped=args.shaping)
     rng = np.random.default_rng(args.seed)
 
     recent_mates = deque(maxlen=args.log_every)
     recent_plies = deque(maxlen=args.log_every)
     recent_errors = deque(maxlen=args.log_every)
-    best_score = -1.0
+    # -inf statt 0, weil der Wert bei ganzen Partien negativ sein kann
+    # (mehr Niederlagen als Siege gegen die Heuristik).
+    best_score = float("-inf")
+    eval_label = "gegen Heuristik (Siege - Niederlagen)" if args.task == "full" else "gegen Zufall (Mattquote)"
     started = time.time()
 
     with log_path.open("w", newline="", encoding="utf-8") as log_file, \
@@ -207,7 +237,9 @@ def main() -> None:
         log_writer = csv.writer(log_file)
         log_writer.writerow(["episode", "difficulty", "epsilon", "plies", "result", "td_error"])
         eval_writer = csv.writer(eval_file)
-        eval_writer.writerow(["episode", "score", "mate_rate", "draw_rate", "avg_mate_plies"])
+        eval_writer.writerow(
+            ["episode", "score", "mate_rate", "win_rate", "draw_rate", "loss_rate", "avg_mate_plies"]
+        )
 
         for episode in range(1, args.episodes + 1):
             difficulty = 1.0 if curriculum_episodes <= 0 else min(1.0, episode / curriculum_episodes)
@@ -239,23 +271,31 @@ def main() -> None:
                     episode,
                     f"{score:.4f}",
                     f"{stats.get('mate_rate', float('nan')):.4f}",
+                    f"{stats.get('win_rate', float('nan')):.4f}",
                     f"{stats.get('draw_rate', float('nan')):.4f}",
+                    f"{stats.get('loss_rate', float('nan')):.4f}",
                     f"{stats.get('avg_mate_plies', float('nan')):.2f}",
                 ])
                 eval_file.flush()
+                # Immer den aktuellen Stand sichern. Vorher wurde nur bei einer
+                # Verbesserung gespeichert - sobald die Wertung ihr Maximum
+                # erreicht, stand danach kein Fortschritt mehr auf der Platte
+                # und das fertige Netz war nach Prozessende verloren.
+                net.save(out_path)
                 marker = ""
                 if score > best_score:
                     best_score = score
-                    net.save(out_path)
-                    marker = "  <- gespeichert"
-                print(f"   Evaluation gegen Zufall: {score:6.1%}{marker}", flush=True)
+                    net.save(best_path)
+                    marker = "  <- bester Stand"
+                print(f"   Evaluation {eval_label}: {score:+6.1%}{marker}", flush=True)
 
-    if best_score < 0:
-        net.save(out_path)
+    net.save(out_path)
+    if best_score == float("-inf"):   # es lief gar keine Zwischenevaluation
+        net.save(best_path)
         best_score, _ = run_eval(net, args.task, args.gamma, args.eval_games, args.max_plies)
 
     minutes = (time.time() - started) / 60
-    print(f"\nFertig in {minutes:.1f} Minuten. Bestes Modell: {best_score:.1%} -> {out_path}")
+    print(f"\nFertig in {minutes:.1f} Minuten. Bestes Modell {eval_label}: {best_score:+.1%} -> {out_path}")
 
 
 if __name__ == "__main__":

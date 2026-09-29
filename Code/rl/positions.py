@@ -25,7 +25,11 @@ from __future__ import annotations
 
 import chess
 
+from .shaping import PIECE_VALUES, static_exchange
+
 TASKS = ("kqk", "krk", "full")
+
+OPENING_PLIES = 8
 
 _STRONG_PIECE = {"kqk": chess.QUEEN, "krk": chess.ROOK}
 _CORNERS = ((0, 0), (0, 7), (7, 0), (7, 7))
@@ -43,13 +47,56 @@ def sample_start(task: str, rng, difficulty: float = 1.0) -> chess.Board:
     stellungen, difficulty = 1 heisst gleichverteilt über das ganze Brett.
     """
     if task == "full":
-        return chess.Board()
+        return _random_opening(rng)
     piece = _STRONG_PIECE[task]
     easy = rng.random() >= difficulty
     while True:
         board = _build_easy(rng, piece) if easy else _build_uniform(rng, piece)
         if board is not None:
             return board
+
+
+def _random_opening(rng, max_plies: int = OPENING_PLIES) -> chess.Board:
+    """
+    Grundstellung plus einige zufällige Halbzüge.
+
+    Ohne das startet jede Episode identisch. Solange epsilon gross ist, laufen
+    die Partien noch auseinander — sobald es auf 5 Prozent fällt, spielt der
+    Agent aber tausende Male fast dieselbe Partie und lernt nur noch seine
+    eigene enge Eröffnungslinie zu bewerten.
+
+    Die Eröffnungszüge gehören nicht zur Episode, sie stellen nur die
+    Ausgangslage her. Gewählt wird zufällig unter den Zügen, die nach SEE kein
+    Material verschenken — sonst stünde der Agent oft schon vor seinem ersten
+    eigenen Zug eine Figur hinten, und die Stellung wäre als Lernmaterial
+    wertlos.
+
+    Bewusst keine Eröffnungsbibliothek: Gebraucht wird Streuung, nicht
+    Korrektheit. Der Agent muss gerade auch Stellungen bewerten können, in die
+    er durch eigene Fehler gerät.
+    """
+    board = chess.Board()
+    for _ in range(int(rng.integers(max_plies + 1))):
+        moves = [move for move in board.legal_moves if not _loses_material(board, move)]
+        if not moves:
+            break
+        board.push(moves[int(rng.integers(len(moves)))])
+        if board.is_game_over():
+            break
+    return board
+
+
+def _loses_material(board: chess.Board, move: chess.Move) -> bool:
+    """Verschenkt dieser Zug Material? Geschlagenes gegengerechnet."""
+    captured = board.piece_at(move.to_square)
+    if captured is not None:
+        gain = PIECE_VALUES[captured.piece_type]
+    else:
+        gain = PIECE_VALUES[chess.PAWN] if board.is_en_passant(move) else 0
+    board.push(move)
+    risk = static_exchange(board, move.to_square, board.turn)
+    board.pop()
+    return risk - gain > 0
 
 
 def _build_uniform(rng, piece: int) -> chess.Board | None:

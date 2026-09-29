@@ -1,0 +1,30 @@
+{
+  "active": "v2",
+  "versions": [
+    {
+      "name": "v1",
+      "file": "full_v1.npz",
+      "trained": "2026-09-28",
+      "episodes": 1000,
+      "parent": null,
+      "notes": "Erster Lauf mit Reward Shaping. Wegen eines Fehlers in der Speicherlogik blieb nur der Stand von Episode 1000 erhalten.",
+      "results": {
+        "punkte_vs_stockfish_1320": 0.22,
+        "punkte_vs_material": 1.0
+      }
+    },
+    {
+      "name": "v2",
+      "file": "full_v2.npz",
+      "trained": "2026-09-29",
+      "episodes": 5000,
+      "parent": "v1",
+      "notes": "Warmstart auf v1, epsilon 0.3 bis 0.05, Zufallseröffnung mit SEE-Filter, korrigierte Speicherlogik.",
+      "results": {
+        "punkte_vs_stockfish_1320": 0.28,
+        "punkte_vs_material": 1.0,
+        "punkte_vs_v1": 0.76
+      }
+    }
+  ]
+}
