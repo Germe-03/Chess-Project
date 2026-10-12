@@ -20,10 +20,12 @@ Deploy (render.com):
     Build Command: pip install -r requirements.txt
     Start Command: uvicorn Code.main:app --host 0.0.0.0 --port $PORT
 """
+from io import BytesIO
 from pathlib import Path
 
 import chess
-from fastapi import FastAPI, File, HTTPException, UploadFile
+from fastapi import FastAPI, File, Form, HTTPException, UploadFile
+from PIL import Image
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 from pydantic import BaseModel, Field
@@ -33,6 +35,9 @@ from .rl.features import board_to_features
 from .rl.registry import active_name, load_model
 from .rl.registry import versions as registry_versions
 from .rl.valuenet import ValueNet
+from .vision.finder import find_board
+from .vision.recognizer import TileClassifier, tiles_to_fen
+from .vision.tiles import board_to_tiles
 
 # --------------------------------------------------------------------------- #
 # App-Grundgerüst
@@ -88,6 +93,13 @@ class MoveResponse(BaseModel):
     version: str = Field(
         "", description="Welches Modell geantwortet hat, z. B. 'v2' oder 'endspiel-queen'"
     )
+    confidence: float = Field(
+        0.0,
+        description=(
+            "Nur bei Bilderkennung: niedrigste Sicherheit über alle 64 Felder. "
+            "Werte unter 0.9 heissen, dass die Stellung geprüft werden sollte."
+        ),
+    )
 
 
 class PlayRequest(BaseModel):
@@ -108,6 +120,13 @@ class PlayResponse(BaseModel):
     evaluation: float = Field(0.0, description="Bewertung aus Sicht von Weiss")
     engine: str = Field("", description="'rl' oder 'material'")
     version: str = Field("", description="Welches Modell geantwortet hat")
+
+
+class RecognitionResponse(BaseModel):
+    fen: str = Field(..., description="Erkannte Stellung in FEN-Notation")
+    confidence: float = Field(..., description="Niedrigste Sicherheit über alle 64 Felder")
+    playable: bool = Field(..., description="Lässt sich aus dieser Stellung überhaupt ein Zug berechnen?")
+    note: str = Field("", description="Hinweis, falls die Stellung nicht spielbar ist")
 
 
 class LegalMovesRequest(BaseModel):
@@ -139,6 +158,9 @@ RL_AGENTS = {
     for piece_type, path in RL_MODEL_FILES.items()
     if path.exists()
 }
+
+# Erkennungsmodell einmal beim Start laden; 0.5 MB, kostet nichts.
+RECOGNIZER = TileClassifier.load() if TileClassifier.available() else None
 
 
 def select_agent(board: chess.Board, version: str | None = None) -> tuple[ValueNet | None, str]:
@@ -216,6 +238,38 @@ def best_move(req: FenRequest) -> MoveResponse:
     """Optimalen Zug zu einer als FEN gegebenen Stellung berechnen."""
     board = board_from_fen(req.fen)
     return analyse(board, recognition="fen", version=req.version)
+
+
+async def recognize_board(image: UploadFile, side: str, flipped: bool) -> tuple[chess.Board, float]:
+    """Screenshot -> Stellung und Sicherheit. Gemeinsame Grundlage beider Endpunkte."""
+    data = await image.read()
+    if not data:
+        raise HTTPException(status_code=400, detail="Leere Datei erhalten.")
+    if not (image.content_type or "").startswith("image/"):
+        raise HTTPException(status_code=415, detail="Bitte eine Bilddatei (PNG/JPG) hochladen.")
+    if RECOGNIZER is None:
+        raise HTTPException(
+            status_code=503, detail="Das Erkennungsmodell fehlt (models/tile_classifier.npz)."
+        )
+    try:
+        picture = Image.open(BytesIO(data))
+        # Zuerst das Brett im Bild suchen. Ohne diesen Schritt liegen die
+        # Kachelgrenzen mitten in den Feldern, sobald ein Rand mit auf dem
+        # Screenshot ist, und die Erkennung liefert stillschweigend Unsinn.
+        ausschnitt = find_board(picture)
+        if ausschnitt is not None:
+            picture = picture.crop(ausschnitt)
+        classes, probabilities = RECOGNIZER.predict(board_to_tiles(picture))
+    except Exception:
+        raise HTTPException(status_code=400, detail="Das Bild konnte nicht gelesen werden.")
+
+    if flipped:
+        # Aus Schwarzsicht aufgenommen: Das Brett ist um 180 Grad gedreht, also
+        # kehrt sich die Reihenfolge der 64 Felder einfach um.
+        classes = classes[::-1]
+
+    seite = "b" if side == "b" else "w"
+    return board_from_fen(f"{tiles_to_fen(classes)} {seite} - - 0 1"), float(probabilities.min())
 
 
 def describe_position(board: chess.Board) -> tuple[str, bool]:
@@ -339,24 +393,54 @@ def legal_moves(req: LegalMovesRequest) -> LegalMovesResponse:
 
 
 @app.post("/best-move-from-image", response_model=MoveResponse, tags=["schach"])
-async def best_move_from_image(image: UploadFile = File(...)) -> MoveResponse:
+async def best_move_from_image(
+    image: UploadFile = File(...),
+    side: str = Form("w"),
+    flipped: bool = Form(False),
+    version: str | None = Form(None),
+) -> MoveResponse:
     """
-    Optimalen Zug aus einem hochgeladenen Screenshot berechnen.
+    Stellung aus einem Screenshot erkennen und den besten Zug berechnen.
 
-    Schritt 1 (Bilderkennung -> FEN) ist noch ein PLATZHALTER: aktuell wird die
-    Grundstellung angenommen. Die UI zeigt die 'erkannte' FEN an und lässt sie
-    korrigieren (Fehlertoleranz), bis die echte Erkennung implementiert ist.
+    Das Erkennungsmodell stammt aus linrock/chessboard-recognizer (MIT) und
+    klassifiziert jedes der 64 Felder einzeln. Es läuft hier in reinem NumPy,
+    damit der Dienst ohne TensorFlow auskommt.
+
+    Zwei Dinge kann das Bild nicht hergeben und müssen mitgeliefert werden: wer
+    am Zug ist, und ob das Brett aus Sicht von Schwarz dargestellt ist. Die
+    Oberfläche fragt beides ab und lässt die erkannte Stellung nachbessern —
+    bei einem Erkennungsfehler soll man nicht von vorn anfangen müssen.
     """
-    data = await image.read()
-    if not data:
-        raise HTTPException(status_code=400, detail="Leere Datei erhalten.")
-    if not (image.content_type or "").startswith("image/"):
-        raise HTTPException(status_code=415, detail="Bitte eine Bilddatei (PNG/JPG) hochladen.")
+    board, confidence = await recognize_board(image, side, flipped)
+    antwort = analyse(board, recognition="cnn", version=version)
+    antwort.confidence = confidence
+    return antwort
 
-    # TODO: echte Erkennung — Brett zuschneiden, 64 Felder klassifizieren -> FEN.
-    recognized_fen = START_FEN
-    board = board_from_fen(recognized_fen)
-    return analyse(board, recognition="placeholder")
+
+@app.post("/recognize", response_model=RecognitionResponse, tags=["schach"])
+async def recognize(
+    image: UploadFile = File(...),
+    side: str = Form("w"),
+    flipped: bool = Form(False),
+) -> RecognitionResponse:
+    """
+    Nur erkennen, nicht rechnen.
+
+    Bewusst getrennt von der Zugberechnung: Erkennt das Modell eine Stellung, aus
+    der sich kein Zug ableiten lässt — ein leeres Brett, ein fehlender König, eine
+    bereits beendete Partie —, soll der Nutzer trotzdem sehen, was erkannt wurde,
+    und es nachbessern können. Ein Fehler statt eines Ergebnisses würde die
+    erkannte Stellung verwerfen und ihn bei null anfangen lassen.
+    """
+    board, confidence = await recognize_board(image, side, flipped)
+    note = ""
+    if not board.is_valid():
+        note = "Die Stellung ist so nicht regelkonform — fehlt ein König?"
+    elif board.is_game_over():
+        note = f"Aus dieser Stellung gibt es keinen Zug mehr: {board.result()}"
+    return RecognitionResponse(
+        fen=board.fen(), confidence=confidence, playable=not note, note=note
+    )
 
 
 # --------------------------------------------------------------------------- #

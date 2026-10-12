@@ -38,20 +38,45 @@ gross. Damit bleibt die 512-MB-Instanz auf render.com ausreichend.
 ## Projektstruktur
 
 ```
-Code/main.py        FastAPI-App (API + liefert beide Oberflächen aus)
-Code/rl/            Reinforcement Learning: Umgebung, Training, Agent, Registry
-web/index.html      Analyse: Stellung stellen, besten Zug berechnen
-web/spielen.html    gegen die gewählte Modellversion spielen
-models/             trainierte Modelle (.npz) und registry.json
-logs/               Trainingsprotokolle (nicht im Repo)
-tools/              Stockfish für die Auswertung (nicht im Repo, 103 MB)
-requirements.txt    Abhängigkeiten
-render.yaml         render.com Blueprint
+Code/main.py         FastAPI-App (API + liefert beide Oberflächen aus)
+Code/rl/             Reinforcement Learning: Umgebung, Training, Agent, Registry
+Code/vision/         Stellungserkennung aus Screenshots
+web/index.html       Analyse: Screenshot einfügen oder Stellung stellen
+web/spielen.html     gegen die gewählte Modellversion spielen
+models/              trainierte Modelle (.npz) und registry.json
+tests/               Testsuite (pytest), kommt ohne Netzzugriff aus
+logs/                Trainingsprotokolle (nicht im Repo)
+tools/               Stockfish für die Auswertung (nicht im Repo, 103 MB)
+requirements.txt     Abhängigkeiten des Dienstes
+requirements-dev.txt zusätzlich für die Tests
+render.yaml          render.com Blueprint
 ```
 
 Stockfish wird **nur zum Messen** gebraucht, nie zum Ausliefern. Die Datei lädt
 beim Start ein eigenes neuronales Netz nach und würde die 512-MB-Instanz
 sprengen; sie ist deshalb per `.gitignore` ausgeschlossen.
+
+## Tests
+
+```bash
+pip install -r requirements-dev.txt
+python -m pytest tests/ -q
+```
+
+30 Tests, unter einer Sekunde, ohne Netzzugriff. Geprüft wird bewusst **nicht**
+die Spielstärke — die schwankt und lässt sich nicht sinnvoll festnageln.
+Geprüft werden die Rechenregeln, bei denen ein Fehler **still** passiert:
+
+- Vorzeichen und Perspektive (Negamax, gespiegelte Brettkodierung)
+- Φ ist an Endstellungen null und bleibt betragsmässig unter dem Siegwert
+- die statische Abtauschbewertung an bekannten Fällen
+- Net2Net verbreitert funktionserhaltend
+- die Kachelreihenfolge beginnt oben links — sonst steht jede FEN auf dem Kopf
+- die Erkennung auf **beiden** Brettstilen, mit und ohne Rand
+
+Der letzte Punkt ist der wichtigste: Er schlägt an, wenn ein Nachtraining die
+ursprüngliche Fähigkeit zerstört hat. Das wäre sonst erst aufgefallen, wenn
+jemand einen Lichess-Screenshot einfügt.
 
 ## API
 
@@ -62,7 +87,8 @@ sprengen; sie ist deshalb per `.gitignore` ausgeschlossen.
 | `POST /best-move`            | `{fen, version?}`              | `{best_move, san, evaluation, engine, version}` |
 | `POST /legal-moves`          | `{fen, square}`                | erreichbare Felder dieser Figur             |
 | `POST /spielen/zug`          | `{fen, move, version?}`        | Stellung nach beiden Zügen, Status          |
-| `POST /best-move-from-image` | Bild (multipart `image`)       | dito, Stellungserkennung noch Platzhalter   |
+| `POST /recognize`            | Bild, `side`, `flipped`        | erkannte Stellung, Sicherheit, Hinweis      |
+| `POST /best-move-from-image` | Bild, `side`, `flipped`        | erkannte Stellung **und** bester Zug        |
 
 Das Feld `engine` sagt, wer den Zug gewählt hat: `rl` oder `material`. Die Skala
 von `evaluation` hängt davon ab — Centipawns bei `material`, erwarteter
@@ -101,6 +127,122 @@ unmittelbar sichtbar.
 
 Die Endspielmodelle sind bewusst **nicht** versioniert. Sie lösen eine feste
 Aufgabe und ändern sich nicht mehr; bei genau drei Figuren antworten immer sie.
+
+---
+
+# Stellungserkennung
+
+Auf der Analyseseite genügt **Strg+V**: Screenshot einfügen, die Stellung landet
+im Brett, der Zug wird vorgeschlagen. Ziehen und Dateiauswahl gehen auch.
+
+## Das Modell
+
+Der Figurenerkenner stammt aus
+[linrock/chessboard-recognizer](https://github.com/linrock/chessboard-recognizer)
+(MIT) und klassifiziert jedes der 64 Felder einzeln:
+
+```
+32×32×1 Graustufen
+Conv2D(32, 3×3) + ReLU  →  MaxPool 2×2
+Conv2D(64, 3×3) + ReLU  →  MaxPool 2×2
+Conv2D(64, 3×3) + ReLU
+Flatten → Dense(64) + ReLU → Dense(13) + Softmax
+```
+
+122 189 Parameter, 13 Klassen (`1RNBQKPrnbqkp`, Index 0 = leer).
+
+**Ausgeliefert wird es in reinem NumPy**, aus demselben Grund wie beim
+Value-Netz: TensorFlow installiert wäre rund 600 MB und würde die 512-MB-Instanz
+sprengen, die Gewichte allein sind 0.46 MB. TensorFlow kam genau einmal zum
+Einsatz, um die Gewichte aus dem Checkpoint zu lesen, und ist weder im
+Repository noch im Deployment.
+
+Die Faltung läuft über `as_strided` als eine einzige Matrixmultiplikation; eine
+Schleife über Pixel wäre in NumPy um Grössenordnungen langsamer.
+
+Ehrliche Einordnung: Das ist eine **dritte Kategorie** neben dem selbst
+gelernten `V(s)` und dem handgeschriebenen Φ — ein übernommenes Modell, das wir
+anschliessend auf die eigene Domäne nachgezogen haben.
+
+## Das Brett im Bild finden
+
+Ohne diesen Schritt ist die Erkennung unbrauchbar. Die Kacheln entstehen durch
+stures Achteln des Bildes; sobald Rand, Koordinaten oder eine Seitenleiste mit
+drauf sind, liegen die Kachelgrenzen mitten in den Feldern. Gemessen fiel die
+Sicherheit dann von 1.000 auf 0.65, und die Stellung war Unsinn.
+
+Ein erster Versuch über **gleichmässig verteilte Kanten** — ein Brett hat neun
+Gitterlinien je Richtung — scheiterte: Figuren erzeugen zu viele konkurrierende
+Kanten, nur einer von sechs Testfällen stimmte.
+
+Was funktioniert, ist die **Farbe**: Ein digitales Brett besteht aus zwei
+abwechselnden Flächenfarben und ist meist das grösste solche Farbpaar im Bild.
+Das allein genügt aber nicht, weil ein dunkler Rahmen in ähnlicher Farbe den
+Ausschnitt mitwachsen lässt. Deshalb wird jeder Kandidat zusätzlich geprüft, ob
+seine 8×8-Unterteilung wirklich abwechselnd hell und dunkel ist — abgetastet
+wird die **Ecke** jeder Zelle, nicht die Mitte, dort stehen die Figuren.
+
+Damit: 8 von 8 Testfällen, Abweichung 0 bis 1 Pixel, auch bei einem echten
+Screenshot mit 1460×1434 Pixeln.
+
+## Nachtrainiert auf die eigene Domäne
+
+Das übernommene Modell erkannte Lichess-Bretter fehlerfrei, scheiterte aber an
+einem chess.com-Screenshot: 13 von 64 Feldern falsch. Die Fehler waren
+systematisch — 10 davon weisse Figuren, 9 davon auf hellen Feldern. Eine weisse
+Figur auf einem cremefarbenen Feld verschwindet in Graustufen fast.
+
+Besonders unangenehm: Das Modell war **selbstsicher falsch**, Sicherheit 1.00
+für ein leeres Feld, auf dem ein Turm stand. Die Warnschwelle greift dort nicht.
+
+Kontrastnormierung half nicht, andere Farbkanäle auch nicht. Die Information
+fehlte dem Modell, nicht dem Bild.
+
+**Die Trainingsdaten entstanden aus einem einzigen Screenshot.** Die
+Feldhintergründe sind einfarbig, also lassen sich die Figuren als Maske
+freistellen — alle zwölf Typen waren in der Stellung vorhanden. Daraus 500
+Bretter mit zufälligen Belegungen gerendert, Labels per Konstruktion richtig.
+Dazu 220 gerenderte Lichess-Bretter mit bekannten Stellungen. Macht 48 896
+beschriftete Kacheln, ohne eine einzige von Hand zu beschriften.
+
+Drei Entscheidungen gaben den Ausschlag:
+
+**Zufällige statt realistischer Stellungen.** Der Klassifikator sieht jede
+Kachel einzeln, ohne Zusammenhang — Gleichverteilung der zwölf Figurentypen
+hilft ihm mehr als Realismus. Der erste Versuch mit realistischen Stellungen
+lieferte 5 weisse Damen gegen 2467 leere Felder.
+
+**Beide Stile gemischt** gegen katastrophales Vergessen.
+
+**Störungen**: wechselnde Bildgrössen, versetzte Zuschnitte, zufällig markierte
+Felder wie nach einem Zug.
+
+Ergebnis nach 12 Epochen und 90 Sekunden Training:
+
+| | übernommenes Modell | nachtrainiert |
+|---|---|---|
+| chess.com-Screenshot | 51/64 Felder, falsch | **64/64, richtig**, Sicherheit 1.00 |
+| Lichess, 12 Bretter | 12/12, 768/768 Felder | **12/12, 768/768 Felder** |
+| Prüfdatensatz | 76.5 % | **99.74 %** |
+
+Die alte Fassung liegt als `models/tile_classifier_v1.npz` daneben.
+
+## Grenzen
+
+Zwei Dinge kann ein Bild nicht hergeben, sie werden deshalb abgefragt: **wer am
+Zug ist** und ob das Brett **aus Sicht von Schwarz** dargestellt ist. Letzteres
+wird durch Umkehren der 64 Felder gelöst, nicht durch Drehen der
+FEN-Zeichenkette — das wäre wegen der Zifferncodierung subtil fehleranfällig.
+
+Erkennung und Zugberechnung sind **getrennte Endpunkte**. Liefert die Erkennung
+eine unspielbare Stellung, gibt `/recognize` sie trotzdem zurück, mit einem
+Hinweis statt eines Fehlers. Ein Fehler würde die erkannte Stellung verwerfen
+und den Nutzer bei null anfangen lassen; so landet sie im Brett und ist
+nachbesserbar.
+
+Andere Brettdesigns als die beiden trainierten sind ungetestet. Das Verfahren
+lässt sich aber wiederholen: ein Screenshot mit bekannter Stellung genügt, um
+einen weiteren Stil nachzuziehen.
 
 ---
 

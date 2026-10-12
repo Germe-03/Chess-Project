@@ -282,14 +282,15 @@
         </div>
       </details>
 
-      <!-- Screenshot-Upload: geplant -->
-      <div class="soon" aria-disabled="true">
-        <div class="soon-head">
-          <h3>Screenshot hochladen</h3>
-          <span class="badge">Coming soon</span>
-        </div>
-        <p class="hint" style="margin:0">Bald: Screenshot einer Stellung hochladen und automatisch erkennen lassen. Bis dahin die Stellung oben von Hand setzen.</p>
+      <!-- Screenshot einfügen -->
+      <div class="drop" id="drop" tabindex="0" role="button" aria-label="Screenshot einfügen oder auswählen">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/></svg>
+        <div class="big">Screenshot mit <kbd>Strg</kbd>+<kbd>V</kbd> einfügen</div>
+        <div class="sub">oder hierher ziehen · oder klicken zum Auswählen</div>
+        <input type="file" id="fileInput" accept="image/*" hidden>
       </div>
+      <p class="hint" id="shotHint" style="margin:8px 0 0">Das Brett wird erkannt und direkt oben eingesetzt. Stimmt etwas nicht, kannst du es von Hand nachbessern.</p>
+      <label class="seg" id="flipSeg" style="margin-top:10px"><input type="checkbox" id="flipped"> Screenshot ist aus Sicht von Schwarz</label>
     </section>
 
     <!-- ================= ERGEBNIS ================= -->
@@ -672,6 +673,78 @@ function isValidFen(fen){
   }) && /^[wb]$/.test(p[1]);
 }
 function esc(s){ return String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c])); }
+
+/* ---------- Screenshot einfügen und erkennen ----------
+   Strg+V, Ziehen und Dateiauswahl laufen alle in dieselbe Funktion. Die erkannte
+   Stellung landet im Brett-Editor statt direkt im Ergebnis — dann sieht man, was
+   erkannt wurde, und kann es vor dem Berechnen korrigieren. */
+async function erkenneBild(datei){
+  if(!datei || !datei.type.startsWith("image/")){
+    $("#shotHint").textContent = "Das war kein Bild. Erwartet wird ein Screenshot eines Schachbretts.";
+    return;
+  }
+  $("#shotHint").textContent = "Stellung wird erkannt …";
+  const daten = new FormData();
+  daten.append("image", datei);
+  daten.append("side", document.querySelector('input[name="side"]:checked').value);
+  daten.append("flipped", $("#flipped").checked ? "true" : "false");
+  try{
+    const res = await fetch((apiBase()||"")+"/recognize", {method:"POST", body:daten});
+    if(!res.ok){
+      const fehler = await res.json().catch(()=>({detail:"Unbekannter Fehler"}));
+      $("#shotHint").textContent = fehler.detail || "Die Erkennung ist fehlgeschlagen.";
+      return;
+    }
+    const d = await res.json();
+    // Erkanntes Brett immer in den Editor übernehmen, auch wenn es unspielbar
+    // ist — dann sieht man, was erkannt wurde, und kann es nachbessern.
+    editorState = fenToState(d.fen);
+    clearSelection();
+    renderEditor();
+    const prozent = Math.round((d.confidence ?? 0) * 100);
+    if(!d.playable){
+      $("#shotHint").textContent = `${d.note} Stellung oben korrigieren und neu berechnen.`;
+      return;
+    }
+    $("#shotHint").textContent = prozent >= 90
+      ? `Stellung erkannt (Sicherheit ${prozent} %).`
+      : `Stellung erkannt, aber unsicher (${prozent} %). Bitte das Brett oben prüfen.`;
+    computeFromFen(d.fen);
+  }catch{
+    $("#shotHint").textContent = "Keine Verbindung zum Server.";
+  }
+}
+
+(function initDrop(){
+  const drop = $("#drop"), datei = $("#fileInput");
+  drop.addEventListener("click", ()=>datei.click());
+  drop.addEventListener("keydown", e=>{ if(e.key==="Enter"||e.key===" "){ e.preventDefault(); datei.click(); } });
+  datei.addEventListener("change", e=>{ if(e.target.files[0]) erkenneBild(e.target.files[0]); });
+  drop.addEventListener("dragover", e=>{ e.preventDefault(); drop.classList.add("drag"); });
+  drop.addEventListener("dragleave", ()=>drop.classList.remove("drag"));
+  drop.addEventListener("drop", e=>{
+    e.preventDefault(); drop.classList.remove("drag");
+    const f = e.dataTransfer.files[0]; if(f) erkenneBild(f);
+  });
+  // Einfügen überall auf der Seite, nicht nur im Ablagebereich.
+  // Je nach Herkunft liefert die Zwischenablage das Bild unterschiedlich:
+  // ein Screenshot kommt als Datei mit Typ image/*, eine aus dem Explorer
+  // kopierte Datei kann einen leeren Typ haben. Deshalb beide Wege prüfen.
+  document.addEventListener("paste", e=>{
+    const ablage = e.clipboardData;
+    if(!ablage) return;
+    const ausFiles = Array.from(ablage.files || []);
+    const ausItems = Array.from(ablage.items || [])
+      .filter(i => i.kind === "file")
+      .map(i => i.getAsFile())
+      .filter(Boolean);
+    const bild = [...ausFiles, ...ausItems].find(f => f.type.startsWith("image/") || /\.(png|jpe?g|gif|webp|bmp)$/i.test(f.name || ""));
+    if(bild){ e.preventDefault(); erkenneBild(bild); return; }
+    if(ausFiles.length || ausItems.length){
+      $("#shotHint").textContent = "Die Zwischenablage enthält kein Bild, sondern etwas anderes.";
+    }
+  });
+})();
 
 /* ---------- Modellversionen für den Wähler laden ---------- */
 async function ladeVersionen(){
