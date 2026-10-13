@@ -446,6 +446,38 @@ async def recognize(
 # --------------------------------------------------------------------------- #
 # Statische UI ausliefern (derselbe Server liefert Frontend + API)
 # --------------------------------------------------------------------------- #
+def _symbol(datei: str, typ: str):
+    """
+    Symbol für den Browsertab.
+
+    Feste Pfade statt eines Platzhalters: Ein Pfadparameter würde hier auch
+    /spielen abfangen, weil die Routen der Reihe nach geprüft werden. Und
+    feste Pfade legen genau fest, welche Dateien aus web/ nach aussen gelangen.
+    """
+    pfad = WEB_DIR / datei
+    if not pfad.exists():
+        raise HTTPException(status_code=404, detail="Nicht gefunden.")
+    return FileResponse(pfad, media_type=typ,
+                        headers={"Cache-Control": "public, max-age=86400"})
+
+
+# Die .ico-Fassung ist kein Zierrat: Manche Browser fragen /favicon.ico an,
+# ohne vorher ins HTML zu schauen.
+@app.get("/favicon.ico", include_in_schema=False)
+def favicon_ico():
+    return _symbol("favicon.ico", "image/x-icon")
+
+
+@app.get("/favicon.svg", include_in_schema=False)
+def favicon_svg():
+    return _symbol("favicon.svg", "image/svg+xml")
+
+
+@app.get("/favicon.png", include_in_schema=False)
+def favicon_png():
+    return _symbol("favicon.png", "image/png")
+
+
 @app.get("/spielen", include_in_schema=False)
 def spielen():
     page = WEB_DIR / "spielen.html"
