@@ -25,8 +25,20 @@ Konfiguration über Umgebungsvariablen:
     MAX_SEARCH_DEPTH  Obergrenze der Vorausschau in Halbzügen (Standard 2).
                       Schützt die kleine Render-Instanz vor Versionen, deren
                       Suche dort zu lange dauern würde.
+    OPENBLAS_NUM_THREADS, OMP_NUM_THREADS, MKL_NUM_THREADS
+                      Rechenthreads von NumPy, hier standardmässig 1 (siehe unten).
 """
 import os
+
+# Muss vor dem ersten Import von NumPy stehen. NumPys Matrixbibliothek startet
+# so viele Rechenthreads, wie der Server Kerne hat — nicht so viele, wie dem
+# Container zugeteilt sind. Auf render.com (0.1 CPU) warten diese Threads aktiv,
+# verbrauchen das CPU-Kontingent und der Container drosselt daraufhin den ganzen
+# Prozess. Gemessen war dort jede Rechnung rund 170-mal langsamer als lokal.
+# Für die kleinen Matrizen hier bringt Mehrfädigkeit ohnehin nichts.
+for _variable in ("OPENBLAS_NUM_THREADS", "OMP_NUM_THREADS", "MKL_NUM_THREADS"):
+    os.environ.setdefault(_variable, "1")
+
 from io import BytesIO
 from pathlib import Path
 from typing import NamedTuple
@@ -35,6 +47,7 @@ import chess
 from fastapi import FastAPI, File, Form, HTTPException, UploadFile
 from PIL import Image
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.middleware.gzip import GZipMiddleware
 from fastapi.responses import FileResponse
 from pydantic import BaseModel, Field
 
@@ -60,6 +73,9 @@ app = FastAPI(
 # CORS offen halten, damit die UI auch von einem anderen Origin (z. B. lokalem
 # Dev-Server / geöffnete Datei) auf die API zugreifen kann. Für ein Studien-
 # projekt vertretbar; produktiv würde man die erlaubten Origins einschränken.
+# Komprimieren lohnt sich vor allem für den Prüfbericht (/test/bericht.json):
+# rund 2 MB Text, gepackt ein Bruchteil davon.
+app.add_middleware(GZipMiddleware, minimum_size=2000)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -69,6 +85,7 @@ app.add_middleware(
 
 WEB_DIR = Path(__file__).resolve().parent.parent / "web"
 MODEL_DIR = Path(__file__).resolve().parent.parent / "models"
+REPORT_PATH = Path(__file__).resolve().parent.parent / "testbench" / "bericht.json"
 START_FEN = chess.STARTING_FEN
 GAMMA = 0.99
 
@@ -553,6 +570,30 @@ def spielen():
     if page.exists():
         return FileResponse(page, headers={"Cache-Control": "no-cache"})
     return {"message": "Spielseite nicht gefunden."}
+
+
+@app.get("/test", include_in_schema=False)
+def pruefstand():
+    page = WEB_DIR / "test.html"
+    if page.exists():
+        return FileResponse(page, headers={"Cache-Control": "no-cache"})
+    return {"message": "Prüfstand-Seite nicht gefunden."}
+
+
+@app.get("/test/bericht.json", tags=["prüfstand"])
+def pruefbericht():
+    """
+    Prüfbericht des letzten Releases: Teststellungen, Turnier aller Versionen
+    gegeneinander und die Stockfish-Bewertung jedes Zuges.
+
+    Der Bericht wird nicht hier gerechnet, sondern lokal vor jedem Release
+    (python -m Code.rl.testbench), weil er Stockfish braucht. Der Dienst liefert
+    nur die mitgelieferte Datei aus.
+    """
+    if not REPORT_PATH.exists():
+        raise HTTPException(status_code=404, detail="Noch kein Prüfbericht vorhanden.")
+    return FileResponse(REPORT_PATH, media_type="application/json",
+                        headers={"Cache-Control": "no-cache"})
 
 
 @app.get("/", include_in_schema=False)

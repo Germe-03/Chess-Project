@@ -1,0 +1,516 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="icon" href="/favicon.ico" sizes="any">
+<link rel="apple-touch-icon" href="/favicon.png">
+<title>Prüfstand — Schach-Assistent</title>
+<style>
+  :root{
+    --bg:#f4f5f7; --surface:#ffffff; --surface-2:#eef0f3; --border:#d8dce2;
+    --text:#1c2430; --muted:#5b6675; --primary:#2f6df6; --primary-ink:#ffffff;
+    --primary-weak:#e7f0ff; --good:#1f9d57; --warn:#b4690e; --bad:#c23b3b;
+    --focus:#1552d6; --shadow:0 1px 2px rgba(16,24,40,.06),0 4px 16px rgba(16,24,40,.08);
+    --sq-light:#efe4cf; --sq-dark:#b48a63; --sq-from:#f6e27a; --sq-to:#f6e27a;
+    --arrow:rgba(47,109,246,.85); --radius:14px;
+  }
+  :root[data-theme="dark"]{
+    --bg:#12161d; --surface:#1b212b; --surface-2:#222a36; --border:#333d4c;
+    --text:#e8ecf2; --muted:#9aa6b6; --primary:#5b8bff; --primary-ink:#0b1220;
+    --primary-weak:#1c2942; --good:#4cc281; --warn:#e0a34a; --bad:#e97070;
+    --focus:#7aa2ff; --shadow:0 1px 2px rgba(0,0,0,.4);
+    --sq-light:#c9ba9c; --sq-dark:#6d5136; --sq-from:#b9a032; --sq-to:#b9a032;
+    --arrow:rgba(122,162,255,.9);
+  }
+  @media (prefers-color-scheme:dark){
+    :root:not([data-theme="light"]){
+      --bg:#12161d; --surface:#1b212b; --surface-2:#222a36; --border:#333d4c;
+      --text:#e8ecf2; --muted:#9aa6b6; --primary:#5b8bff; --primary-ink:#0b1220;
+      --primary-weak:#1c2942; --good:#4cc281; --warn:#e0a34a; --bad:#e97070;
+      --focus:#7aa2ff; --shadow:0 1px 2px rgba(0,0,0,.4);
+      --sq-light:#c9ba9c; --sq-dark:#6d5136; --sq-from:#b9a032; --sq-to:#b9a032;
+      --arrow:rgba(122,162,255,.9);
+    }
+  }
+  /* Farben der Zugklassen, angelehnt an chess.com — Wiedererkennung statt Neuerfindung */
+  :root{
+    --k-brillant:#1baca6; --k-grossartig:#5c8bb0; --k-bester:#81b64c; --k-ausgezeichnet:#96bc4b;
+    --k-gut:#8fa47a; --k-eroeffnung:#a88865; --k-erzwungen:#8a949e; --k-ungenau:#e6b800;
+    --k-verpasst:#ff7769; --k-fehler:#e58f2a; --k-patzer:#e0402e;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--text);
+    font:15px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;}
+  .wrap{max-width:1120px;margin:0 auto;padding:20px 16px 56px;}
+  a{color:var(--primary)}
+  h1,h2,h3{line-height:1.2;margin:0}
+  .muted{color:var(--muted)}
+  :focus-visible{outline:3px solid var(--focus);outline-offset:2px;border-radius:8px}
+
+  header{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:16px}
+  .brand{margin-right:auto}
+  .brand h1{font-size:20px;font-weight:700;letter-spacing:-.01em}
+  .brand p{margin:2px 0 0;font-size:13px;color:var(--muted)}
+  .icon-btn{background:var(--surface);border:1px solid var(--border);color:var(--text);
+    height:38px;padding:0 12px;border-radius:10px;cursor:pointer;font:inherit;font-size:14px;
+    text-decoration:none;display:inline-flex;align-items:center}
+  .icon-btn:hover{background:var(--surface-2)}
+
+  .card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);
+    padding:18px;box-shadow:var(--shadow);margin-bottom:18px}
+  .card h2{font-size:16px;font-weight:700;margin-bottom:4px}
+  .hint{font-size:13px;color:var(--muted);margin:0 0 14px}
+  .status{font-size:13px;color:var(--muted);margin:-4px 0 14px}
+
+  .tabs{display:flex;gap:6px;margin-bottom:16px;flex-wrap:wrap}
+  .tab{border:1px solid var(--border);background:var(--surface);color:var(--text);
+    padding:9px 16px;border-radius:10px;cursor:pointer;font:inherit;font-size:14px}
+  .tab[aria-selected="true"]{border-color:var(--primary);background:var(--primary-weak);font-weight:600}
+
+  table{border-collapse:collapse;width:100%;font-size:14px;font-variant-numeric:tabular-nums}
+  th,td{padding:8px 10px;border-bottom:1px solid var(--border);text-align:left;vertical-align:middle}
+  th{font-size:12px;color:var(--muted);font-weight:600;white-space:nowrap}
+  td.num,th.num{text-align:right}
+  .scroll{overflow-x:auto}
+  tr.clickable{cursor:pointer} tr.clickable:hover td{background:var(--surface-2)}
+  .badge{display:inline-block;font-size:11px;padding:1px 7px;border-radius:999px;
+    background:var(--primary-weak);color:var(--primary);font-weight:600;margin-left:6px}
+  .bar{height:6px;border-radius:3px;background:var(--surface-2);overflow:hidden;margin-top:4px;min-width:80px}
+  .bar>div{height:100%;background:var(--good)}
+
+  .cross td,.cross th{text-align:center}
+  .cross td.self{background:var(--surface-2)}
+  .cross button{background:none;border:none;color:inherit;font:inherit;cursor:pointer;
+    padding:4px 8px;border-radius:6px;width:100%}
+  .cross button:hover{background:var(--primary-weak)}
+
+  .legend{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:8px 18px;font-size:13px}
+  .legend div{display:flex;gap:8px;align-items:baseline}
+  .k{display:inline-flex;align-items:center;justify-content:center;min-width:26px;height:20px;
+    padding:0 5px;border-radius:6px;font-size:12px;font-weight:700;color:#fff;flex:0 0 auto}
+  .k.ungenau{color:#1c2430}
+  .ok{color:var(--good);font-weight:700} .nok{color:var(--bad);font-weight:700}
+
+  select{height:38px;padding:0 10px;border:1px solid var(--border);border-radius:10px;
+    background:var(--surface);color:var(--text);font:inherit;font-size:14px}
+  .filters{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:12px}
+
+  /* Analyse */
+  .analysis{display:grid;grid-template-columns:auto minmax(0,1fr);gap:18px;align-items:start}
+  @media (max-width:860px){.analysis{grid-template-columns:1fr}}
+  .board-area{display:flex;gap:8px}
+  .evalbar{width:14px;border-radius:7px;overflow:hidden;background:#2b2b2b;display:flex;
+    flex-direction:column;justify-content:flex-end;height:min(78vw,440px);border:1px solid var(--border)}
+  .evalbar>div{background:#f2f2f2;transition:height .25s}
+  @media (prefers-reduced-motion:reduce){.evalbar>div{transition:none}}
+  .board-box{position:relative;width:min(78vw,440px);height:min(78vw,440px)}
+  .board{width:100%;height:100%;display:grid;grid-template-columns:repeat(8,1fr);
+    grid-template-rows:repeat(8,1fr);border:1px solid var(--border);border-radius:8px;overflow:hidden}
+  .sq{display:flex;align-items:center;justify-content:center;font-size:min(9vw,38px);line-height:1;
+    position:relative;user-select:none}
+  .sq.light{background:var(--sq-light)} .sq.dark{background:var(--sq-dark)}
+  .sq.hl::after{content:"";position:absolute;inset:0;background:var(--sq-from);opacity:.65}
+  .sq .pc{position:relative;z-index:1;filter:drop-shadow(0 1px 1px rgba(0,0,0,.35))}
+  .pc.white{color:#fff} .pc.black{color:#111}
+  .sq .mark{position:absolute;top:2px;right:2px;z-index:2;font-size:10px;min-width:18px;height:16px}
+  .coord{position:absolute;font-size:10px;color:rgba(0,0,0,.45);z-index:1}
+  .coord.r{left:3px;top:2px} .coord.f{right:3px;bottom:1px}
+  svg.arrows{position:absolute;inset:0;pointer-events:none;z-index:3}
+  .nav{display:flex;gap:6px;margin-top:10px;justify-content:center}
+  .nav button{min-width:48px}
+  .nav button:disabled{opacity:.4;cursor:not-allowed}
+
+  .players{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px}
+  .player{border:1px solid var(--border);border-radius:10px;padding:10px 12px}
+  .player .acc{font-size:22px;font-weight:700}
+  .player .name{font-size:13px;color:var(--muted)}
+  .counts{width:100%;font-size:13px;margin-bottom:12px}
+  .counts td{padding:3px 6px;border:none}
+  .counts td.num{width:40px}
+  .current{border:1px solid var(--border);border-radius:10px;padding:10px 12px;margin-bottom:12px;
+    min-height:76px;font-size:14px}
+  .current .title{font-weight:700;font-size:15px;display:flex;gap:8px;align-items:center}
+  .movelist{max-height:340px;overflow:auto;border-top:1px solid var(--border);padding-top:8px;
+    font-size:13px;font-variant-numeric:tabular-nums}
+  .movelist .row{display:grid;grid-template-columns:34px 1fr 1fr;gap:4px;align-items:center}
+  .movelist .nr{color:var(--muted)}
+  .mv{display:flex;align-items:center;gap:6px;padding:3px 6px;border-radius:6px;cursor:pointer;
+    background:none;border:none;color:inherit;font:inherit;text-align:left}
+  .mv:hover{background:var(--surface-2)}
+  .mv.on{background:var(--primary-weak);font-weight:600}
+  .mv .k{min-width:20px;height:16px;font-size:10px}
+  .empty{padding:24px;text-align:center;color:var(--muted)}
+  footer{margin-top:26px;font-size:12px;color:var(--muted);text-align:center}
+  [hidden]{display:none!important}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="brand">
+      <h1>♞ Prüfstand</h1>
+      <p>AI Operations · alle Engine-Versionen unter gleichen Bedingungen, geprüft von Stockfish</p>
+    </div>
+    <a class="icon-btn" href="/">← Analyse</a>
+    <a class="icon-btn" href="/spielen">Spielen</a>
+    <button class="icon-btn" id="themeToggle" aria-label="Farbschema wechseln">◐ Ansicht</button>
+  </header>
+
+  <p class="status" id="status" role="status" aria-live="polite">Prüfbericht wird geladen …</p>
+
+  <nav class="tabs" role="tablist" aria-label="Bereiche">
+    <button class="tab" role="tab" data-tab="uebersicht">Übersicht</button>
+    <button class="tab" role="tab" data-tab="stellungen">Teststellungen</button>
+    <button class="tab" role="tab" data-tab="partien">Partien</button>
+  </nav>
+
+  <main id="view"></main>
+
+  <footer>Schach-Assistent · FHNW AI Operations · Der Prüfstand rechnet lokal vor jedem Release
+    (<code>python -m Code.rl.testbench</code>); diese Seite zeigt den mitgelieferten Bericht.</footer>
+</div>
+
+<script>
+"use strict";
+const $ = s => document.querySelector(s);
+const PIECES = {K:"♔",Q:"♕",R:"♖",B:"♗",N:"♘",P:"♙",k:"♚",q:"♛",r:"♜",b:"♝",n:"♞",p:"♟"};
+const FILES = ["a","b","c","d","e","f","g","h"];
+const SCHWELLEN = {
+  brillant:"bester Zug mit Figurenopfer", grossartig:"einziger guter Zug", bester:"erste Wahl von Stockfish",
+  ausgezeichnet:"Verlust unter 2 %", gut:"Verlust unter 5 %", eroeffnung:"vorgegebener Eröffnungszug",
+  erzwungen:"nur ein legaler Zug", ungenau:"Verlust 5 bis 10 %", verpasst:"Matt oder gegnerischen Fehler nicht genutzt",
+  fehler:"Verlust 10 bis 20 %", patzer:"Verlust ab 20 %",
+};
+let bericht = null, aktiv = null;
+const zustand = {tab:"uebersicht", partie:null, ply:0, stellung:null, gedreht:false, filter:""};
+
+/* ---------- Farbschema wie auf den anderen Seiten ---------- */
+(function(){
+  try{ const t = localStorage.getItem("sa_theme"); if(t) document.documentElement.setAttribute("data-theme", t); }catch{}
+  $("#themeToggle").addEventListener("click", ()=>{
+    const cur = document.documentElement.getAttribute("data-theme");
+    const dunkel = cur ? cur === "dark" : matchMedia("(prefers-color-scheme:dark)").matches;
+    const next = dunkel ? "light" : "dark";
+    document.documentElement.setAttribute("data-theme", next);
+    try{ localStorage.setItem("sa_theme", next); }catch{}
+  });
+})();
+
+function esc(s){ return String(s ?? "").replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c])); }
+function klasse(k, gross){
+  const info = bericht.klassen[k] || {name:k, symbol:"?"};
+  return `<span class="k ${k}" style="background:var(--k-${k})" title="${esc(info.name)}" aria-label="${esc(info.name)}">${esc(info.symbol)}</span>${gross ? " " + esc(info.name) : ""}`;
+}
+function prozent(x){ return Math.round(x * 100) + " %"; }
+function genau(x){ return x === null || x === undefined ? "—" : x.toFixed(1); }
+function bewertungText(b){
+  if(!b) return "—";
+  if(b.sieger) return b.sieger === "w" ? "1–0" : "0–1";
+  if(b.matt !== undefined && b.matt !== null) return (b.matt > 0 ? "#" : "#−") + Math.abs(b.matt);
+  const v = b.cp / 100; return (v > 0 ? "+" : v < 0 ? "−" : "") + Math.abs(v).toFixed(2);
+}
+function weissAnteil(b){
+  if(!b) return .5;
+  if(b.sieger) return b.sieger === "w" ? 1 : 0;
+  if(b.matt !== undefined && b.matt !== null) return b.matt > 0 ? 1 : 0;
+  return 1 / (1 + Math.exp(-0.00368208 * b.cp));
+}
+
+/* ---------- Brett ---------- */
+function fenToMap(fen){
+  const map = {}, rows = fen.split(/\s+/)[0].split("/");
+  for(let r=0;r<8;r++){ let f=0;
+    for(const ch of rows[r]){ if(/\d/.test(ch)) f += +ch; else { map[FILES[f]+(8-r)] = ch; f++; } } }
+  return map;
+}
+function brett(fen, {markiert=[], pfeil=null, zeichen=null}={}){
+  const map = fenToMap(fen);
+  const reihen = zustand.gedreht ? [1,2,3,4,5,6,7,8] : [8,7,6,5,4,3,2,1];
+  const linien = zustand.gedreht ? [...FILES].reverse() : FILES;
+  let html = "";
+  reihen.forEach((rank, ri) => linien.forEach((file, fi) => {
+    const feld = file + rank, p = map[feld];
+    const hell = (FILES.indexOf(file) + rank) % 2 === 1;
+    let inhalt = p ? `<span class="pc ${p === p.toUpperCase() ? "white" : "black"}">${PIECES[p]}</span>` : "";
+    if(fi === 0) inhalt += `<span class="coord r">${rank}</span>`;
+    if(ri === 7) inhalt += `<span class="coord f">${file}</span>`;
+    if(zeichen && zeichen.feld === feld) inhalt += `<span class="k mark ${zeichen.k}" style="background:var(--k-${zeichen.k})">${esc(bericht.klassen[zeichen.k].symbol)}</span>`;
+    html += `<div class="sq ${hell ? "light" : "dark"}${markiert.includes(feld) ? " hl" : ""}">${inhalt}</div>`;
+  }));
+  let svg = "";
+  if(pfeil){
+    const pos = feld => {
+      const f = FILES.indexOf(feld[0]), r = +feld[1];
+      return zustand.gedreht ? [7 - f + .5, r - 1 + .5] : [f + .5, 8 - r + .5];
+    };
+    const [x1,y1] = pos(pfeil.slice(0,2)), [x2,y2] = pos(pfeil.slice(2,4));
+    const len = Math.hypot(x2-x1, y2-y1), kx = (x2-x1)/len, ky = (y2-y1)/len;
+    svg = `<svg class="arrows" viewBox="0 0 8 8" aria-hidden="true"><defs><marker id="spitze" markerWidth="3" markerHeight="3" refX="1.5" refY="1.5" orient="auto"><path d="M0,0 L3,1.5 L0,3 z" fill="var(--arrow)"/></marker></defs>
+      <line x1="${x1}" y1="${y1}" x2="${x2 - kx*.35}" y2="${y2 - ky*.35}" stroke="var(--arrow)" stroke-width=".16" stroke-linecap="round" marker-end="url(#spitze)"/></svg>`;
+  }
+  return `<div class="board-box"><div class="board" role="img" aria-label="Schachbrett">${html}</div>${svg}</div>`;
+}
+
+/* ---------- Laden ---------- */
+async function laden(){
+  try{
+    const res = await fetch("/test/bericht.json", {cache:"no-cache"});
+    if(!res.ok) throw new Error(res.status);
+    bericht = await res.json();
+  }catch{
+    $("#status").textContent = "";
+    $("#view").innerHTML = `<div class="card empty">Es gibt noch keinen Prüfbericht. Er entsteht lokal vor dem nächsten Release mit
+      <code>python -m Code.rl.testbench</code> und wird mit dem Release ausgeliefert.</div>`;
+    return;
+  }
+  try{ const v = await (await fetch("/versions")).json(); aktiv = v.active; }catch{}
+  const d = new Date(bericht.erstellt);
+  $("#status").textContent = `Stand ${d.toLocaleDateString("de-CH")} ${d.toLocaleTimeString("de-CH",{hour:"2-digit",minute:"2-digit"})} · ` +
+    `${bericht.versionen.length} Versionen · ${bericht.stellungen.length} Teststellungen · ${bericht.partien.length} Partien · ` +
+    `bewertet von ${bericht.stockfish.name}, Tiefe ${bericht.stockfish.tiefe}`;
+  ausHash(); zeichnen();
+}
+
+/* ---------- Adresse <-> Zustand: Zurück-Taste und Links funktionieren ---------- */
+function ausHash(){
+  const h = new URLSearchParams(location.hash.slice(1));
+  zustand.partie = h.get("partie"); zustand.stellung = h.get("stellung") ? +h.get("stellung") : null;
+  zustand.tab = zustand.partie ? "partien" : zustand.stellung ? "stellungen" : (h.get("tab") || "uebersicht");
+  zustand.filter = h.get("paar") || "";
+  zustand.ply = h.get("zug") ? +h.get("zug") : 0;
+}
+function gehe(params){ location.hash = new URLSearchParams(params).toString(); }
+window.addEventListener("hashchange", ()=>{ if(bericht){ ausHash(); zeichnen(); } });
+document.querySelectorAll(".tab").forEach(t => t.addEventListener("click", ()=> gehe({tab:t.dataset.tab})));
+
+function zeichnen(){
+  document.querySelectorAll(".tab").forEach(t => t.setAttribute("aria-selected", t.dataset.tab === zustand.tab));
+  if(zustand.partie) return partieAnsicht();
+  if(zustand.tab === "stellungen") return stellungenAnsicht();
+  if(zustand.tab === "partien") return partienAnsicht();
+  uebersicht();
+}
+
+/* ---------- Übersicht ---------- */
+function uebersicht(){
+  const z = bericht.zusammenfassung, namen = bericht.versionen.map(v => v.name);
+  const tiefe = Object.fromEntries(bericht.versionen.map(v => [v.name, v.tiefe]));
+  const zeilen = [...z.rangliste].sort((a,b) => b.punkte - a.punkte || b.geloest - a.geloest);
+  const n = bericht.stellungen.length;
+  let html = `<section class="card"><h2>Rangliste</h2>
+    <p class="hint">Teststellungen: ${n} Stellungen mit genau einem klar besten Zug. Turnier: jede Version gegen jede, je 10 Partien
+    aus 5 festen Eröffnungen mit beiden Farben. Genauigkeit nach der Lichess-Formel, gemittelt über alle Partien.</p>
+    <div class="scroll"><table><thead><tr><th>Version</th><th class="num">Vorausschau</th><th>Teststellungen</th>
+    <th class="num">Turnier</th><th class="num">Genauigkeit</th><th class="num">Patzer / Partie</th><th class="num">Fehler / Partie</th></tr></thead><tbody>`;
+  for(const r of zeilen){
+    html += `<tr><td><strong>${esc(r.version)}</strong>${r.version === aktiv ? '<span class="badge">aktiv</span>' : ""}</td>
+      <td class="num">${tiefe[r.version]} Halbz.</td>
+      <td>${r.geloest} / ${n}<div class="bar"><div style="width:${r.geloest / n * 100}%"></div></div></td>
+      <td class="num">${r.punkte.toFixed(1)} / ${r.partien}</td>
+      <td class="num">${genau(r.genauigkeit)}</td>
+      <td class="num">${(r.klassen.patzer / r.partien).toFixed(1)}</td>
+      <td class="num">${(r.klassen.fehler / r.partien).toFixed(1)}</td></tr>`;
+  }
+  html += `</tbody></table></div></section>`;
+
+  html += `<section class="card"><h2>Kreuztabelle</h2><p class="hint">Punkte der Zeilen-Version gegen die Spalten-Version, von 10.
+    Klick auf ein Feld zeigt die zehn Partien.</p><div class="scroll"><table class="cross"><thead><tr><th></th>
+    ${namen.map(n => `<th>${esc(n)}</th>`).join("")}</tr></thead><tbody>`;
+  for(const a of namen){
+    html += `<tr><th>${esc(a)}</th>`;
+    for(const b of namen){
+      if(a === b){ html += `<td class="self">—</td>`; continue; }
+      html += `<td><button data-paar="${esc(a)}|${esc(b)}" aria-label="${esc(a)} gegen ${esc(b)}: ${z.kreuztabelle[a][b]} Punkte">${z.kreuztabelle[a][b]}</button></td>`;
+    }
+    html += `</tr>`;
+  }
+  html += `</tbody></table></div></section>`;
+
+  html += `<section class="card"><h2>Zugbewertung</h2><p class="hint">Stockfish bewertet jede Stellung. Aus der Bewertung wird die
+    Gewinnerwartung der Partei am Zug; was ein Zug davon verliert, bestimmt die Klasse — mit denselben Schwellen wie bei chess.com.</p>
+    <div class="legend">${Object.keys(bericht.klassen).map(k => `<div>${klasse(k, true)} <span class="muted">${esc(SCHWELLEN[k] || "")}</span></div>`).join("")}</div></section>`;
+  $("#view").innerHTML = html;
+  $("#view").querySelectorAll("[data-paar]").forEach(b => b.addEventListener("click", ()=> gehe({tab:"partien", paar:b.dataset.paar})));
+}
+
+/* ---------- Teststellungen ---------- */
+function stellungenAnsicht(){
+  const namen = bericht.versionen.map(v => v.name);
+  const antwort = (name, id) => bericht.loesungen[name].antworten.find(a => a.id === id);
+  let html = "";
+  if(zustand.stellung){
+    const s = bericht.stellungen.find(x => x.id === zustand.stellung);
+    if(s){
+      const am = s.fen.split(" ")[1] === "w" ? "Weiss" : "Schwarz";
+      html += `<section class="card"><div class="analysis"><div>${brett(s.fen, {pfeil:s.loesung_uci})}</div><div>
+        <h2>Stellung ${s.id} · ${esc(s.kategorie)} · ${esc(s.phase)}</h2>
+        <p class="hint">${am} am Zug. Lösung laut Stockfish: <strong>${esc(s.loesung_san)}</strong> (Pfeil),
+        ${s.bewertung.matt ? "Matt in " + Math.abs(s.bewertung.matt) : "Bewertung " + bewertungText(s.bewertung)} — der zweitbeste Zug liegt mindestens ${prozent(s.erwartung_beste - s.erwartung_zweitbeste)} Gewinnerwartung zurück.</p>
+        <table><thead><tr><th>Version</th><th>gespielt</th><th></th><th>Klasse</th></tr></thead><tbody>
+        ${namen.map(n => { const a = antwort(n, s.id); return `<tr><td>${esc(n)}</td><td>${esc(a.san)}</td>
+          <td>${a.geloest ? '<span class="ok">✓ gelöst</span>' : '<span class="nok">✗</span>'}</td><td>${klasse(a.klasse, true)}</td></tr>`; }).join("")}
+        </tbody></table>
+        <button class="icon-btn" style="margin-top:14px" id="zurueck">← Alle Teststellungen</button></div></div></section>`;
+    }
+  }
+  html += `<section class="card"><h2>Teststellungen</h2><p class="hint">Immer dieselben ${bericht.stellungen.length} Stellungen für jede Version.
+    Klick auf eine Zeile zeigt Stellung, Lösung und die Antworten aller Versionen.</p>
+    <div class="scroll"><table><thead><tr><th class="num">Nr.</th><th>Kategorie</th><th>Phase</th>
+    ${namen.map(n => `<th>${esc(n)}</th>`).join("")}</tr></thead><tbody>`;
+  for(const s of bericht.stellungen){
+    html += `<tr class="clickable" tabindex="0" data-stellung="${s.id}"><td class="num">${s.id}</td><td>${esc(s.kategorie)}</td><td>${esc(s.phase)}</td>
+      ${namen.map(n => { const a = antwort(n, s.id); return `<td title="${esc(a.san)}">${a.geloest ? '<span class="ok">✓</span>' : '<span class="nok">✗</span>'}</td>`; }).join("")}</tr>`;
+  }
+  html += `<tr><td></td><td colspan="2"><strong>gelöst</strong></td>${namen.map(n =>
+    `<td><strong>${bericht.loesungen[n].antworten.filter(a => a.geloest).length}</strong></td>`).join("")}</tr></tbody></table></div></section>`;
+  $("#view").innerHTML = html;
+  $("#view").querySelectorAll("[data-stellung]").forEach(r => {
+    const los = ()=> gehe({stellung:r.dataset.stellung});
+    r.addEventListener("click", los); r.addEventListener("keydown", e => { if(e.key === "Enter") los(); });
+  });
+  const z = $("#zurueck"); if(z){ z.addEventListener("click", ()=> gehe({tab:"stellungen"})); window.scrollTo({top:0}); }
+}
+
+/* ---------- Partienliste ---------- */
+function partienAnsicht(){
+  const namen = bericht.versionen.map(v => v.name);
+  const paare = [];
+  namen.forEach((a, i) => namen.slice(i + 1).forEach(b => paare.push(`${a}|${b}`)));
+  const [fa, fb] = zustand.filter ? zustand.filter.split("|") : [];
+  const liste = bericht.partien.filter(p => !fa || ((p.weiss === fa && p.schwarz === fb) || (p.weiss === fb && p.schwarz === fa)));
+  let html = `<section class="card"><h2>Partien</h2><p class="hint">Klick auf eine Partie öffnet die Analyse mit der Bewertung jedes Zuges.</p>
+    <div class="filters"><label for="paar" class="muted">Paarung</label><select id="paar"><option value="">alle ${bericht.partien.length} Partien</option>
+    ${paare.map(p => { const [a,b] = p.split("|"); const sel = zustand.filter && (zustand.filter === p || zustand.filter === `${b}|${a}`);
+      return `<option value="${p}"${sel ? " selected" : ""}>${a} gegen ${b}</option>`; }).join("")}</select></div>
+    <div class="scroll"><table><thead><tr><th>Weiss</th><th>Schwarz</th><th>Eröffnung</th><th>Ergebnis</th><th>Grund</th>
+    <th class="num">Halbzüge</th><th class="num">Genauigkeit W / S</th></tr></thead><tbody>`;
+  for(const p of liste){
+    html += `<tr class="clickable" tabindex="0" data-partie="${esc(p.id)}"><td>${esc(p.weiss)}</td><td>${esc(p.schwarz)}</td><td>${esc(p.eroeffnung)}</td>
+      <td><strong>${esc(p.ergebnis.replace("1/2-1/2","½–½").replace("-","–"))}</strong></td><td>${esc(p.grund)}</td>
+      <td class="num">${p.halbzuege}</td><td class="num">${genau(p.genauigkeit.w)} / ${genau(p.genauigkeit.b)}</td></tr>`;
+  }
+  if(!liste.length) html += `<tr><td colspan="7" class="empty">Keine Partien für diese Auswahl.</td></tr>`;
+  html += `</tbody></table></div></section>`;
+  $("#view").innerHTML = html;
+  $("#paar").addEventListener("change", e => gehe(e.target.value ? {tab:"partien", paar:e.target.value} : {tab:"partien"}));
+  $("#view").querySelectorAll("[data-partie]").forEach(r => {
+    const los = ()=> gehe({partie:r.dataset.partie});
+    r.addEventListener("click", los); r.addEventListener("keydown", e => { if(e.key === "Enter") los(); });
+  });
+}
+
+/* ---------- Analyse einer Partie ---------- */
+function partieAnsicht(){
+  const p = bericht.partien.find(x => x.id === zustand.partie);
+  if(!p){ gehe({tab:"partien"}); return; }
+  const n = p.zuege.length;
+  // Beim Blättern in derselben Partie bleiben Seite und Zugliste, wo sie sind.
+  // Die Ansicht wird neu gezeichnet; ohne das sprängen beide bei jedem Zug.
+  const dieselbe = zustand.letztePartie === p.id;
+  const alteListe = $("#zugliste");
+  const listenScroll = dieselbe && alteListe ? alteListe.scrollTop : 0;
+  const seitenScroll = window.scrollY;
+  const ply = Math.max(0, Math.min(n, zustand.ply));
+  const zug = ply > 0 ? p.zuege[ply - 1] : null;
+  const fen = zug ? zug.fen : p.start_fen;
+  const bewertung = zug ? zug.bewertung : p.start_bewertung;
+  const optionen = zug ? {
+    markiert:[zug.uci.slice(0,2), zug.uci.slice(2,4)], pfeil:zug.beste_uci,
+    zeichen:{feld:zug.uci.slice(2,4), k:zug.klasse},
+  } : {};
+
+  const zaehlen = farbe => { const c = {}; p.zuege.filter(m => m.farbe === farbe).forEach(m => c[m.klasse] = (c[m.klasse] || 0) + 1); return c; };
+  const cw = zaehlen("w"), cb = zaehlen("b");
+  const reihen = Object.keys(bericht.klassen).filter(k => cw[k] || cb[k]);
+
+  let aktuell;
+  if(!zug){
+    aktuell = `<div class="title">Ausgangsstellung</div><div class="muted">Mit → oder einem Klick auf einen Zug durch die Partie gehen.</div>`;
+  }else{
+    const nr = Math.floor((ply - 1) / 2) + 1, punkte = zug.farbe === "w" ? `${nr}.` : `${nr}. …`;
+    const wer = zug.farbe === "w" ? p.weiss : p.schwarz;
+    aktuell = `<div class="title">${punkte} ${esc(zug.san)} ${klasse(zug.klasse, true)}</div>
+      <div class="muted">${esc(wer)} · Bewertung danach ${bewertungText(zug.bewertung)}</div>`;
+    if(zug.klasse !== "eroeffnung"){
+      aktuell += `<div>Gewinnerwartung für ${zug.farbe === "w" ? "Weiss" : "Schwarz"}: ${prozent(zug.vorher)} → ${prozent(zug.nachher)}`;
+      aktuell += zug.beste_san ? ` · Stockfish: besser war <strong>${esc(zug.beste_san)}</strong> (Pfeil)` : " · Stockfishs erste Wahl";
+      aktuell += `</div>`;
+    }
+  }
+
+  let liste = "";
+  for(let i = 0; i < n; i += 2){
+    const z = (j) => { const m = p.zuege[j]; if(!m) return "<span></span>";
+      return `<button class="mv${ply === j + 1 ? " on" : ""}" data-ply="${j + 1}">${klasse(m.klasse)} ${esc(m.san)}</button>`; };
+    liste += `<div class="row"><span class="nr">${i / 2 + 1}.</span>${z(i)}${z(i + 1)}</div>`;
+  }
+
+  $("#view").innerHTML = `<section class="card">
+    <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:12px">
+      <button class="icon-btn" id="zurueck">← Partien</button>
+      <h2 style="margin:0">${esc(p.weiss)} gegen ${esc(p.schwarz)} · ${esc(p.eroeffnung)} · ${esc(p.ergebnis.replace("1/2-1/2","½–½").replace("-","–"))}</h2>
+      <span class="muted">${esc(p.grund)}, ${p.halbzuege} Halbzüge</span>
+    </div>
+    <div class="analysis">
+      <div>
+        <div class="board-area">
+          <div class="evalbar" title="Bewertung ${bewertungText(bewertung)}" aria-label="Bewertung ${bewertungText(bewertung)}">
+            <div style="height:${weissAnteil(bewertung) * 100}%"></div></div>
+          ${brett(fen, optionen)}
+        </div>
+        <div class="nav" role="group" aria-label="Durch die Partie gehen">
+          <button class="icon-btn" data-gehe="0" aria-label="Zum Anfang">⏮</button>
+          <button class="icon-btn" data-gehe="${ply - 1}" aria-label="Zug zurück"${ply === 0 ? " disabled" : ""}>◀</button>
+          <button class="icon-btn" data-gehe="${ply + 1}" aria-label="Zug vor"${ply === n ? " disabled" : ""}>▶</button>
+          <button class="icon-btn" data-gehe="${n}" aria-label="Zum Ende">⏭</button>
+          <button class="icon-btn" id="drehen" aria-label="Brett drehen">⇅</button>
+        </div>
+      </div>
+      <div>
+        <div class="players">
+          <div class="player"><div class="name">Weiss · ${esc(p.weiss)}</div><div class="acc">${genau(p.genauigkeit.w)}</div><div class="name">Genauigkeit</div></div>
+          <div class="player"><div class="name">Schwarz · ${esc(p.schwarz)}</div><div class="acc">${genau(p.genauigkeit.b)}</div><div class="name">Genauigkeit</div></div>
+        </div>
+        <table class="counts"><tbody>${reihen.map(k => `<tr><td class="num">${cw[k] || 0}</td><td>${klasse(k, true)}</td><td class="num">${cb[k] || 0}</td></tr>`).join("")}</tbody></table>
+        <div class="current" aria-live="polite">${aktuell}</div>
+        <div class="movelist" id="zugliste">${liste}</div>
+      </div>
+    </div></section>`;
+
+  // Innerhalb einer Partie die Adresse nur ersetzen: Sonst müsste die
+  // Zurück-Taste des Browsers jeden Zug einzeln zurückblättern.
+  const setze = x => {
+    zustand.ply = Math.max(0, Math.min(n, x));
+    history.replaceState(null, "", "#" + new URLSearchParams({partie:p.id, zug:zustand.ply}));
+    zeichnen();
+  };
+  $("#zurueck").addEventListener("click", ()=> gehe({tab:"partien"}));
+  $("#drehen").addEventListener("click", ()=>{ zustand.gedreht = !zustand.gedreht; zeichnen(); });
+  $("#view").querySelectorAll("[data-gehe]").forEach(b => b.addEventListener("click", ()=> setze(+b.dataset.gehe)));
+  $("#view").querySelectorAll("[data-ply]").forEach(b => b.addEventListener("click", ()=> setze(+b.dataset.ply)));
+  // Nur die Zugliste scrollen, nie die Seite: scrollIntoView würde alle
+  // umgebenden Bereiche mitbewegen, auch das Browserfenster.
+  const zugListe = $("#zugliste"), an = $("#zugliste .on");
+  zugListe.scrollTop = listenScroll;
+  if(an){
+    const rahmen = zugListe.getBoundingClientRect(), zeile = an.getBoundingClientRect();
+    if(zeile.top < rahmen.top) zugListe.scrollTop -= rahmen.top - zeile.top + 6;
+    else if(zeile.bottom > rahmen.bottom) zugListe.scrollTop += zeile.bottom - rahmen.bottom + 6;
+  }
+  if(dieselbe) window.scrollTo(window.scrollX, seitenScroll);
+  zustand.letztePartie = p.id;
+  aktuelleTasten = e => {
+    if(e.target instanceof Element && e.target.closest("select,input,textarea")) return;
+    const ziel = {ArrowLeft:ply - 1, ArrowRight:ply + 1, Home:0, End:n}[e.key];
+    if(ziel !== undefined){ e.preventDefault(); setze(ziel); }
+  };
+}
+let aktuelleTasten = null;
+document.addEventListener("keydown", e => { if(zustand.partie && aktuelleTasten) aktuelleTasten(e); });
+
+laden();
+</script>
+</body>
+</html>

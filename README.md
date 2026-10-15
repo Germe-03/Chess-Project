@@ -42,6 +42,18 @@ gross. Damit bleibt die 512-MB-Instanz auf render.com ausreichend.
 | Variable | Standard | Bedeutung |
 |---|---|---|
 | `MAX_SEARCH_DEPTH` | `2` | Obergrenze der Vorausschau in Halbzügen. Auf der Free-Instanz (0.1 CPU) dauert ein Zug mit Tiefe 2 etwa 1 bis 3 Sekunden, mit Tiefe 3 eher 15 bis 30 — zu lang für eine Web-Anfrage. Lokal lässt sich die Grenze anheben. |
+| `OPENBLAS_NUM_THREADS` (und `OMP_`/`MKL_`) | `1` | Rechenthreads von NumPy. Wird in `Code/main.py` gesetzt, bevor NumPy geladen wird. |
+
+**Warum ein einziger Rechenthread:** Nach der Aktivierung von v5 dauerte ein Zug
+im Mittelspiel auf render.com rund 15 Sekunden — lokal sind es 0.09. Auch ein
+einfacher Zug von v3 brauchte 1.2 statt 0.005 Sekunden, während Anfragen ohne
+Rechnung (`/health`) schnell blieben. Alles Rechnende war rund 170-mal langsamer,
+nicht nur 10-mal, wie die 0.1 CPU erwarten liessen. Die Ursache ist ein
+bekanntes Containerproblem: NumPys Matrixbibliothek startet so viele Threads,
+wie der Server Kerne hat, nicht so viele, wie dem Container zugeteilt sind. Die
+Threads warten aktiv, verbrauchen dabei das Kontingent, und der Container
+drosselt daraufhin den ganzen Prozess. Für die kleinen Matrizen hier bringt
+Mehrfädigkeit ohnehin nichts.
 
 Die Grenze steht als Umgebungsvariable und nicht im Code, weil sie zur
 Umgebung gehört und nicht zum Modell: Derselbe Stand läuft lokal tiefer als auf
@@ -57,8 +69,10 @@ Code/rl/             Reinforcement Learning: Umgebung, Training, Agent, Registry
 Code/vision/         Stellungserkennung aus Screenshots
 web/index.html       Analyse: Screenshot einfügen oder Stellung stellen
 web/spielen.html     gegen die gewählte Modellversion spielen
+web/test.html        Prüfstand: Versionen im Vergleich, Partien mit Zugbewertung
 models/              trainierte Modelle (.npz) und registry.json
 tests/               Testsuite (pytest), kommt ohne Netzzugriff aus
+testbench/           Prüfstand: die 50 Teststellungen und der Bericht für /test
 logs/                Trainingsprotokolle (nicht im Repo)
 tools/               Stockfish für die Auswertung (nicht im Repo, 103 MB)
 runs/                Lauf-Mappen unterbrechbarer Trainings (nicht im Repo)
@@ -118,6 +132,7 @@ aufgefallen, wenn jemand einen Lichess-Screenshot einfügt.
 | `POST /spielen/zug`          | `{fen, move, version?}`        | Stellung nach beiden Zügen, Status          |
 | `POST /recognize`            | Bild, `side`, `flipped`        | erkannte Stellung, Sicherheit, Hinweis      |
 | `POST /best-move-from-image` | Bild, `side`, `flipped`        | erkannte Stellung **und** bester Zug        |
+| `GET /test/bericht.json`     | –                              | Prüfbericht des letzten Releases            |
 
 Das Feld `engine` sagt, wer den Zug gewählt hat: `rl` oder `material`. Die Skala
 von `evaluation` hängt davon ab — Centipawns bei `material`, erwarteter
@@ -137,6 +152,7 @@ es wie bisher die Netzbewertung der Stellung selbst. `/spielen/zug` liefert
 |---|---|
 | `/` | Stellung von Hand setzen und den besten Zug berechnen lassen. Eine Figur antippen zeigt ihre regelkonformen Züge — inklusive Fesselung und der Regel, dass der König nicht ins Schach ziehen darf. |
 | `/spielen` | Eine ganze Partie gegen die gewählte Modellversion spielen, mit Farbwahl, Zugliste und Zurücknehmen. |
+| `/test` | Prüfstand: Teststellungen, Turnier aller Versionen und jede Partie mit Stockfish-Bewertung jedes Zuges (siehe [Prüfstand](#prüfstand-test)). |
 
 Der Versionswähler zeigt zu jeder Version, wie viele Halbzüge sie vorausrechnet.
 Ab Tiefe 2 erscheint im Ergebnis zusätzlich die **erwartete Folge**, also womit
@@ -205,6 +221,86 @@ den Versionswähler erreichbar.
 Die Endspielmodelle sind bewusst **nicht** versioniert. Sie lösen eine feste
 Aufgabe und ändern sich nicht mehr; bei genau drei Figuren antworten immer sie,
 mit einem Halbzug Vorausschau wie im Training.
+
+---
+
+# Prüfstand (`/test`)
+
+Jede Version durchläuft vor dem Release dieselbe Prüfung, und das Ergebnis ist
+öffentlich unter `/test` einsehbar. Die Seite beantwortet drei Fragen: Wie gut
+löst eine Version taktische Aufgaben? Wie schneidet sie gegen die anderen
+Versionen ab? Und wo genau macht sie ihre Fehler?
+
+**Teststellungen.** 50 Stellungen mit genau einem klar besten Zug
+(`testbench/stellungen.json`): 15 Matt, 20 Gewinn, 15 Verteidigung, gemischt
+aus Eröffnung, Mittelspiel und Endspiel. Sie stammen aus Partien von Stockfish
+gegen sich selbst auf Elo 1320 — bewusst nicht aus eigenen Partien, damit keine
+Version im Vorteil ist — und wurden von Stockfish ohne Begrenzung mit Tiefe 18
+bestätigt: Der beste Zug liegt mindestens 25 Prozentpunkte Gewinnerwartung vor
+dem zweitbesten. Die Stellungen wurden einmal erzeugt und werden nie mehr
+verändert; jede Version bekommt dieselben.
+
+**Turnier.** Jede Version spielt gegen jede 10 Partien: 5 feste Eröffnungen
+(Italienisch, Sizilianisch, Französisch, Damengambit, Englisch), je einmal mit
+jeder Farbe. Gezogen wird über dieselbe Funktion wie auf der Webseite
+(`main.choose_move`), also mit der Suchtiefe der Version und den
+Endspiel-Spezialisten. Abbruch nach 300 Halbzügen, dreifacher Wiederholung oder
+der 50-Züge-Regel.
+
+**Zugbewertung wie bei chess.com.** Stockfish 19 analysiert jede Stellung jeder
+Partie mit Tiefe 14. Die Bewertung wird in die Gewinnerwartung der Partei am Zug
+umgerechnet (0 bis 1, Formel von Lichess), und was ein Zug davon verliert,
+bestimmt seine Klasse — mit den Schwellen, die chess.com für sein
+Expected-Points-Modell nennt:
+
+| Klasse | Bedingung |
+|---|---|
+| Brillant `!!` | bester Zug, der eine Figur opfert; danach nicht verloren, vorher nicht ohnehin gewonnen |
+| Grossartig `!` | bester Zug, und jeder andere wäre mindestens 20 Punkte schlechter |
+| Bester Zug `★` | Stockfishs erste Wahl |
+| Ausgezeichnet | Verlust unter 2 Prozentpunkten |
+| Gut | unter 5 |
+| Ungenauigkeit `?!` | 5 bis 10 |
+| Verpasst `✗` | ab 10, obwohl ein Matt möglich war oder der Gegner eben einen Fehler gemacht hatte |
+| Fehler `?` | 10 bis 20 |
+| Patzer `??` | ab 20 |
+| Erzwungen, Eröffnung | nur ein legaler Zug bzw. vorgegebener Eröffnungszug |
+
+Pro Partie und Seite kommt eine Genauigkeit dazu (Formel von Lichess je Zug,
+gemittelt). Die exakten Formeln von chess.com sind nicht öffentlich; die
+Schwellen sind übernommen, die Umrechnung in Gewinnerwartung und die Genauigkeit
+folgen den veröffentlichten Formeln von Lichess.
+
+**Die Seite.** Übersicht mit Rangliste, Kreuztabelle und Legende; eine Tabelle
+der Teststellungen (Klick zeigt Stellung, Lösung und die Antwort jeder Version);
+die Partienliste mit Filter nach Paarung. Ein Klick auf eine Partie öffnet die
+Analyse: Brett mit Bewertungsbalken, jeder Zug mit seiner Klasse, der bessere
+Zug als Pfeil, Gewinnerwartung vorher und nachher. Durch die Partie geht es mit
+den Pfeiltasten, `Pos1`/`Ende` oder per Klick in die Zugliste. Jede Ansicht hat
+eine eigene Adresse (`/test#partie=v5-v4-1&zug=23`), lässt sich also verlinken,
+und die Zurück-Taste des Browsers funktioniert.
+
+### Ablauf vor jedem Release
+
+Stockfish läuft nicht auf render.com — er ist über 100 MB gross und viel zu
+rechenintensiv für 0.1 CPU. Der Prüfstand rechnet deshalb lokal, und der Dienst
+liefert nur den fertigen Bericht aus (`testbench/bericht.json`, gzip-komprimiert).
+
+```bash
+python -m Code.rl.testbench                        # vor jedem Release
+python -m Code.rl.testbench --generate-positions   # nur einmal, hat schon stattgefunden
+```
+
+Gerechnet wird nur, was fehlt. Jedes Ergebnis trägt einen Schlüssel aus dem
+Fingerabdruck der Netzdatei und der Suchtiefe; kommt eine Version dazu, laufen
+nur ihre 50 Teststellungen und ihre Partien gegen die anderen.
+
+Damit das nicht vergessen geht, gibt es eine **Release-Sperre**: Der Test
+`test_pruefbericht_passt_zur_registry` schlägt fehl, sobald eine Version in der
+Registry steht, die der Bericht nicht abdeckt — oder deren Netz oder Suchtiefe
+sich seit der Prüfung geändert hat. Eine neue Version lässt sich so nicht
+unbemerkt ohne Prüfung ausliefern. In der Sprache des DevOps-Zyklus ist der
+Prüfstand die Stufe **Test** zwischen Build und Release.
 
 ---
 
@@ -356,6 +452,7 @@ eigens beschrieben.
 | `evaluate.py` | Messungen gegen Zufall, Heuristik, Stockfish und andere Versionen |
 | `stockfish.py` | Stockfish als Messlatte (nur lokal, nie im Dienst) |
 | `registry.py` | Modellversionen: Netz, Suchtiefe, Herkunft, Resultate |
+| `testbench.py` | Prüfstand vor jedem Release: Teststellungen, Turnier, Zugbewertung mit Stockfish |
 
 ## Aufgabenstellung: Endspiele statt ganzer Partien
 
