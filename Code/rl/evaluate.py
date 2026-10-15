@@ -18,8 +18,25 @@ werden Siege, Remis und Niederlagen.
 Ausgewertet wird über mehrere Seeds, angegeben als Mittelwert und
 Standardabweichung - RL-Resultate streuen stark.
 
+Duell-Modus (--opponent)
+------------------------
+Ein Modell mit gewählter Suchtiefe gegen genau einen Gegner, verteilt auf
+mehrere Prozesse. Jede Partie beginnt mit einer Zufallseröffnung (0 bis 8
+Halbzüge, ohne Materialverlust), und jede Eröffnung wird zweimal gespielt, je
+einmal mit jeder Farbe. Alle Kandidaten bekommen dieselben Eröffnungen.
+
+Warum Eröffnungen? Zwei deterministische Engines spielen aus der Grundstellung
+immer dieselbe Partie. Ein Vergleich über "50 Partien" bestünde dann in
+Wahrheit aus zwei Partien, je 25-mal wiederholt — so geschehen bei den ersten
+Messungen v3 gegen v2. Gegen Stockfish fällt das weniger auf, weil dessen
+Elo-Begrenzung zufällige Fehler einbaut.
+
 Aufruf:
     python -m Code.rl.evaluate --task kqk --model models/value_kqk.npz
+    python -m Code.rl.evaluate --task full --model models/full_v3.npz --depth 2 \\
+        --opponent stockfish --games 200 --workers 12
+    python -m Code.rl.evaluate --task full --model models/full_v3.npz --depth 2 \\
+        --opponent models/full_v3.npz --opponent-depth 1 --games 200 --workers 12
 """
 from __future__ import annotations
 
@@ -30,15 +47,23 @@ import numpy as np
 
 from .engine import material_evaluation, material_move, random_move, terminal_value, value_move
 from .positions import sample_start
-from .stockfish import stockfish_policy
+from .search import search
+from .stockfish import find_stockfish, stockfish_policy
 from .valuenet import ValueNet
 
 
-def make_policy(name: str, rng, net: ValueNet | None = None, gamma: float = 0.99):
-    """Name -> Funktion, die zu einer Stellung einen Zug liefert."""
+def make_policy(name: str, rng, net: ValueNet | None = None, gamma: float = 0.99, depth: int = 1):
+    """
+    Name -> Funktion, die zu einer Stellung einen Zug liefert.
+
+    'depth' gilt für die Strategie 'rl': Tiefe 1 ist die bisherige Zugwahl
+    (value_move), ab Tiefe 2 rechnet die Alpha-Beta-Suche.
+    """
     if name == "rl":
         if net is None:
             raise ValueError("Für die Strategie 'rl' wird ein Modell benötigt.")
+        if depth > 1:
+            return lambda board: search(board, net, depth, gamma).move
         return lambda board: value_move(board, net, gamma)
     if name == "material":
         return material_move
@@ -80,29 +105,46 @@ def endgame_trial(strong_policy, weak_policy, task: str, rng, games: int, max_pl
     }
 
 
+def play_game(
+    policy_a, policy_b, color_a: chess.Color, max_plies: int, start: chess.Board | None = None
+) -> str:
+    """
+    Eine Partie, ohne 'start' aus der Grundstellung. Ergebnis aus Sicht von A:
+    'win', 'draw' oder 'loss'.
+    """
+    board = start.copy() if start is not None else chess.Board()
+    plies = 0
+    while plies < max_plies:
+        policy = policy_a if board.turn == color_a else policy_b
+        move = policy(board)
+        if move is None:
+            break
+        board.push(move)
+        plies += 1
+        outcome = terminal_value(board)
+        if outcome is not None:
+            if board.is_checkmate():
+                return "win" if board.turn != color_a else "loss"
+            break
+    return "draw"
+
+
+def summarize(results: list[str]) -> dict:
+    """Ergebnisliste -> Anteile Sieg, Remis, Niederlage."""
+    games = len(results)
+    return {
+        "win_rate": results.count("win") / games,
+        "draw_rate": results.count("draw") / games,
+        "loss_rate": results.count("loss") / games,
+    }
+
+
 def match(policy_a, policy_b, rng, games: int, max_plies: int) -> dict:
     """Volle Partien mit abwechselnden Farben, Ergebnis aus Sicht von A."""
-    wins, draws, losses = 0, 0, 0
-    for game in range(games):
-        board = chess.Board()
-        color_a = chess.WHITE if game % 2 == 0 else chess.BLACK
-        plies, result = 0, "draw"
-        while plies < max_plies:
-            policy = policy_a if board.turn == color_a else policy_b
-            move = policy(board)
-            if move is None:
-                break
-            board.push(move)
-            plies += 1
-            outcome = terminal_value(board)
-            if outcome is not None:
-                if board.is_checkmate():
-                    result = "win" if board.turn != color_a else "loss"
-                break
-        wins += result == "win"
-        losses += result == "loss"
-        draws += result == "draw"
-    return {"win_rate": wins / games, "draw_rate": draws / games, "loss_rate": losses / games}
+    return summarize([
+        play_game(policy_a, policy_b, chess.WHITE if game % 2 == 0 else chess.BLACK, max_plies)
+        for game in range(games)
+    ])
 
 
 def _aggregate(runs: list[dict]) -> dict:
@@ -205,6 +247,47 @@ def print_results(task: str, results: dict, games: int, seeds: int) -> None:
         )
 
 
+def duel(
+    model: str, depth: int, opponent: tuple, games: int, max_plies: int, workers: int,
+    gamma: float = 0.99, openings: bool = True,
+) -> dict:
+    """
+    Modell gegen einen Gegner, siehe Duell-Modus oben. Punkte zählen ein
+    Remis als halben Sieg, wie in den bisherigen Tabellen.
+    """
+    from .parallel import Runner, eval_game_task
+
+    net = ValueNet.load(model)
+    with Runner(workers) as runner:
+        shared = runner.share(net, 0)
+        jobs = [
+            (shared, {"game": game, "seed": 1000 + game, "gamma": gamma, "depth": depth,
+                      "opponent": opponent, "max_plies": max_plies,
+                      "opening": 5000 + game // 2 if openings else None})
+            for game in range(games)
+        ]
+        stats = summarize(runner.map(eval_game_task, jobs))
+    stats["points"] = stats["win_rate"] + 0.5 * stats["draw_rate"]
+    return stats
+
+
+def tactics(model: str, depth: int, path: str, gamma: float = 0.99) -> tuple[int, int]:
+    """
+    Taktik-Test: In jeder Stellung der Datei gibt es laut Stockfish genau einen
+    klar besten Zug (mindestens drei Bauern besser als der zweitbeste). Gezählt
+    wird, wie oft das Modell ihn findet. Anders als Partien misst das gezielt die
+    kurzen Taktiken, bei denen Vorausrechnen helfen sollte.
+    """
+    import json
+    from pathlib import Path
+
+    net = ValueNet.load(model)
+    policy = make_policy("rl", None, net, gamma, depth)
+    cases = json.loads(Path(path).read_text(encoding="utf-8"))["fälle"]
+    solved = sum(policy(chess.Board(case["fen"])).uci() == case["zug"] for case in cases)
+    return solved, len(cases)
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description="RL-Agent gegen Baselines messen")
     parser.add_argument("--task", default="kqk", choices=("kqk", "krk", "full"))
@@ -222,7 +305,47 @@ def main() -> None:
                              "verliert auch die Material-Heuristik 100 Prozent der Partien")
     parser.add_argument("--stockfish-skill", type=int, default=None,
                         help="Alternativer Schwächungsschalter, 0 bis 20 (wirkt stärker als Elo)")
+    parser.add_argument("--depth", type=int, default=1, help="Vorausschau des Modells in Halbzügen")
+    parser.add_argument("--opponent", default=None,
+                        help="Duell-Modus: 'stockfish', 'material' oder Pfad zu einem Modell (.npz)")
+    parser.add_argument("--opponent-depth", type=int, default=1,
+                        help="Vorausschau des Gegners, wenn er ein Modell ist")
+    parser.add_argument("--from-start", action="store_true",
+                        help="Duell ohne Zufallseröffnungen, alle Partien aus der Grundstellung")
+    parser.add_argument("--workers", type=int, default=1, help="Partien, die gleichzeitig laufen")
+    parser.add_argument("--tactics", default=None,
+                        help="Taktik-Test: Anteil der Stellungen aus dieser Datei, in denen das Modell "
+                             "den klar besten Zug findet (z. B. tests/fixtures/taktikstellungen.json)")
     args = parser.parse_args()
+
+    if args.tactics is not None:
+        if not args.model:
+            parser.error("Der Taktik-Test braucht --model")
+        solved, total = tactics(args.model, args.depth, args.tactics, args.gamma)
+        print(f"\n{args.model}, Tiefe {args.depth}: {solved} von {total} Taktikstellungen gelöst "
+              f"({solved / total:.1%})")
+        return
+
+    if args.opponent is not None:
+        if args.task != "full" or not args.model:
+            parser.error("Der Duell-Modus braucht --task full und --model")
+        if args.opponent == "stockfish":
+            path = find_stockfish(args.stockfish or None)
+            if path is None:
+                parser.error("Stockfish nicht gefunden. Pfad über --stockfish angeben.")
+            spec = ("stockfish", path, args.stockfish_depth, args.stockfish_elo)
+            label = f"Stockfish (Elo {args.stockfish_elo})"
+        elif args.opponent == "material":
+            spec, label = ("material",), "Material-Heuristik"
+        else:
+            spec = ("modell", args.opponent, args.opponent_depth)
+            label = f"{args.opponent}, Tiefe {args.opponent_depth}"
+        stats = duel(args.model, args.depth, spec, args.games, args.max_plies, args.workers,
+                     args.gamma, openings=not args.from_start)
+        print(f"\n{args.model}, Tiefe {args.depth}  gegen  {label}  ({args.games} Partien)")
+        print(f"  Sieg {stats['win_rate']:6.1%}   Remis {stats['draw_rate']:6.1%}   "
+              f"Niederlage {stats['loss_rate']:6.1%}   Punkte {stats['points']:6.1%}")
+        return
 
     net = ValueNet.load(args.model) if args.model else None
     results = evaluate_task(args.task, net, args.games, args.max_plies, args.seeds, args.gamma)

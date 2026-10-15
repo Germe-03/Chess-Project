@@ -13,6 +13,10 @@ Der einzige Unterschied liegt in der Bewertung der Folgestellung. Ehrliche
 Einordnung für die Dokumentation: Gelernt - und damit Reinforcement Learning -
 ist ausschliesslich V(s). Die Vorausschau um einen Zug ist klassische Suche, denn
 das Modell der Umwelt (die Schachregeln) ist bekannt.
+
+Wer mehr als einen Zug vorausrechnen will, findet das in search.py. Die Suche
+baut auf evaluate_children() hier auf, damit beide Wege Stellungen auf genau
+dieselbe Weise bewerten.
 """
 from __future__ import annotations
 
@@ -21,7 +25,7 @@ import numpy as np
 
 from .features import board_to_features
 from .shaping import PIECE_VALUES as PAWN_VALUES
-from .shaping import potential
+from .shaping import potential_open
 from .valuenet import ValueNet
 
 # Centipawns für die API-Ausgabe. Die Figurenwerte selbst stehen nur einmal im
@@ -54,20 +58,25 @@ def terminal_value(board: chess.Board) -> float | None:
     return None
 
 
-def score_moves(board: chess.Board, net: ValueNet, gamma: float):
+def evaluate_children(board: chess.Board, net: ValueNet, moves: list[chess.Move]):
     """
-    Bewertet alle legalen Züge aus Sicht der Zugpartei mit r + gamma * (-V(s')).
+    Bewertet die Stellung nach jedem der Züge — alle in einem Netzaufruf.
 
-    Das Minuszeichen ist die Negamax-Regel: V(s') gilt aus Sicht des Gegners, der
-    nach dem Zug am Zug ist. Endet der Zug die Partie, zählt direkt der
-    terminale Reward und es wird nicht mehr gebootstrappt.
+    Rückgabe:
+        outcomes      je Zug der terminale Reward (wie terminal_value) oder None
+        open_indices  Positionen der Züge, nach denen die Partie weitergeht
+        totals        für diese Züge die Gesamtbewertung der Folgestellung,
+                      V(s') bzw. V(s') + Φ(s') bei Modellen mit Shaping, aus
+                      Sicht des Gegners, der danach am Zug ist (float32)
 
     Wurde das Modell mit Reward Shaping trainiert, tritt an die Stelle von V(s')
     die Gesamtbewertung V(s') + Φ(s'). Das muss so sein: Φ war beim Lernen Teil
     der Belohnung, also gehört es beim Ausführen auch in die Zugwahl.
+
+    Gebündelt wird, weil ein Netzaufruf für 30 Stellungen kaum teurer ist als
+    für eine: Die Matrixmultiplikation ist schnell, teuer ist der Aufruf selbst.
     """
-    moves = list(board.legal_moves)
-    scores = np.zeros(len(moves), dtype=np.float32)
+    outcomes: list[float | None] = [None] * len(moves)
     open_indices: list[int] = []
     open_features: list[np.ndarray] = []
     open_potentials: list[float] = []
@@ -79,16 +88,40 @@ def score_moves(board: chess.Board, net: ValueNet, gamma: float):
             open_indices.append(index)
             open_features.append(board_to_features(board))
             if net.shaped:
-                open_potentials.append(potential(board))
+                open_potentials.append(potential_open(board))
         else:
-            scores[index] = outcome
+            outcomes[index] = outcome
         board.pop()
 
+    totals = np.zeros(0, dtype=np.float32)
     if open_indices:
-        values = net.value(np.stack(open_features))
+        totals = net.value(np.stack(open_features))
         if net.shaped:
-            values = values + np.asarray(open_potentials, dtype=np.float32)
-        scores[open_indices] = -gamma * values
+            totals = totals + np.asarray(open_potentials, dtype=np.float32)
+    return outcomes, open_indices, totals
+
+
+def score_moves(board: chess.Board, net: ValueNet, gamma: float, moves: list[chess.Move] | None = None):
+    """
+    Bewertet Züge aus Sicht der Zugpartei mit r + gamma * (-V(s')).
+
+    Das Minuszeichen ist die Negamax-Regel: V(s') gilt aus Sicht des Gegners, der
+    nach dem Zug am Zug ist. Endet der Zug die Partie, zählt direkt der
+    terminale Reward und es wird nicht mehr gebootstrappt.
+
+    Ohne 'moves' werden alle legalen Züge bewertet, in der Reihenfolge, in der
+    python-chess sie erzeugt. Diese Reihenfolge entscheidet bei Gleichstand und
+    ist deshalb Teil des Verhaltens der Modelle v1 bis v3.
+    """
+    if moves is None:
+        moves = list(board.legal_moves)
+    scores = np.zeros(len(moves), dtype=np.float32)
+    outcomes, open_indices, totals = evaluate_children(board, net, moves)
+    for index, outcome in enumerate(outcomes):
+        if outcome is not None:
+            scores[index] = outcome
+    if open_indices:
+        scores[open_indices] = -gamma * totals
     return moves, scores
 
 

@@ -1,0 +1,725 @@
+{
+ "beschreibung": "Antworten von /best-move für v1 bis v3, aufgenommen vor dem Einbau der Suche (Commit ec4d4c8).",
+ "fälle": [
+  {
+   "version": "v1",
+   "fen": "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
+   "best_move": "b2b3",
+   "evaluation": 0.013812152668833733
+  },
+  {
+   "version": "v1",
+   "fen": "r3kb1r/pppqpppp/2n2n2/3p1b2/3P1B2/3BPN2/PPP2PPP/RN1QK2R w KQkq - 0 1",
+   "best_move": "d3f5",
+   "evaluation": -0.049545954912900925
+  },
+  {
+   "version": "v1",
+   "fen": "8/5pk1/6p1/7p/8/4R1PK/5P1P/3r4 w - - 0 1",
+   "best_move": "f2f3",
+   "evaluation": -0.021652279421687126
+  },
+  {
+   "version": "v1",
+   "fen": "6k1/5ppp/8/8/8/8/8/R6K w - - 0 1",
+   "best_move": "a1a8",
+   "evaluation": 0.0328621082007885
+  },
+  {
+   "version": "v1",
+   "fen": "r1bqkb1r/pppp1ppp/2n2n2/4p2Q/2B1P3/8/PPPP1PPP/RNB1K1NR w KQkq - 4 4",
+   "best_move": "h5f7",
+   "evaluation": -0.020730772987008095
+  },
+  {
+   "version": "v1",
+   "fen": "r1b1kb1r/pp3ppp/2n1pn2/q1pp4/3P4/2P1PN2/PP1NBPPP/R2QKB1R b KQkq - 0 1",
+   "best_move": "f6g4",
+   "evaluation": -0.04015548527240753
+  },
+  {
+   "version": "v1",
+   "fen": "b1q3nr/2p1b3/1p2p1kp/1B6/2pP1pPP/1P3N2/5P2/1R3KR1 b - - 3 35",
+   "best_move": "c4b3",
+   "evaluation": 0.025533318519592285
+  },
+  {
+   "version": "v1",
+   "fen": "rn2k1nr/pN3p2/2p3pp/2b1PqN1/P7/1QPP4/1P1KP1PP/1RB2B1R b - - 2 16",
+   "best_move": "f5g5",
+   "evaluation": 0.00052375573432073
+  },
+  {
+   "version": "v1",
+   "fen": "r1b5/2p1bN2/B4kp1/pr6/3PpP2/PPPn4/2Q5/RNBK4 b - - 2 26",
+   "best_move": "a8a6",
+   "evaluation": 0.08629394322633743
+  },
+  {
+   "version": "v1",
+   "fen": "r1b1kbr1/p2pppp1/n1p1Nn1p/1p6/P4P2/8/NPPPP1PP/R1BQKB1R b KQq - 0 9",
+   "best_move": "d7e6",
+   "evaluation": 0.012725555337965488
+  },
+  {
+   "version": "v1",
+   "fen": "rn3knr/8/1pQ2b1p/4p1p1/1p2Pp2/PR1P1Pqb/1BP3NP/2K3NR w - - 1 26",
+   "best_move": "h2g3",
+   "evaluation": 0.027424881234765053
+  },
+  {
+   "version": "v1",
+   "fen": "5bbr/n2k3p/p4P2/2pp4/4PPpP/Nr3P2/P1PB3R/1R1QKB2 w - - 0 26",
+   "best_move": "a2b3",
+   "evaluation": -0.10746648162603378
+  },
+  {
+   "version": "v1",
+   "fen": "7r/1qrN1p1p/3k3n/Pp6/2p1P2B/6nP/P1KP1P1P/RN2R3 b - - 12 30",
+   "best_move": "g3e4",
+   "evaluation": -0.07198749482631683
+  },
+  {
+   "version": "v1",
+   "fen": "2rr4/1n4kp/b3pN2/pPP3P1/2PP3P/b3P3/2Kn2B1/1R6 b - - 3 39",
+   "best_move": "d2b1",
+   "evaluation": -0.03312215209007263
+  },
+  {
+   "version": "v1",
+   "fen": "1r5r/QBpkn1p1/1p5q/PN2pp1p/3P2b1/7N/1PP4P/R1b1K2R w - - 0 28",
+   "best_move": "a1a3",
+   "evaluation": 0.03908008337020874
+  },
+  {
+   "version": "v1",
+   "fen": "rn6/2kb3p/7n/P2p1p2/2BPpP1P/bpPPK1P1/1P6/1RB3R1 b - - 4 35",
+   "best_move": "d5c4",
+   "evaluation": -0.031085260212421417
+  },
+  {
+   "version": "v1",
+   "fen": "rnbqkb1r/pp2pppp/3p1n2/2p2N2/2P5/8/PP1PPPPP/RNBQKB1R b KQkq - 3 4",
+   "best_move": "c8f5",
+   "evaluation": -0.010297982022166252
+  },
+  {
+   "version": "v1",
+   "fen": "r1nk3b/4pr2/5p2/1N3P1p/5P2/P6P/6R1/R1B1KB2 b - - 0 38",
+   "best_move": "e7e5",
+   "evaluation": -0.054241687059402466
+  },
+  {
+   "version": "v1",
+   "fen": "r1bqkbnr/ppp2ppp/8/3pP3/1n6/4P3/PBPP2PP/RN1QKBNR b KQkq - 0 5",
+   "best_move": "b7b6",
+   "evaluation": 5.678366869688034e-05
+  },
+  {
+   "version": "v1",
+   "fen": "r1b4r/ppq3k1/n5pn/5pP1/P1p2P1p/Q1P1B2P/8/R4KN1 b - - 6 35",
+   "best_move": "h6g4",
+   "evaluation": 0.04091212525963783
+  },
+  {
+   "version": "v1",
+   "fen": "2k5/2q1bp1P/5rb1/p1p1p3/P1PrP1P1/3PP3/NP4n1/RNB3K1 b - - 4 32",
+   "best_move": "g6h7",
+   "evaluation": 0.09011686593294144
+  },
+  {
+   "version": "v1",
+   "fen": "rn2kr2/pp1b1p2/n1p1p1p1/P1b4p/3qp1N1/1PPP2PB/R2KQP1P/6NR w q - 1 23",
+   "best_move": "c3d4",
+   "evaluation": 0.2067205309867859
+  },
+  {
+   "version": "v1",
+   "fen": "2bk2nr/r1p3p1/np6/4pP1P/1NNB4/1p2P3/2PP1P1R/1R2K2B w - - 0 24",
+   "best_move": "b4a6",
+   "evaluation": -0.07309383898973465
+  },
+  {
+   "version": "v1",
+   "fen": "rnbq1knr/p1p1ppbp/2N3p1/1p1p4/8/PP6/2PPPPPP/RNBQKB1R w KQ - 3 6",
+   "best_move": "c6d8",
+   "evaluation": -0.04666196182370186
+  },
+  {
+   "version": "v1",
+   "fen": "rn1qkbnr/pp2pppp/3p4/2p5/1P4P1/B6N/P1PPPP1P/RN1QKB1R b KQkq - 0 4",
+   "best_move": "b7b6",
+   "evaluation": 0.02537303790450096
+  },
+  {
+   "version": "v1",
+   "fen": "r1bqkbnr/pppppp1p/8/6p1/1n6/2N1PP2/PPPP2PP/R1BQKBNR w KQkq - 3 4",
+   "best_move": "a2a3",
+   "evaluation": 0.035214561969041824
+  },
+  {
+   "version": "v1",
+   "fen": "r2Nk1r1/pbn1b3/2p1P1pp/1p1p4/2P1B2P/PP2n3/7Q/RNB1K2R b - - 3 29",
+   "best_move": "d5e4",
+   "evaluation": -0.030798213556408882
+  },
+  {
+   "version": "v1",
+   "fen": "2qk2r1/Qp2pp2/n3b2n/P1pp3p/R1PbPPpP/1P4PB/8/1NB1K1NR b K - 2 18",
+   "best_move": "g4h3",
+   "evaluation": 0.053797557950019836
+  },
+  {
+   "version": "v1",
+   "fen": "rnb1k2r/p1p5/1p2pbP1/1P3p1p/4P1n1/1R1B4/RP1P1PP1/1NBQK3 w - - 0 22",
+   "best_move": "f2f3",
+   "evaluation": 0.01912960223853588
+  },
+  {
+   "version": "v1",
+   "fen": "2bqkbn1/rp1pp2r/p1n5/1PpQPpp1/P5pP/B7/2PPKP2/RN3BNR w - - 3 16",
+   "best_move": "d5g8",
+   "evaluation": -0.04163207858800888
+  },
+  {
+   "version": "v1",
+   "fen": "r1b1q1nr/2ppkn2/7p/pp4p1/1P2Kb2/3PPNPP/P1PQ4/RNB2B1R w - - 3 17",
+   "best_move": "e3f4",
+   "evaluation": -0.09214102476835251
+  },
+  {
+   "version": "v1",
+   "fen": "r2q1kr1/2p1ppbp/2nB1np1/p2p1b2/1pPP3P/PP4PN/R1Q1PP2/1N2KB1R w - - 1 16",
+   "best_move": "d6e7",
+   "evaluation": 0.048180047422647476
+  },
+  {
+   "version": "v1",
+   "fen": "2r2bnr/3n4/1ppp2kB/p3p2p/2bPP3/NPP4P/PQ2N3/R4K2 w - - 6 26",
+   "best_move": "h6d2",
+   "evaluation": 0.0563216432929039
+  },
+  {
+   "version": "v1",
+   "fen": "r1bqkbnr/p1ppp2p/np1Q1pp1/8/2P5/8/PP1PPPPP/RNB1KBNR w KQkq - 0 5",
+   "best_move": "d6d5",
+   "evaluation": -0.05638947710394859
+  },
+  {
+   "version": "v1",
+   "fen": "3k4/2pnbp2/6p1/P2pP1P1/1r6/NPPB2P1/3BKP2/1b5R w - - 3 36",
+   "best_move": "d3b1",
+   "evaluation": -0.0447860024869442
+  },
+  {
+   "version": "v1",
+   "fen": "N2bk1nr/2p5/4B3/6p1/4P1pp/p1P3N1/PP3PR1/R1B4K w - - 0 34",
+   "best_move": "b2a3",
+   "evaluation": -0.13410058617591858
+  },
+  {
+   "version": "v1",
+   "fen": "r2q1bnr/nb1kpp1p/2pp2p1/PPP5/Q2P1P2/2B4P/4P1P1/RN2KBNR b KQ - 3 12",
+   "best_move": "c6b5",
+   "evaluation": 0.06114667281508446
+  },
+  {
+   "version": "v1",
+   "fen": "4kbn1/r5pr/p3pp1p/4nR2/RP6/2QP4/1BN2PP1/5KN1 b - - 7 22",
+   "best_move": "e6f5",
+   "evaluation": 0.028484497219324112
+  },
+  {
+   "version": "v1",
+   "fen": "r2Bkb1r/p1pqn1p1/6np/1P1bp3/1P1Q1p1P/3P3R/P4PP1/RN2KBN1 w Qkq - 0 19",
+   "best_move": "d4d5",
+   "evaluation": -0.04203139245510101
+  },
+  {
+   "version": "v1",
+   "fen": "1nb2b1r/5kp1/1pQ1p3/4Pp1p/P6P/qP3P1R/2rP2P1/3RKBN1 w - - 6 25",
+   "best_move": "c6c2",
+   "evaluation": 0.05651140585541725
+  },
+  {
+   "version": "v2",
+   "fen": "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
+   "best_move": "e2e4",
+   "evaluation": 0.09463285654783249
+  },
+  {
+   "version": "v2",
+   "fen": "r3kb1r/pppqpppp/2n2n2/3p1b2/3P1B2/3BPN2/PPP2PPP/RN1QK2R w KQkq - 0 1",
+   "best_move": "d3f5",
+   "evaluation": 0.040403321385383606
+  },
+  {
+   "version": "v2",
+   "fen": "8/5pk1/6p1/7p/8/4R1PK/5P1P/3r4 w - - 0 1",
+   "best_move": "h3g2",
+   "evaluation": -0.002750177402049303
+  },
+  {
+   "version": "v2",
+   "fen": "6k1/5ppp/8/8/8/8/8/R6K w - - 0 1",
+   "best_move": "a1a8",
+   "evaluation": 0.011591731570661068
+  },
+  {
+   "version": "v2",
+   "fen": "r1bqkb1r/pppp1ppp/2n2n2/4p2Q/2B1P3/8/PPPP1PPP/RNB1K1NR w KQkq - 4 4",
+   "best_move": "h5f7",
+   "evaluation": 0.05220966786146164
+  },
+  {
+   "version": "v2",
+   "fen": "r1b1kb1r/pp3ppp/2n1pn2/q1pp4/3P4/2P1PN2/PP1NBPPP/R2QKB1R b KQkq - 0 1",
+   "best_move": "c5d4",
+   "evaluation": -0.03949802368879318
+  },
+  {
+   "version": "v2",
+   "fen": "b1q3nr/2p1b3/1p2p1kp/1B6/2pP1pPP/1P3N2/5P2/1R3KR1 b - - 3 35",
+   "best_move": "c4c3",
+   "evaluation": 0.15118935704231262
+  },
+  {
+   "version": "v2",
+   "fen": "rn2k1nr/pN3p2/2p3pp/2b1PqN1/P7/1QPP4/1P1KP1PP/1RB2B1R b - - 2 16",
+   "best_move": "f5e5",
+   "evaluation": -0.09520196169614792
+  },
+  {
+   "version": "v2",
+   "fen": "r1b5/2p1bN2/B4kp1/pr6/3PpP2/PPPn4/2Q5/RNBK4 b - - 2 26",
+   "best_move": "c8a6",
+   "evaluation": -0.030926767736673355
+  },
+  {
+   "version": "v2",
+   "fen": "r1b1kbr1/p2pppp1/n1p1Nn1p/1p6/P4P2/8/NPPPP1PP/R1BQKB1R b KQq - 0 9",
+   "best_move": "d7e6",
+   "evaluation": -0.25421199202537537
+  },
+  {
+   "version": "v2",
+   "fen": "rn3knr/8/1pQ2b1p/4p1p1/1p2Pp2/PR1P1Pqb/1BP3NP/2K3NR w - - 1 26",
+   "best_move": "c6a8",
+   "evaluation": 0.1101675033569336
+  },
+  {
+   "version": "v2",
+   "fen": "5bbr/n2k3p/p4P2/2pp4/4PPpP/Nr3P2/P1PB3R/1R1QKB2 w - - 0 26",
+   "best_move": "f1h3",
+   "evaluation": -0.1146850511431694
+  },
+  {
+   "version": "v2",
+   "fen": "7r/1qrN1p1p/3k3n/Pp6/2p1P2B/6nP/P1KP1P1P/RN2R3 b - - 12 30",
+   "best_move": "g3e4",
+   "evaluation": 0.019799351692199707
+  },
+  {
+   "version": "v2",
+   "fen": "2rr4/1n4kp/b3pN2/pPP3P1/2PP3P/b3P3/2Kn2B1/1R6 b - - 3 39",
+   "best_move": "a3c5",
+   "evaluation": 0.1774168759584427
+  },
+  {
+   "version": "v2",
+   "fen": "1r5r/QBpkn1p1/1p5q/PN2pp1p/3P2b1/7N/1PP4P/R1b1K2R w - - 0 28",
+   "best_move": "a1a3",
+   "evaluation": -0.048984743654727936
+  },
+  {
+   "version": "v2",
+   "fen": "rn6/2kb3p/7n/P2p1p2/2BPpP1P/bpPPK1P1/1P6/1RB3R1 b - - 4 35",
+   "best_move": "a8a5",
+   "evaluation": -0.1264549195766449
+  },
+  {
+   "version": "v2",
+   "fen": "rnbqkb1r/pp2pppp/3p1n2/2p2N2/2P5/8/PP1PPPPP/RNBQKB1R b KQkq - 3 4",
+   "best_move": "c8f5",
+   "evaluation": -0.10680066049098969
+  },
+  {
+   "version": "v2",
+   "fen": "r1nk3b/4pr2/5p2/1N3P1p/5P2/P6P/6R1/R1B1KB2 b - - 0 38",
+   "best_move": "e7e5",
+   "evaluation": -0.10518345236778259
+  },
+  {
+   "version": "v2",
+   "fen": "r1bqkbnr/ppp2ppp/8/3pP3/1n6/4P3/PBPP2PP/RN1QKBNR b KQkq - 0 5",
+   "best_move": "d8e7",
+   "evaluation": -0.12200035154819489
+  },
+  {
+   "version": "v2",
+   "fen": "r1b4r/ppq3k1/n5pn/5pP1/P1p2P1p/Q1P1B2P/8/R4KN1 b - - 6 35",
+   "best_move": "a6c5",
+   "evaluation": 0.080576092004776
+  },
+  {
+   "version": "v2",
+   "fen": "2k5/2q1bp1P/5rb1/p1p1p3/P1PrP1P1/3PP3/NP4n1/RNB3K1 b - - 4 32",
+   "best_move": "g6h7",
+   "evaluation": -0.02536214515566826
+  },
+  {
+   "version": "v2",
+   "fen": "rn2kr2/pp1b1p2/n1p1p1p1/P1b4p/3qp1N1/1PPP2PB/R2KQP1P/6NR w q - 1 23",
+   "best_move": "c3d4",
+   "evaluation": 0.12723837792873383
+  },
+  {
+   "version": "v2",
+   "fen": "2bk2nr/r1p3p1/np6/4pP1P/1NNB4/1p2P3/2PP1P1R/1R2K2B w - - 0 24",
+   "best_move": "b1b3",
+   "evaluation": 0.10488377511501312
+  },
+  {
+   "version": "v2",
+   "fen": "rnbq1knr/p1p1ppbp/2N3p1/1p1p4/8/PP6/2PPPPPP/RNBQKB1R w KQ - 3 6",
+   "best_move": "c6d8",
+   "evaluation": 0.13036008179187775
+  },
+  {
+   "version": "v2",
+   "fen": "rn1qkbnr/pp2pppp/3p4/2p5/1P4P1/B6N/P1PPPP1P/RN1QKB1R b KQkq - 0 4",
+   "best_move": "e7e5",
+   "evaluation": -0.15866415202617645
+  },
+  {
+   "version": "v2",
+   "fen": "r1bqkbnr/pppppp1p/8/6p1/1n6/2N1PP2/PPPP2PP/R1BQKBNR w KQkq - 3 4",
+   "best_move": "d2d4",
+   "evaluation": 0.3809397220611572
+  },
+  {
+   "version": "v2",
+   "fen": "r2Nk1r1/pbn1b3/2p1P1pp/1p1p4/2P1B2P/PP2n3/7Q/RNB1K2R b - - 3 29",
+   "best_move": "c7e6",
+   "evaluation": -0.031723521649837494
+  },
+  {
+   "version": "v2",
+   "fen": "2qk2r1/Qp2pp2/n3b2n/P1pp3p/R1PbPPpP/1P4PB/8/1NB1K1NR b K - 2 18",
+   "best_move": "g4h3",
+   "evaluation": -0.035335786640644073
+  },
+  {
+   "version": "v2",
+   "fen": "rnb1k2r/p1p5/1p2pbP1/1P3p1p/4P1n1/1R1B4/RP1P1PP1/1NBQK3 w - - 0 22",
+   "best_move": "d1e2",
+   "evaluation": 0.058425698429346085
+  },
+  {
+   "version": "v2",
+   "fen": "2bqkbn1/rp1pp2r/p1n5/1PpQPpp1/P5pP/B7/2PPKP2/RN3BNR w - - 3 16",
+   "best_move": "b5c6",
+   "evaluation": 0.29133591055870056
+  },
+  {
+   "version": "v2",
+   "fen": "r1b1q1nr/2ppkn2/7p/pp4p1/1P2Kb2/3PPNPP/P1PQ4/RNB2B1R w - - 3 17",
+   "best_move": "g3f4",
+   "evaluation": 0.10002534091472626
+  },
+  {
+   "version": "v2",
+   "fen": "r2q1kr1/2p1ppbp/2nB1np1/p2p1b2/1pPP3P/PP4PN/R1Q1PP2/1N2KB1R w - - 1 16",
+   "best_move": "e2e4",
+   "evaluation": 0.04231533780694008
+  },
+  {
+   "version": "v2",
+   "fen": "2r2bnr/3n4/1ppp2kB/p3p2p/2bPP3/NPP4P/PQ2N3/R4K2 w - - 6 26",
+   "best_move": "a3c4",
+   "evaluation": 0.11666136234998703
+  },
+  {
+   "version": "v2",
+   "fen": "r1bqkbnr/p1ppp2p/np1Q1pp1/8/2P5/8/PP1PPPPP/RNB1KBNR w KQkq - 0 5",
+   "best_move": "d6d5",
+   "evaluation": 0.46868330240249634
+  },
+  {
+   "version": "v2",
+   "fen": "3k4/2pnbp2/6p1/P2pP1P1/1r6/NPPB2P1/3BKP2/1b5R w - - 3 36",
+   "best_move": "a3b1",
+   "evaluation": 0.07655505836009979
+  },
+  {
+   "version": "v2",
+   "fen": "N2bk1nr/2p5/4B3/6p1/4P1pp/p1P3N1/PP3PR1/R1B4K w - - 0 34",
+   "best_move": "c1g5",
+   "evaluation": 0.07236533612012863
+  },
+  {
+   "version": "v2",
+   "fen": "r2q1bnr/nb1kpp1p/2pp2p1/PPP5/Q2P1P2/2B4P/4P1P1/RN2KBNR b KQ - 3 12",
+   "best_move": "c6b5",
+   "evaluation": -0.03878394141793251
+  },
+  {
+   "version": "v2",
+   "fen": "4kbn1/r5pr/p3pp1p/4nR2/RP6/2QP4/1BN2PP1/5KN1 b - - 7 22",
+   "best_move": "e6f5",
+   "evaluation": -0.08574966341257095
+  },
+  {
+   "version": "v2",
+   "fen": "r2Bkb1r/p1pqn1p1/6np/1P1bp3/1P1Q1p1P/3P3R/P4PP1/RN2KBN1 w Qkq - 0 19",
+   "best_move": "d4d5",
+   "evaluation": -0.016963861882686615
+  },
+  {
+   "version": "v2",
+   "fen": "1nb2b1r/5kp1/1pQ1p3/4Pp1p/P6P/qP3P1R/2rP2P1/3RKBN1 w - - 6 25",
+   "best_move": "c6c2",
+   "evaluation": -0.08271484822034836
+  },
+  {
+   "version": "v3",
+   "fen": "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
+   "best_move": "e2e4",
+   "evaluation": 0.09325358271598816
+  },
+  {
+   "version": "v3",
+   "fen": "r3kb1r/pppqpppp/2n2n2/3p1b2/3P1B2/3BPN2/PPP2PPP/RN1QK2R w KQkq - 0 1",
+   "best_move": "d3f5",
+   "evaluation": 0.17666755616664886
+  },
+  {
+   "version": "v3",
+   "fen": "8/5pk1/6p1/7p/8/4R1PK/5P1P/3r4 w - - 0 1",
+   "best_move": "g3g4",
+   "evaluation": 0.03932267799973488
+  },
+  {
+   "version": "v3",
+   "fen": "6k1/5ppp/8/8/8/8/8/R6K w - - 0 1",
+   "best_move": "a1a8",
+   "evaluation": 0.014794998802244663
+  },
+  {
+   "version": "v3",
+   "fen": "r1bqkb1r/pppp1ppp/2n2n2/4p2Q/2B1P3/8/PPPP1PPP/RNB1K1NR w KQkq - 4 4",
+   "best_move": "h5f7",
+   "evaluation": 0.07083366811275482
+  },
+  {
+   "version": "v3",
+   "fen": "r1b1kb1r/pp3ppp/2n1pn2/q1pp4/3P4/2P1PN2/PP1NBPPP/R2QKB1R b KQkq - 0 1",
+   "best_move": "c5d4",
+   "evaluation": -0.06070588901638985
+  },
+  {
+   "version": "v3",
+   "fen": "b1q3nr/2p1b3/1p2p1kp/1B6/2pP1pPP/1P3N2/5P2/1R3KR1 b - - 3 35",
+   "best_move": "g8f6",
+   "evaluation": 0.04414601996541023
+  },
+  {
+   "version": "v3",
+   "fen": "rn2k1nr/pN3p2/2p3pp/2b1PqN1/P7/1QPP4/1P1KP1PP/1RB2B1R b - - 2 16",
+   "best_move": "f5e5",
+   "evaluation": -0.1726219207048416
+  },
+  {
+   "version": "v3",
+   "fen": "r1b5/2p1bN2/B4kp1/pr6/3PpP2/PPPn4/2Q5/RNBK4 b - - 2 26",
+   "best_move": "a8a6",
+   "evaluation": -0.0940837413072586
+  },
+  {
+   "version": "v3",
+   "fen": "r1b1kbr1/p2pppp1/n1p1Nn1p/1p6/P4P2/8/NPPPP1PP/R1BQKB1R b KQq - 0 9",
+   "best_move": "d7e6",
+   "evaluation": -0.26874542236328125
+  },
+  {
+   "version": "v3",
+   "fen": "rn3knr/8/1pQ2b1p/4p1p1/1p2Pp2/PR1P1Pqb/1BP3NP/2K3NR w - - 1 26",
+   "best_move": "c6a8",
+   "evaluation": 0.1303032487630844
+  },
+  {
+   "version": "v3",
+   "fen": "5bbr/n2k3p/p4P2/2pp4/4PPpP/Nr3P2/P1PB3R/1R1QKB2 w - - 0 26",
+   "best_move": "d1e2",
+   "evaluation": -0.0846908837556839
+  },
+  {
+   "version": "v3",
+   "fen": "7r/1qrN1p1p/3k3n/Pp6/2p1P2B/6nP/P1KP1P1P/RN2R3 b - - 12 30",
+   "best_move": "g3e4",
+   "evaluation": -0.02388959936797619
+  },
+  {
+   "version": "v3",
+   "fen": "2rr4/1n4kp/b3pN2/pPP3P1/2PP3P/b3P3/2Kn2B1/1R6 b - - 3 39",
+   "best_move": "a3c5",
+   "evaluation": 0.09275368601083755
+  },
+  {
+   "version": "v3",
+   "fen": "1r5r/QBpkn1p1/1p5q/PN2pp1p/3P2b1/7N/1PP4P/R1b1K2R w - - 0 28",
+   "best_move": "e1f2",
+   "evaluation": 0.026956263929605484
+  },
+  {
+   "version": "v3",
+   "fen": "rn6/2kb3p/7n/P2p1p2/2BPpP1P/bpPPK1P1/1P6/1RB3R1 b - - 4 35",
+   "best_move": "e4d3",
+   "evaluation": 0.028095737099647522
+  },
+  {
+   "version": "v3",
+   "fen": "rnbqkb1r/pp2pppp/3p1n2/2p2N2/2P5/8/PP1PPPPP/RNBQKB1R b KQkq - 3 4",
+   "best_move": "e7e5",
+   "evaluation": -0.12918484210968018
+  },
+  {
+   "version": "v3",
+   "fen": "r1nk3b/4pr2/5p2/1N3P1p/5P2/P6P/6R1/R1B1KB2 b - - 0 38",
+   "best_move": "e7e6",
+   "evaluation": 0.03069213218986988
+  },
+  {
+   "version": "v3",
+   "fen": "r1bqkbnr/ppp2ppp/8/3pP3/1n6/4P3/PBPP2PP/RN1QKBNR b KQkq - 0 5",
+   "best_move": "d8e7",
+   "evaluation": -0.3083965480327606
+  },
+  {
+   "version": "v3",
+   "fen": "r1b4r/ppq3k1/n5pn/5pP1/P1p2P1p/Q1P1B2P/8/R4KN1 b - - 6 35",
+   "best_move": "b7b5",
+   "evaluation": 0.051951196044683456
+  },
+  {
+   "version": "v3",
+   "fen": "2k5/2q1bp1P/5rb1/p1p1p3/P1PrP1P1/3PP3/NP4n1/RNB3K1 b - - 4 32",
+   "best_move": "g6h7",
+   "evaluation": 0.039744213223457336
+  },
+  {
+   "version": "v3",
+   "fen": "rn2kr2/pp1b1p2/n1p1p1p1/P1b4p/3qp1N1/1PPP2PB/R2KQP1P/6NR w q - 1 23",
+   "best_move": "c3d4",
+   "evaluation": 0.07912582904100418
+  },
+  {
+   "version": "v3",
+   "fen": "2bk2nr/r1p3p1/np6/4pP1P/1NNB4/1p2P3/2PP1P1R/1R2K2B w - - 0 24",
+   "best_move": "b1b3",
+   "evaluation": 0.08820081502199173
+  },
+  {
+   "version": "v3",
+   "fen": "rnbq1knr/p1p1ppbp/2N3p1/1p1p4/8/PP6/2PPPPPP/RNBQKB1R w KQ - 3 6",
+   "best_move": "c6d8",
+   "evaluation": 0.059742629528045654
+  },
+  {
+   "version": "v3",
+   "fen": "rn1qkbnr/pp2pppp/3p4/2p5/1P4P1/B6N/P1PPPP1P/RN1QKB1R b KQkq - 0 4",
+   "best_move": "e7e5",
+   "evaluation": -0.05107917636632919
+  },
+  {
+   "version": "v3",
+   "fen": "r1bqkbnr/pppppp1p/8/6p1/1n6/2N1PP2/PPPP2PP/R1BQKBNR w KQkq - 3 4",
+   "best_move": "d2d4",
+   "evaluation": 0.6763150691986084
+  },
+  {
+   "version": "v3",
+   "fen": "r2Nk1r1/pbn1b3/2p1P1pp/1p1p4/2P1B2P/PP2n3/7Q/RNB1K2R b - - 3 29",
+   "best_move": "a8d8",
+   "evaluation": -0.1521003544330597
+  },
+  {
+   "version": "v3",
+   "fen": "2qk2r1/Qp2pp2/n3b2n/P1pp3p/R1PbPPpP/1P4PB/8/1NB1K1NR b K - 2 18",
+   "best_move": "c8b8",
+   "evaluation": 0.017389865592122078
+  },
+  {
+   "version": "v3",
+   "fen": "rnb1k2r/p1p5/1p2pbP1/1P3p1p/4P1n1/1R1B4/RP1P1PP1/1NBQK3 w - - 0 22",
+   "best_move": "d1e2",
+   "evaluation": 0.07881426066160202
+  },
+  {
+   "version": "v3",
+   "fen": "2bqkbn1/rp1pp2r/p1n5/1PpQPpp1/P5pP/B7/2PPKP2/RN3BNR w - - 3 16",
+   "best_move": "h4g5",
+   "evaluation": 0.4516311585903168
+  },
+  {
+   "version": "v3",
+   "fen": "r1b1q1nr/2ppkn2/7p/pp4p1/1P2Kb2/3PPNPP/P1PQ4/RNB2B1R w - - 3 17",
+   "best_move": "g3f4",
+   "evaluation": 0.06041363254189491
+  },
+  {
+   "version": "v3",
+   "fen": "r2q1kr1/2p1ppbp/2nB1np1/p2p1b2/1pPP3P/PP4PN/R1Q1PP2/1N2KB1R w - - 1 16",
+   "best_move": "e2e4",
+   "evaluation": -0.03742066025733948
+  },
+  {
+   "version": "v3",
+   "fen": "2r2bnr/3n4/1ppp2kB/p3p2p/2bPP3/NPP4P/PQ2N3/R4K2 w - - 6 26",
+   "best_move": "a3c4",
+   "evaluation": 0.0426187701523304
+  },
+  {
+   "version": "v3",
+   "fen": "r1bqkbnr/p1ppp2p/np1Q1pp1/8/2P5/8/PP1PPPPP/RNB1KBNR w KQkq - 0 5",
+   "best_move": "d6d5",
+   "evaluation": 0.46325254440307617
+  },
+  {
+   "version": "v3",
+   "fen": "3k4/2pnbp2/6p1/P2pP1P1/1r6/NPPB2P1/3BKP2/1b5R w - - 3 36",
+   "best_move": "c3b4",
+   "evaluation": 0.14667293429374695
+  },
+  {
+   "version": "v3",
+   "fen": "N2bk1nr/2p5/4B3/6p1/4P1pp/p1P3N1/PP3PR1/R1B4K w - - 0 34",
+   "best_move": "e6g4",
+   "evaluation": 0.2827605903148651
+  },
+  {
+   "version": "v3",
+   "fen": "r2q1bnr/nb1kpp1p/2pp2p1/PPP5/Q2P1P2/2B4P/4P1P1/RN2KBNR b KQ - 3 12",
+   "best_move": "c6b5",
+   "evaluation": -0.010726178996264935
+  },
+  {
+   "version": "v3",
+   "fen": "4kbn1/r5pr/p3pp1p/4nR2/RP6/2QP4/1BN2PP1/5KN1 b - - 7 22",
+   "best_move": "e6f5",
+   "evaluation": -0.05490528419613838
+  },
+  {
+   "version": "v3",
+   "fen": "r2Bkb1r/p1pqn1p1/6np/1P1bp3/1P1Q1p1P/3P3R/P4PP1/RN2KBN1 w Qkq - 0 19",
+   "best_move": "d4d5",
+   "evaluation": -0.016458936035633087
+  },
+  {
+   "version": "v3",
+   "fen": "1nb2b1r/5kp1/1pQ1p3/4Pp1p/P6P/qP3P1R/2rP2P1/3RKBN1 w - - 6 25",
+   "best_move": "c6c2",
+   "evaluation": -0.05595713108778
+  }
+ ]
+}

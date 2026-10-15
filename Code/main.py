@@ -6,9 +6,10 @@ FastAPI-Backend für die Web-Oberfläche in ../web/index.html.
 Kern-Use-Case (CUJ): Screenshot einer Stellung  ->  optimaler Zug.
 
 Pipeline (zweistufig):
-    1) Bild -> Stellung erkennen (Computer Vision)   [hier noch PLATZHALTER]
-    2) Stellung -> bester Zug: RL-Agent, wo er zuständig ist (Endspiele mit drei
-       Figuren, trainiert in Code/rl/), sonst die Material-Heuristik
+    1) Bild -> Stellung erkennen: Brett im Bild finden (Code/vision/finder.py),
+       dann jedes der 64 Felder mit einem CNN klassifizieren
+    2) Stellung -> bester Zug: das Vollpartien-Modell der gewählten Version mit
+       ihrer Suchtiefe (Code/rl/), bei drei Figuren ein Endspiel-Spezialist
 
 Start (lokal):
     .venv aktivieren, dann aus dem Projekt-Wurzelverzeichnis:
@@ -19,9 +20,16 @@ Start (lokal):
 Deploy (render.com):
     Build Command: pip install -r requirements.txt
     Start Command: uvicorn Code.main:app --host 0.0.0.0 --port $PORT
+
+Konfiguration über Umgebungsvariablen:
+    MAX_SEARCH_DEPTH  Obergrenze der Vorausschau in Halbzügen (Standard 2).
+                      Schützt die kleine Render-Instanz vor Versionen, deren
+                      Suche dort zu lange dauern würde.
 """
+import os
 from io import BytesIO
 from pathlib import Path
+from typing import NamedTuple
 
 import chess
 from fastapi import FastAPI, File, Form, HTTPException, UploadFile
@@ -32,8 +40,9 @@ from pydantic import BaseModel, Field
 
 from .rl.engine import material_evaluation, material_move, value_move
 from .rl.features import board_to_features
-from .rl.registry import active_name, load_model
+from .rl.registry import active_name, load_model, search_depth
 from .rl.registry import versions as registry_versions
+from .rl.search import search
 from .rl.valuenet import ValueNet
 from .vision.finder import find_board
 from .vision.recognizer import TileClassifier, tiles_to_fen
@@ -62,6 +71,12 @@ WEB_DIR = Path(__file__).resolve().parent.parent / "web"
 MODEL_DIR = Path(__file__).resolve().parent.parent / "models"
 START_FEN = chess.STARTING_FEN
 GAMMA = 0.99
+
+# Auf render.com (0.1 CPU) dauert ein Zug etwa zehnmal so lange wie lokal. Mit
+# Tiefe 2 sind das rund 1 bis 3 Sekunden, mit Tiefe 3 eher 15 bis 30 — zu lang
+# für eine Web-Anfrage. Wird die Grenze gezogen, meldet die Antwort im Feld
+# "depth", mit welcher Tiefe tatsächlich gerechnet wurde.
+MAX_SEARCH_DEPTH = int(os.environ.get("MAX_SEARCH_DEPTH", "2"))
 
 
 # --------------------------------------------------------------------------- #
@@ -100,6 +115,11 @@ class MoveResponse(BaseModel):
             "Werte unter 0.9 heissen, dass die Stellung geprüft werden sollte."
         ),
     )
+    depth: int = Field(1, description="Mit wie vielen Halbzügen Vorausschau gerechnet wurde")
+    pv: list[str] = Field(
+        default_factory=list,
+        description="Erwartete Zugfolge (Hauptvariante) in SAN, beginnend mit dem empfohlenen Zug",
+    )
 
 
 class PlayRequest(BaseModel):
@@ -120,6 +140,10 @@ class PlayResponse(BaseModel):
     evaluation: float = Field(0.0, description="Bewertung aus Sicht von Weiss")
     engine: str = Field("", description="'rl' oder 'material'")
     version: str = Field("", description="Welches Modell geantwortet hat")
+    depth: int = Field(1, description="Mit wie vielen Halbzügen Vorausschau gerechnet wurde")
+    pv: list[str] = Field(
+        default_factory=list, description="Erwartete Zugfolge der Engine in SAN, beginnend mit ihrem Zug"
+    )
 
 
 class RecognitionResponse(BaseModel):
@@ -163,37 +187,77 @@ RL_AGENTS = {
 RECOGNIZER = TileClassifier.load() if TileClassifier.available() else None
 
 
-def select_agent(board: chess.Board, version: str | None = None) -> tuple[ValueNet | None, str]:
+def select_agent(board: chess.Board, version: str | None = None) -> tuple[ValueNet | None, str, int]:
     """
-    Zuständiges Modell für die Stellung, dazu ein Name für die Antwort.
+    Zuständiges Modell für die Stellung, ein Name für die Antwort und die
+    Suchtiefe in Halbzügen.
 
     Bei genau drei Figuren übernimmt der passende Endspiel-Spezialist. Die sind
-    bewusst nicht versioniert — sie lösen eine feste Aufgabe und ändern sich
-    nicht mehr. Für alles andere kommt das Vollpartien-Modell aus der Registry,
-    entweder die angefragte Version oder die aktive.
+    bewusst nicht versioniert — sie lösen eine feste Aufgabe, ändern sich nicht
+    mehr und rechnen wie beim Training einen Halbzug voraus. Für alles andere
+    kommt das Vollpartien-Modell aus der Registry, entweder die angefragte
+    Version oder die aktive, mit der Tiefe, die zu dieser Version gehört.
     """
     pieces = board.piece_map()
     if len(pieces) == 3:
         for piece in pieces.values():
             agent = RL_AGENTS.get(piece.piece_type)
             if agent is not None:
-                return agent, f"endspiel-{chess.piece_name(piece.piece_type)}"
+                return agent, f"endspiel-{chess.piece_name(piece.piece_type)}", 1
 
     model = load_model(version)
     if model is not None:
-        return model, version or active_name() or "?"
-    return None, "heuristik"
+        name = version or active_name() or "?"
+        return model, name, max(1, min(search_depth(name), MAX_SEARCH_DEPTH))
+    return None, "heuristik", 1
 
 
-def choose_move(board: chess.Board, version: str | None = None):
-    """Zug, Bewertung aus Sicht von Weiss, Engine-Art und Modellname."""
-    agent, label = select_agent(board, version)
-    if agent is not None:
+class Choice(NamedTuple):
+    move: chess.Move | None
+    evaluation: float          # aus Sicht von Weiss
+    engine: str                # 'rl' oder 'material'
+    label: str                 # Modellname
+    depth: int                 # tatsächlich gerechnete Halbzüge
+    pv: list[chess.Move]       # erwartete Zugfolge
+
+
+def choose_move(board: chess.Board, version: str | None = None) -> Choice:
+    """
+    Zug der gewählten Version samt Bewertung aus Sicht von Weiss.
+
+    Tiefe 1 läuft absichtlich über denselben Code wie vor dem Einbau der Suche
+    (value_move und die Netzbewertung der aktuellen Stellung). Damit spielen v1
+    bis v3 Zug für Zug wie bisher; tests/test_search.py prüft das gegen eine
+    Referenz, die vor der Änderung aufgenommen wurde.
+
+    Ab Tiefe 2 rechnet die Alpha-Beta-Suche, und als Bewertung wird ihr
+    Suchwert gemeldet — also das, was die Engine nach dem Vorausrechnen
+    erwartet, nicht der Blick auf die Stellung allein.
+    """
+    agent, label, depth = select_agent(board, version)
+    if agent is None:
+        move = material_move(board)
+        return Choice(move, material_evaluation(board), "material", "heuristik", 1, [move] if move else [])
+
+    if depth == 1:
         move = value_move(board, agent, GAMMA)
         value = float(agent.value(board_to_features(board)[None, :])[0])
-        evaluation = value if board.turn == chess.WHITE else -value
-        return move, evaluation, "rl", label
-    return material_move(board), material_evaluation(board), "material", "heuristik"
+        pv = [move] if move else []
+    else:
+        result = search(board, agent, depth, GAMMA)
+        move, value, pv = result.move, result.value, result.pv
+    evaluation = value if board.turn == chess.WHITE else -value
+    return Choice(move, evaluation, "rl", label, depth, pv)
+
+
+def line_san(board: chess.Board, line: list[chess.Move]) -> list[str]:
+    """Zugfolge in lesbarer Notation, ausgehend von 'board'."""
+    replay = board.copy(stack=False)
+    sans = []
+    for move in line:
+        sans.append(replay.san(move))
+        replay.push(move)
+    return sans
 
 
 def analyse(board: chess.Board, recognition: str, version: str | None = None) -> MoveResponse:
@@ -201,19 +265,21 @@ def analyse(board: chess.Board, recognition: str, version: str | None = None) ->
     if board.is_game_over():
         raise HTTPException(status_code=422, detail=f"Partie beendet: {board.result()}")
 
-    move, evaluation, engine, label = choose_move(board, version)
-    if move is None:
+    choice = choose_move(board, version)
+    if choice.move is None:
         raise HTTPException(status_code=422, detail="Keine legalen Züge in dieser Stellung.")
 
     return MoveResponse(
         fen=board.fen(),
-        best_move=move.uci(),
-        san=board.san(move),
-        evaluation=evaluation,
+        best_move=choice.move.uci(),
+        san=board.san(choice.move),
+        evaluation=choice.evaluation,
         side_to_move="white" if board.turn == chess.WHITE else "black",
         recognition=recognition,
-        engine=engine,
-        version=label,
+        engine=choice.engine,
+        version=choice.label,
+        depth=choice.depth,
+        pv=line_san(board, choice.pv),
     )
 
 
@@ -342,23 +408,26 @@ def play_move(req: PlayRequest) -> PlayResponse:
             evaluation=material_evaluation(board),
         )
 
-    engine_move, evaluation, engine, label = choose_move(board, req.version)
-    if engine_move is None:
+    choice = choose_move(board, req.version)
+    if choice.move is None:
         raise HTTPException(status_code=422, detail="Die Engine findet keinen Zug.")
-    engine_san = board.san(engine_move)
-    board.push(engine_move)
+    engine_san = board.san(choice.move)
+    pv = line_san(board, choice.pv)
+    board.push(choice.move)
     status, finished = describe_position(board)
 
     return PlayResponse(
         fen=board.fen(),
         player_san=player_san,
-        engine_uci=engine_move.uci(),
+        engine_uci=choice.move.uci(),
         engine_san=engine_san,
         status=status,
         finished=finished,
-        evaluation=evaluation,
-        engine=engine,
-        version=label,
+        evaluation=choice.evaluation,
+        engine=choice.engine,
+        version=choice.label,
+        depth=choice.depth,
+        pv=pv,
     )
 
 

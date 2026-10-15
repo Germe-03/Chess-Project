@@ -25,7 +25,7 @@ from __future__ import annotations
 
 import chess
 
-from .shaping import PIECE_VALUES, static_exchange
+from .shaping import loses_material
 
 TASKS = ("kqk", "krk", "full")
 
@@ -77,26 +77,13 @@ def _random_opening(rng, max_plies: int = OPENING_PLIES) -> chess.Board:
     """
     board = chess.Board()
     for _ in range(int(rng.integers(max_plies + 1))):
-        moves = [move for move in board.legal_moves if not _loses_material(board, move)]
+        moves = [move for move in board.legal_moves if not loses_material(board, move)]
         if not moves:
             break
         board.push(moves[int(rng.integers(len(moves)))])
         if board.is_game_over():
             break
     return board
-
-
-def _loses_material(board: chess.Board, move: chess.Move) -> bool:
-    """Verschenkt dieser Zug Material? Geschlagenes gegengerechnet."""
-    captured = board.piece_at(move.to_square)
-    if captured is not None:
-        gain = PIECE_VALUES[captured.piece_type]
-    else:
-        gain = PIECE_VALUES[chess.PAWN] if board.is_en_passant(move) else 0
-    board.push(move)
-    risk = static_exchange(board, move.to_square, board.turn)
-    board.pop()
-    return risk - gain > 0
 
 
 def _build_uniform(rng, piece: int) -> chess.Board | None:

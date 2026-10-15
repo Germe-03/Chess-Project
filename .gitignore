@@ -8,6 +8,10 @@ __pycache__/
 # Trainingsprotokolle (jederzeit reproduzierbar; die Modelle in models/ gehören ins Repo)
 logs/
 
+# Lauf-Mappen unterbrechbarer Trainings: Checkpoints samt Optimierer und Zwischenstände.
+# Das fertige Modell kommt nach models/ und wird dort versioniert.
+runs/
+
 # Stockfish, nur Auswertungswerkzeug und über 100 MB gross
 tools/
 

@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Schach-Assistent">
   <title>Schach-Assistent</title>
-  <!-- Farben wie im Brett der Oberflaeche; das gruene Feld ist dasselbe,
+  <!-- Farben wie im Brett der Oberfläche; das grüne Feld ist dasselbe,
        mit dem die App das Zielfeld des empfohlenen Zuges markiert. -->
   <defs>
     <clipPath id="ecken"><rect width="64" height="64" rx="12"/></clipPath>

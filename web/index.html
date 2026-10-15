@@ -560,6 +560,9 @@ function normalize(d){
     move: d.best_move || d.bestmove || d.move || d.uci || "",
     san: d.san || "",
     evaluation: (d.evaluation ?? d.value ?? d.score ?? d.win_prob ?? null),
+    depth: d.depth || 1,
+    pv: Array.isArray(d.pv) ? d.pv : [],
+    version: d.version || "",
   };
 }
 
@@ -603,6 +606,8 @@ function renderResult(r,isDemo,reason){
 
     <dl class="kv">
       <dt>Zug (UCI)</dt><dd>${esc(r.move||"—")}</dd>
+      ${r.version ? `<dt>Modell</dt><dd>${esc(r.version)} · rechnet ${r.depth === 1 ? "1 Halbzug" : r.depth + " Halbzüge"} voraus</dd>` : ""}
+      ${r.pv && r.pv.length > 1 ? `<dt>Erwartete Folge</dt><dd>${esc(r.pv.join(" "))}</dd>` : ""}
       <dt>Erkannte FEN</dt><dd style="word-break:break-all">${esc(fen)}</dd>
     </dl>
 
@@ -750,13 +755,19 @@ async function erkenneBild(datei){
 })();
 
 /* ---------- Modellversionen für den Wähler laden ---------- */
+function versionsText(v, aktiv){
+  // Eine Version ist Netz plus Suchtiefe; beides gehört in die Auswahl.
+  const t = v.search_depth || 1;
+  const training = v.episodes ? `${v.episodes} Episoden` : `Netz von ${v.parent}`;
+  return `${v.name} · ${t === 1 ? "1 Halbzug" : t + " Halbzüge"} voraus · ${training}${aktiv ? " (aktiv)" : ""}`;
+}
 async function ladeVersionen(){
   try{
     const res = await fetch((apiBase()||"")+"/versions");
     if(!res.ok) return;
     const data = await res.json();
     $("#modelVersion").innerHTML = data.versions.map(v =>
-      `<option value="${v.name}"${v.name===data.active?" selected":""}>${v.name} · ${v.episodes} Episoden${v.name===data.active?" (aktiv)":""}</option>`
+      `<option value="${v.name}"${v.name===data.active?" selected":""}>${esc(versionsText(v, v.name===data.active))}</option>`
     ).join("");
   }catch{ /* ohne Wähler weiterarbeiten */ }
 }

@@ -1,0 +1,5504 @@
+{
+ "beschreibung": "Φ und seine Bausteine aus der Implementierung vor der Beschleunigung (Commit ec4d4c8). Die schnellere Fassung muss dieselben Werte bitgenau liefern.",
+ "fälle": [
+  {
+   "fen": "4r3/3R4/pP1nRp1p/1B6/1PN3Pk/7p/2Kn4/8 b - - 1 76",
+   "potential": -0.09587501487199591,
+   "material": -4.0,
+   "center": -0.15322695695250219,
+   "exchange": 2.6,
+   "best_exchange_ich": 5,
+   "best_exchange_gegner": 3
+  },
+  {
+   "fen": "3Brb2/rk3pp1/2b2n2/1pp2P2/4N1QK/R1pB4/6PP/1N4R1 b - - 4 40",
+   "potential": -0.30012866409512473,
+   "material": -10.0,
+   "center": 0.5516051767917942,
+   "exchange": 3.8999999999999995,
+   "best_exchange_ich": 6,
+   "best_exchange_gegner": 1
+  },
+  {
+   "fen": "5r1k/8/r7/2P1p2p/n2Bp3/P2q1p1R/1Q2BP2/2RNK3 b - - 2 60",
+   "potential": -0.14326492233129762,
+   "material": -5.0,
+   "center": 0.2417471108468654,
+   "exchange": 2.3999999999999995,
+   "best_exchange_ich": 6,
+   "best_exchange_gegner": 6
+  },
+  {
+   "fen": "rnbqkbnr/pp1ppp1p/8/2p3p1/4P1P1/8/PPPP1P1P/RNBQKBNR w KQkq - 0 3",
+   "potential": 0.003644733939771768,
+   "material": 0.0,
+   "center": 0.05831677596436811,
+   "exchange": 0.0,
+   "best_exchange_ich": 0,
+   "best_exchange_gegner": 0
+  },
+  {
+   "fen": "6r1/3k1n2/p2p4/2BP1p1p/p4PqP/4K3/3n1R2/4NR2 b - - 6 59",
+   "potential": 0.36016958512125413,
+   "material": 6.0,
+   "center": 0.06679678295376114,
+   "exchange": 1.1999999999999997,
+   "best_exchange_ich": 3,
+   "best_exchange_gegner": 3
+  },
+  {
+   "fen": "2bq1knr/1p1p2p1/r3pp1p/1pp1B3/1PPNPb1P/n2P4/5PPR/R2KQB2 b - - 1 19",
+   "potential": 0.27609889941979676,
+   "material": 4.0,
+   "center": -0.2276979172926104,
+   "exchange": 1.1999999999999997,
+   "best_exchange_ich": 3,
+   "best_exchange_gegner": 3
+  },
+  {
+   "fen": "4k1bR/2r5/n1p5/p2pP1pp/p1NP2P1/1P6/1R4K1/5B2 w - - 4 49",
+   "potential": 0.2541663169690158,
+   "material": 3.0,
+   "center": -0.016169195301603254,
+   "exchange": 1.4999999999999996,
+   "best_exchange_ich": 3,
+   "best_exchange_gegner": 2
+  },
+  {
+   "fen": "4k1n1/r5b1/5pP1/1p1P4/RP5N/2PR3B/2r4B/1K1b4 w - - 3 59",
+   "potential": 0.2580369945973227,
+   "material": 2.0,
+   "center": 0.5677893830192604,
+   "exchange": 2.0,
+   "best_exchange_ich": 5,
+   "best_exchange_gegner": 5
+  },
+  {
+   "fen": "4B3/7r/R4n1p/2pk2p1/1p2N1p1/3P4/8/2b2K1n w - - 10 67",
+   "potential": -0.3346093384770518,
+   "material": -7.0,
+   "center": -0.6746137448884382,
+   "exchange": 1.1999999999999997,
+   "best_exchange_ich": 3,
+   "best_exchange_gegner": 3
+  },
+  {
+   "fen": "rn4r1/7p/p3p2b/P3k1P1/1P2Pp1p/5P1B/3B4/R6K b - - 4 43",
+   "potential": 0.28169064858369297,
+   "material": 5.0,
+   "center": 0.3021838885585817,
+   "exchange": -0.19999999999999996,
+   "best_exchange_ich": 1,
+   "best_exchange_gegner": 3
+  },
+  {
+   "fen": "Br1k4/5p2/n2b2b1/4p3/2R5/6P1/3R1N1P/5K2 w - - 9 70",
+   "potential": 0.21846193112245751,
+   "material": 2.0,
+   "center": 0.5473801842229606,
+   "exchange": 1.1999999999999997,
+   "best_exchange_ich": 3,
+   "best_exchange_gegner": 3
+  },
+  {
+   "fen": "1r3kb1/4p2p/4P2b/6BP/3p2n1/1pNP2P1/qN2K3/R4B2 w - - 5 49",
+   "potential": -0.1420168489942854,
+   "material": -6.0,
+   "center": 0.26348549271333066,
+   "exchange": 3.3999999999999995,
+   "best_exchange_ich": 7,
+   "best_exchange_gegner": 5
+  },
+  {
+   "fen": "2k4b/5p2/3Rpn2/3NP1p1/2bn2P1/B7/2p3P1/6K1 b - - 6 55",
+   "potential": 0.20567827718417483,
+   "material": 2.0,
+   "center": 0.29794388506388536,
+   "exchange": 1.1999999999999997,
+   "best_exchange_ich": 3,
+   "best_exchange_gegner": 3
+  },
+  {
+   "fen": "2k5/rp4b1/4qpn1/8/b2P3r/1PN3Q1/4R3/3K4 b - - 1 59",
+   "potential": 0.4072703446296876,
+   "material": 11.0,
+   "center": 0.12300856809664401,
+   "exchange": -1.9999999999999998,
+   "best_exchange_ich": 1,
+   "best_exchange_gegner": 9
+  },
+  {
+   "fen": "r2rn1b1/8/7P/2p1pkb1/P1P2p2/3p4/6B1/6K1 b - - 6 78",
+   "potential": 0.48819522214425454,
+   "material": 17.0,
+   "center": 0.6095036757700841,
+   "exchange": 0.09999999999999998,
+   "best_exchange_ich": 1,
+   "best_exchange_gegner": 2
+  },
+  {
+   "fen": "1r3kr1/8/7p/p1p4N/P3p1PP/1b2b3/4K3/1B6 w - - 4 69",
+   "potential": -0.41275759881214963,
+   "material": -11.0,
+   "center": -0.19111952319470749,
+   "exchange": 1.7999999999999996,
+   "best_exchange_ich": 3,
+   "best_exchange_gegner": 1
+  },
+  {
+   "fen": "1nbqkbnr/3pppp1/4r2p/pNp5/5PPP/P7/1PPPPK2/R1BQ1BNR w k - 0 9",
+   "potential": 0.05465681065308112,
+   "material": 1.0,
+   "center": -0.12198253460281641,
+   "exchange": 0.0,
+   "best_exchange_ich": 0,
+   "best_exchange_gegner": 0
+  },
+  {
+   "fen": "4b2r/r1k5/7n/p1p1p2p/P1p3Pb/1P2NQ1P/3P1R2/1NB1KR2 w - - 11 40",
+   "potential": 0.4122907497584234,
+   "material": 9.0,
+   "center": 0.2677254962080271,
+   "exchange": 0.09999999999999998,
+   "best_exchange_ich": 1,
+   "best_exchange_gegner": 2
+  },
+  {
+   "fen": "2b3r1/p1k5/6pq/PBp1pN1R/1n6/3PP1p1/R2B1N2/5K2 b - - 0 45",
+   "potential": 0.044612594720491776,
+   "material": 0.0,
+   "center": -0.08429516132552975,
+   "exchange": 0.8000000000000003,
+   "best_exchange_ich": 5,
+   "best_exchange_gegner": 9
+  },
+  {
+   "fen": "4n3/7p/p1N3k1/2p4b/2BrP3/8/2K2R2/bN6 w - - 13 77",
+   "potential": -0.08986397922336377,
+   "material": -2.0,
+   "center": 0.04638758415746139,
+   "exchange": 0.5,
+   "best_exchange_ich": 2,
+   "best_exchange_gegner": 3
+  },
+  {
+   "fen": "r2k1bn1/8/1p1B2pr/pP2p2p/PP2P2P/1Kp1qR2/8/2R2b2 w - - 0 57",
+   "potential": -0.4438040452335249,
+   "material": -16.0,
+   "center": -0.08429516132552978,
+   "exchange": 4.8,
+   "best_exchange_ich": 9,
+   "best_exchange_gegner": 5
+  },
+  {
+   "fen": "k7/8/2P5/p4N2/P4Pn1/7p/5r2/6K1 b - - 0 74",
+   "potential": 0.18510572208904244,
+   "material": 4.0,
+   "center": -0.09065516656757452,
+   "exchange": -0.8,
+   "best_exchange_ich": 1,
+   "best_exchange_gegner": 5
+  },
+  {
+   "fen": "6nr/p3b3/P5pp/2pb1p2/1p3P2/B3P1kP/2P5/3RKBNR w - - 1 37",
+   "potential": 0.26063536890357825,
+   "material": 4.0,
+   "center": 0.024664213216859306,
+   "exchange": 0.5999999999999996,
+   "best_exchange_ich": 3,
+   "best_exchange_gegner": 5
+  },
+  {
+   "fen": "8/5Q2/2k1n3/p4P1p/p2P1N2/5bR1/8/5KRB w - - 5 65",
+   "potential": 0.4913378889907575,
+   "material": 18.0,
+   "center": -0.239612098173654,
+   "exchange": 1.1999999999999997,
+   "best_exchange_ich": 3,
+   "best_exchange_gegner": 3
+  },
+  {
+   "fen": "r4bnr/2k4p/P1p1pp2/5PN1/1PpP4/B5Pb/P4P1P/RN2K2R w KQ - 1 17",
+   "potential": 0.23817040485447505,
+   "material": 3.0,
+   "center": -0.054076772469671554,
+   "exchange": 1.1999999999999997,
+   "best_exchange_ich": 3,
+   "best_exchange_gegner": 3
+  },
+  {
+   "fen": "5Q2/k7/1ppp3n/8/2P1bp1R/PK2bP2/P7/8 w - - 1 63",
+   "potential": 0.3337337071641814,
+   "material": 5.0,
+   "center": -0.3507064853892544,
+   "exchange": 1.7999999999999996,
+   "best_exchange_ich": 3,
+   "best_exchange_gegner": 1
+  },
+  {
+   "fen": "r1b1q2r/1p2b1pp/pp1n1pk1/Q2p4/4p1P1/P2PP2R/1PP2PB1/R3BKN1 b - - 8 31",
+   "potential": 0.32525089681765557,
+   "material": 1.0,
+   "center": -0.09065516656757452,
+   "exchange": 5.3,
+   "best_exchange_ich": 8,
+   "best_exchange_gegner": 1
+  },
+  {
+   "fen": "2b1kbn1/r1np1p1r/2p3Pp/pP2p3/1PB1Pp2/1QP2PqP/R2P3R/1NB1K3 w - - 1 19",
+   "potential": -0.01180534456046906,
+   "material": -2.0,
+   "center": 0.1110793762897373,
+   "exchange": 2.0,
+   "best_exchange_ich": 5,
+   "best_exchange_gegner": 5
+  },
+  {
+   "fen": "3R4/7r/P1kb4/1p3p2/5N2/1K6/4B3/3r4 b - - 4 79",
+   "potential": 0.23875256355125307,
+   "material": 3.0,
+   "center": 0.5579801929597021,
+   "exchange": 0.5999999999999996,
+   "best_exchange_ich": 3,
+   "best_exchange_gegner": 5
+  },
+  {
+   "fen": "1n2rBbk/1p6/2r2p2/p7/Pqp1PRB1/3p2P1/8/R1Q2KN1 b - - 8 44",
+   "potential": -0.02664569128897171,
+   "material": -1.0,
+   "center": 0.27326466092116286,
+   "exchange": 0.2999999999999998,
+   "best_exchange_ich": 3,
+   "best_exchange_gegner": 6
+  },
+  {
+   "fen": "5r1r/n6p/2pk3b/3p2BP/6P1/Pp1Np3/4KN2/5R2 b - - 0 59",
+   "potential": 0.29442737260683044,
+   "material": 4.0,
+   "center": 0.2072887184963107,
+   "exchange": 1.1999999999999997,
+   "best_exchange_ich": 3,
+   "best_exchange_gegner": 3
+  },
+  {
+   "fen": "8/4n3/P4R2/2R3p1/5p2/3k1PPK/n5r1/8 w - - 0 72",
+   "potential": 0.20974615149919948,
+   "material": 0.0,
+   "center": 0.07660597301331956,
+   "exchange": 3.5,
+   "best_exchange_ich": 5,
+   "best_exchange_gegner": 0
+  },
+  {
+   "fen": "1r2q2k/pbp4p/2n1r2n/N2p1Pb1/P1PPB1QP/1PB3P1/2K5/5RNR b - - 6 33",
+   "potential": 0.10890086608044139,
+   "material": -3.0,
+   "center": -0.029222377213756652,
+   "exchange": 4.8,
+   "best_exchange_ich": 9,
+   "best_exchange_gegner": 5
+  },
+  {
+   "fen": "2k2b2/1bp1p3/7p/1q1R1p1P/1Q3rr1/1K1PP2N/1B1Nn1PR/3B4 w - - 5 37",
+   "potential": 0.3886315034765248,
+   "material": 3.0,
+   "center": 0.5073526053075442,
+   "exchange": 4.8,
+   "best_exchange_ich": 9,
+   "best_exchange_gegner": 5
+  },
+  {
+   "fen": "2b4r/4k3/2P2P1P/8/KP6/8/8/3r3B b - - 0 80",
+   "potential": 0.3778401187576585,
+   "material": 6.0,
+   "center": 0.08853516482022626,
+   "exchange": 2.0999999999999996,
+   "best_exchange_ich": 3,
+   "best_exchange_gegner": 0
+  },
+  {
+   "fen": "rnb1kb2/ppqpppp1/7n/2p4r/1P4Pp/2N2P1B/P1PPPK1P/R1BQ2NR w q - 3 7",
+   "potential": 0.1760709857579327,
+   "material": 0.0,
+   "center": -0.2569052835805041,
+   "exchange": 3.2,
+   "best_exchange_ich": 5,
+   "best_exchange_gegner": 1
+  },
+  {
+   "fen": "2bq2r1/2rkp2p/1p3ppb/pN1p1nP1/1npPP3/6NB/PPPK3P/1RBQ3R w - - 6 18",
+   "potential": 0.045220721495798644,
+   "material": -1.0,
+   "center": -0.07448597126597131,
+   "exchange": 1.7999999999999996,
+   "best_exchange_ich": 3,
+   "best_exchange_gegner": 1
+  },
+  {
+   "fen": "3kB3/1r2r3/1pPPp1pp/6b1/2N2P2/Pp6/1R1B1P2/4NK1b b - - 0 46",
+   "potential": 0.0029272746706398936,
+   "material": -1.0,
+   "center": 0.14683692985873134,
+   "exchange": 0.8999999999999997,
+   "best_exchange_ich": 3,
+   "best_exchange_gegner": 4
+  },
+  {
+   "fen": "rnbqkbr1/pppp1p1p/7n/4p1p1/6P1/P3P3/1PPPBP1P/RNBQK1NR w KQq - 1 6",
+   "potential": -0.0010105733302714153,
+   "material": 0.0,
+   "center": -0.016169195301603198,
+   "exchange": 0.0,
+   "best_exchange_ich": 0,
+   "best_exchange_gegner": 0
+  },
+  {
+   "fen": "Q7/3p4/bP1P2kp/8/Rp4P1/6R1/2r2K2/7B w - - 0 50",
+   "potential": 0.48275535344745324,
+   "material": 14.0,
+   "center": 0.371433844687755,
+   "exchange": 2.0999999999999996,
+   "best_exchange_ich": 3,
+   "best_exchange_gegner": 0
+  },
+  {
+   "fen": "1n2r3/8/1p2kB2/1r6/2b4p/1p4P1/8/6K1 w - - 12 74",
+   "potential": -0.4803332491306631,
+   "material": -15.0,
+   "center": -0.4358525090954193,
+   "exchange": -0.19999999999999996,
+   "best_exchange_ich": 1,
+   "best_exchange_gegner": 3
+  },
+  {
+   "fen": "1n2k1nr/rpQb3p/p4p2/3p2p1/PP2p2q/2KPPP2/2P3PP/R1b2BNR b k - 0 13",
+   "potential": 0.2558548302688425,
+   "material": 5.0,
+   "center": -0.27965468801493387,
+   "exchange": -0.19999999999999996,
+   "best_exchange_ich": 1,
+   "best_exchange_gegner": 3
+  },
+  {
+   "fen": "3k1b1r/4R2p/1p6/p2p2PP/2P5/Pbp5/3N4/4KN2 w - - 0 51",
+   "potential": 0.00798443396312003,
+   "material": -1.0,
+   "center": 0.5277618041038439,
+   "exchange": 0.5999999999999996,
+   "best_exchange_ich": 3,
+   "best_exchange_gegner": 5
+  },
+  {
+   "fen": "7b/2k4B/rpb4p/1P6/p2p1PP1/R7/8/2K4R w - - 1 68",
+   "potential": 0.16238125697545108,
+   "material": 1.0,
+   "center": -0.30430389030592997,
+   "exchange": 2.0,
+   "best_exchange_ich": 5,
+   "best_exchange_gegner": 5
+  },
+  {
+   "fen": "rrb1k3/7N/p5q1/1pp3p1/P6P/1K2Pp2/1N3RB1/6R1 b q - 3 52",
+   "potential": 0.35180641738910406,
+   "material": 5.0,
+   "center": 0.195359526689404,
+   "exchange": 1.7999999999999996,
+   "best_exchange_ich": 3,
+   "best_exchange_gegner": 1
+  },
+  {
+   "fen": "2b5/8/2PpPkpp/3p1Pbn/8/5K2/p1r4P/4RB2 w - - 8 60",
+   "potential": -0.36684079398368097,
+   "material": -7.0,
+   "center": -0.19323952494205576,
+   "exchange": -0.3,
+   "best_exchange_ich": 0,
+   "best_exchange_gegner": 1
+  },
+  {
+   "fen": "1k4r1/4B3/1n2Pq1p/p2p1p2/1p3KR1/8/5Pb1/3N2R1 b - - 14 74",
+   "potential": 0.3707120225544064,
+   "material": 7.0,
+   "center": 0.5290759762481462,
+   "exchange": 0.10000000000000009,
+   "best_exchange_ich": 4,
+   "best_exchange_gegner": 9
+  },
+  {
+   "fen": "8/4rP2/p1B1k1P1/P2r3p/2P5/8/5B2/1n5K w - - 1 78",
+   "potential": -0.16537918251868036,
+   "material": -5.0,
+   "center": -0.2494362991590756,
+   "exchange": 2.5,
+   "best_exchange_ich": 4,
+   "best_exchange_gegner": 1
+  },
+  {
+   "fen": "1rb2knr/p1p5/npq1ppp1/2P5/2PpP2P/N5PR/P2PK3/R1BQ1BN1 w - - 1 18",
+   "potential": 0.14448359548184736,
+   "material": 3.0,
+   "center": -0.32048809653339627,
+   "exchange": -0.3,
+   "best_exchange_ich": 0,
+   "best_exchange_gegner": 1
+  },
+  {
+   "fen": "7k/8/7n/N2ppP1p/p6P/2nR4/4r3/2K5 b - - 5 75",
+   "potential": 0.28301388059728233,
+   "material": 5.0,
+   "center": 0.33326815072093807,
+   "exchange": -0.19999999999999996,
+   "best_exchange_ich": 1,
+   "best_exchange_gegner": 3
+  },
+  {
+   "fen": "3rrk2/8/2p2b2/P2p3P/3P2bN/P2K4/8/8 w - - 8 72",
+   "potential": -0.45727852830989557,
+   "material": -11.0,
+   "center": -0.5375709941634024,
+   "exchange": -0.8999999999999999,
+   "best_exchange_ich": 0,
+   "best_exchange_gegner": 3
+  },
+  {
+   "fen": "4r2r/2npk3/bpp2q2/2P2pN1/1Pn3Pp/P6P/1NQP4/1RB2BRK b - - 0 33",
+   "potential": -0.14413877229917213,
+   "material": -4.0,
+   "center": 0.42650662879952805,
+   "exchange": 1.1999999999999997,
+   "best_exchange_ich": 3,
+   "best_exchange_gegner": 3
+  },
+  {
+   "fen": "r7/n2B4/7b/p1k1prP1/P1p1p1P1/2P1K2b/1B4PR/6R1 w - - 1 51",
+   "potential": 0.06233158829364226,
+   "material": -2.0,
+   "center": -0.19747952843675226,
+   "exchange": 3.2,
+   "best_exchange_ich": 5,
+   "best_exchange_gegner": 1
+  },
+  {
+   "fen": "1rbNk2r/pp3n2/1b4p1/5p2/5P1p/8/NB2PK1P/Rn3B1R w k - 1 32",
+   "potential": -0.06646564790594438,
+   "material": -2.0,
+   "center": 0.030218388855858182,
+   "exchange": 1.1999999999999997,
+   "best_exchange_ich": 3,
+   "best_exchange_gegner": 3
+  },
+  {
+   "fen": "rnbqkb1r/1ppppp1p/6pn/8/p3P3/P1P5/1PNP1PPP/R1BQKBNR b KQkq - 0 5",
+   "potential": -0.023525421276856247,
+   "material": 0.0,
+   "center": -0.3766848707504161,
+   "exchange": 0.0,
+   "best_exchange_ich": 0,
+   "best_exchange_gegner": 0
+  },
+  {
+   "fen": "1r6/pb1k2p1/1pr2P1q/B1p2Pnp/P2p4/1P1Q3N/5K2/1R1Bn3 w - - 1 40",
+   "potential": -0.37159247199288137,
+   "material": -7.0,
+   "center": -0.0604517886375794,
+   "exchange": -0.6000000000000001,
+   "best_exchange_ich": 3,
+   "best_exchange_gegner": 9
+  },
+  {
+   "fen": "1n3b2/6Q1/1P2k1pr/Pb3p1P/2p1p3/5PBB/1P4KP/3R2NR w - - 0 37",
+   "potential": 0.480696910090761,
+   "material": 16.0,
+   "center": 0.31199307861814024,
+   "exchange": -0.6000000000000001,
+   "best_exchange_ich": 3,
+   "best_exchange_gegner": 9
+  },
+  {
+   "fen": "rnb1kbnr/1p1p1p1p/p3q3/2P1p1p1/3Q2PP/5P2/PPP1P2R/RNB1KBN1 b Qkq - 0 7",
+   "potential": 0.272166500408706,
+   "material": -1.0,
+   "center": -0.11765958542256377,
+   "exchange": 6.0,
+   "best_exchange_ich": 9,
+   "best_exchange_gegner": 1
+  },
+  {
+   "fen": "r3kbr1/1p3p1p/p3p2n/n1P5/1P1q4/P2N4/4PPb1/R1B1KB2 w - - 0 35",
+   "potential": -0.4861477888221239,
+   "material": -17.0,
+   "center": -0.6614454355665444,
+   "exchange": 0.5999999999999996,
+   "best_exchange_ich": 3,
+   "best_exchange_gegner": 5
+  },
+  {
+   "fen": "n7/1kp5/4p3/7p/1P1P3P/5P2/r7/2B1K3 b - - 13 73",
+   "potential": 0.22286439597981275,
+   "material": 4.0,
+   "center": -0.1651411378335458,
+   "exchange": 0.0,
+   "best_exchange_ich": 0,
+   "best_exchange_gegner": 0
+  },
+  {
+   "fen": "r1k2r2/pb2n3/3b4/2p2qBp/1P2PR1P/2pQ4/1R2P3/N3Kn2 b - - 1 44",
+   "potential": 0.35717765866068696,
+   "material": 6.0,
+   "center": 0.36817484190929695,
+   "exchange": 0.8000000000000003,
+   "best_exchange_ich": 5,
+   "best_exchange_gegner": 9
+  },
+  {
+   "fen": "7R/2k5/1r6/p6p/P6P/2P2P2/K7/2r5 b - - 2 60",
+   "potential": 0.19407745474448945,
+   "material": 3.0,
+   "center": -0.12299355717078092,
+   "exchange": 0.39999999999999997,
+   "best_exchange_ich": 1,
+   "best_exchange_gegner": 1
+  },
+  {
+   "fen": "1nb2k1B/3r3p/2p3pn/1p1p1p2/PP2Pb2/8/2R1N1Bq/1N1QK3 w - - 0 49",
+   "potential": -0.18237585125782682,
+   "material": -3.0,
+   "center": 0.14115261588412903,
+   "exchange": -0.19999999999999996,
+   "best_exchange_ich": 1,
+   "best_exchange_gegner": 3
+  },
+  {
+   "fen": "2N2b2/3n1k2/p4p2/4r1Pp/4B1P1/3PP2N/5R2/6K1 w - - 2 58",
+   "potential": 0.2532774503337046,
+   "material": 4.0,
+   "center": 0.06467678120641288,
+   "exchange": 0.39999999999999997,
+   "best_exchange_ich": 1,
+   "best_exchange_gegner": 1
+  },
+  {
+   "fen": "r3k3/p2p1p1r/b1pBp1p1/2P2n1P/P6P/1pRP1P1R/1P2qK2/1N3BN1 w - - 0 27",
+   "potential": 0.15069920723255345,
+   "material": -3.0,
+   "center": -0.21154373291687026,
+   "exchange": 6.0,
+   "best_exchange_ich": 9,
+   "best_exchange_gegner": 1
+  },
+  {
+   "fen": "1kr1b3/1p2n3/3P3p/5Q2/2P2Pp1/r5PN/1p1KB2P/6N1 w - - 6 53",
+   "potential": 0.1790097413260877,
+   "material": 3.0,
+   "center": 0.596898792695735,
+   "exchange": -0.6000000000000001,
+   "best_exchange_ich": 3,
+   "best_exchange_gegner": 9
+  },
+  {
+   "fen": "rn3b2/1ppq1kp1/2P1p2r/p2p1pPn/b2P1P2/1P3N2/P2BP1B1/RNQ2RK1 w - - 5 19",
+   "potential": 0.2877071625363516,
+   "material": 0.0,
+   "center": -0.05536092276224783,
+   "exchange": 5.3,
+   "best_exchange_ich": 8,
+   "best_exchange_gegner": 1
+  },
+  {
+   "fen": "2b1k2r/2pn1p1p/rp2pb1n/p2p2p1/q1B1NN2/4P2P/PPPP1PP1/R1BK3R b k - 3 15",
+   "potential": 0.43558095901645977,
+   "material": 9.0,
+   "center": 0.20303370407575114,
+   "exchange": 1.4999999999999996,
+   "best_exchange_ich": 3,
+   "best_exchange_gegner": 2
+  },
+  {
+   "fen": "1n1q1kr1/3p3p/4pPp1/2b4P/pP1BbR2/P4P2/1pP2K2/1r6 w - - 1 46",
+   "potential": -0.49092853959590316,
+   "material": -20.0,
+   "center": 0.025963374435298614,
+   "exchange": 1.1999999999999997,
+   "best_exchange_ich": 3,
+   "best_exchange_gegner": 3
+  },
+  {
+   "fen": "r3n3/5p2/1p3P1p/3k3p/3bp2P/pP6/2b3K1/8 b - - 1 58",
+   "potential": 0.4905524181461585,
+   "material": 17.0,
+   "center": 0.9100158614191216,
+   "exchange": 0.7,
+   "best_exchange_ich": 1,
+   "best_exchange_gegner": 0
+  },
+  {
+   "fen": "1k1r3r/1bpQ4/p3p1pn/1p1P1pBp/B2n3P/KP3PN1/P7/2R2R2 w - - 4 37",
+   "potential": 0.3806191175906168,
+   "material": 7.0,
+   "center": 0.1932245140161927,
+   "exchange": 0.8000000000000003,
+   "best_exchange_ich": 5,
+   "best_exchange_gegner": 9
+  },
+  {
+   "fen": "r3kbn1/1b2pppr/3q3p/1pppPPPP/R2N4/2nB3R/1BPP4/2Q1K3 w - - 1 20",
+   "potential": -0.020498711285907422,
+   "material": -4.0,
+   "center": -0.428163320783209,
+   "exchange": 4.1,
+   "best_exchange_ich": 8,
+   "best_exchange_gegner": 5
+  },
+  {
+   "fen": "4rQ2/1r5k/4P3/p4n2/2p2p2/8/5N2/1b2K3 w - - 2 78",
+   "potential": -0.2939398983308966,
+   "material": -6.0,
+   "center": -0.195359526689404,
+   "exchange": 0.8000000000000003,
+   "best_exchange_ich": 5,
+   "best_exchange_gegner": 9
+  },
+  {
+   "fen": "2r2b2/n7/3p3p/4kPpP/1pp5/N5r1/3K2B1/6R1 b - - 1 60",
+   "potential": 0.43532501878971797,
+   "material": 8.0,
+   "center": 0.5860785800682118,
+   "exchange": 2.0999999999999996,
+   "best_exchange_ich": 3,
+   "best_exchange_gegner": 0
+  },
+  {
+   "fen": "r1b1kN2/1pppnnb1/1p6/5P1r/P2PpP2/2R5/1PP1P1BP/2BQK1R1 w - - 1 22",
+   "potential": 0.4030236966980417,
+   "material": 9.0,
+   "center": 0.1251285698439923,
+   "exchange": -0.19999999999999996,
+   "best_exchange_ich": 1,
+   "best_exchange_gegner": 3
+  },
+  {
+   "fen": "r1b2bn1/p2pp3/nq1k4/1p4pr/7p/2B1P1P1/P1PPNP1P/RNQ1KR1B b Q - 9 24",
+   "potential": -0.16896957032852725,
+   "material": -1.0,
+   "center": -0.31411308036548835,
+   "exchange": -1.5,
+   "best_exchange_ich": 0,
+   "best_exchange_gegner": 5
+  },
+  {
+   "fen": "8/8/P4k2/1p1p3r/1P3NpP/2r2p2/1n6/6K1 w - - 0 76",
+   "potential": -0.3909335912852909,
+   "material": -11.0,
+   "center": -0.6012517637277136,
+   "exchange": 3.2,
+   "best_exchange_ich": 5,
+   "best_exchange_gegner": 1
+  },
+  {
+   "fen": "3qr3/8/3pPpN1/pKp1p1k1/P1P1P1p1/2R5/2N5/4B1R1 b - - 2 50",
+   "potential": -0.07220553646646428,
+   "material": -3.0,
+   "center": 0.03657839409790297,
+   "exchange": 1.7999999999999996,
+   "best_exchange_ich": 3,
+   "best_exchange_gegner": 1
+  },
+  {
+   "fen": "r2qkbnr/2pppppp/1p6/pb6/8/1PNnP3/P1P2PPP/R1BQKBNR w KQkq - 0 9",
+   "potential": 0.06301617595223627,
+   "material": -1.0,
+   "center": 0.2136487237383555,
+   "exchange": 2.0999999999999996,
+   "best_exchange_ich": 3,
+   "best_exchange_gegner": 0
+  },
+  {
+   "fen": "rnb1qbn1/1p2pk1r/p5p1/2pp4/1PPP1pBp/1N1Q2PP/PB2PP2/R3K1NR b KQ - 1 14",
+   "potential": -0.01244222776063973,
+   "material": 0.0,
+   "center": -0.5991167510545024,
+   "exchange": 0.39999999999999997,
+   "best_exchange_ich": 1,
+   "best_exchange_gegner": 1
+  },
+  {
+   "fen": "1r1k4/6bN/p6p/1NR1p3/pP1P1R2/5p1Q/8/3nK3 b - - 4 52",
+   "potential": -0.41007172606502595,
+   "material": -11.0,
+   "center": -0.8580440797709352,
+   "exchange": 2.6,
+   "best_exchange_ich": 5,
+   "best_exchange_gegner": 3
+  },
+  {
+   "fen": "2k5/6nr/p2p4/1ppP1p2/P2q3P/1PBRPR2/8/1K6 w - - 3 43",
+   "potential": 0.023938095145234636,
+   "material": -4.0,
+   "center": -0.41669743873996967,
+   "exchange": 4.8,
+   "best_exchange_ich": 9,
+   "best_exchange_gegner": 5
+  },
+  {
+   "fen": "2bqkb1r/p1rp1ppp/np2p3/2p5/1NP4P/1P2PPn1/PB1P4/R2QKBNR b KQk - 1 11",
+   "potential": 0.2329241939601476,
+   "material": 1.0,
+   "center": -0.46196103279218415,
+   "exchange": 3.5,
+   "best_exchange_ich": 5,
+   "best_exchange_gegner": 0
+  },
+  {
+   "fen": "3nk3/2p3b1/P1np1p1r/3P3p/p1pR1Pp1/P1P3PP/Q4K2/5BNR b - - 4 36",
+   "potential": -0.43020851375208957,
+   "material": -11.0,
+   "center": -0.15958696219454696,
+   "exchange": 0.7999999999999999,
+   "best_exchange_ich": 2,
+   "best_exchange_gegner": 2
+  },
+  {
+   "fen": "1rbqkbnr/ppp1pp2/3p3p/8/1P2PnpP/B1PPR2N/P1Q2PP1/RN2KB2 w Qk - 2 12",
+   "potential": 0.10821229514884433,
+   "material": 0.0,
+   "center": 0.25921546736690787,
+   "exchange": 1.4999999999999996,
+   "best_exchange_ich": 3,
+   "best_exchange_gegner": 2
+  },
+  {
+   "fen": "8/r2k4/b1p3R1/pn4r1/2BP1p2/P4N1P/2p2K2/2R5 w - - 8 49",
+   "potential": 0.06403506290139208,
+   "material": -1.0,
+   "center": 0.030218388855858175,
+   "exchange": 2.0,
+   "best_exchange_ich": 5,
+   "best_exchange_gegner": 5
+  },
+  {
+   "fen": "2r4n/1k5p/1np2p2/p2r1PpP/P1pP2P1/p7/1R3K1N/R2Q3B w - - 14 42",
+   "potential": 0.34303867735166826,
+   "material": 7.0,
+   "center": -0.17594633953520578,
+   "exchange": -0.10000000000000009,
+   "best_exchange_ich": 2,
+   "best_exchange_gegner": 5
+  },
+  {
+   "fen": "b4k2/8/3N2Q1/P1np4/6PR/P1K2p2/4P1B1/R1b5 b - - 2 58",
+   "potential": -0.48571650953782397,
+   "material": -18.0,
+   "center": -0.13705776165089895,
+   "exchange": 1.1999999999999997,
+   "best_exchange_ich": 3,
+   "best_exchange_gegner": 3
+  },
+  {
+   "fen": "3rk3/p6p/R7/1pp3q1/PP2p1n1/2P1P3/3B4/RNK1nrNB w - - 7 32",
+   "potential": -0.2615511846790989,
+   "material": -4.0,
+   "center": -0.4448108367743426,
+   "exchange": -0.19999999999999996,
+   "best_exchange_ich": 1,
+   "best_exchange_gegner": 3
+  },
+  {
+   "fen": "rnb1kbnr/p1pp1ppp/1p2p3/8/2q1P2Q/3P2P1/PPP2P1P/RNB1K1NR b KQkq - 0 6",
+   "potential": 0.07369065800734066,
+   "material": 3.0,
+   "center": 0.18770036022891992,
+   "exchange": -1.9999999999999998,
+   "best_exchange_ich": 1,
+   "best_exchange_gegner": 9
+  },
+  {
+   "fen": "8/rp2n1pr/5pkp/p7/P3K3/6N1/b2P4/8 b - - 3 57",
+   "potential": 0.48126013850012644,
+   "material": 16.0,
+   "center": -0.16726113958089403,
+   "exchange": 0.0,
+   "best_exchange_ich": 0,
+   "best_exchange_gegner": 0
+  },
+  {
+   "fen": "r1b2r2/3pkp1p/1p1bp3/p1p3p1/P3PP1q/4P2N/nPP1K1PP/R1BQ1BR1 w - - 0 18",
+   "potential": 0.14312397863870954,
+   "material": 0.0,
+   "center": 0.25579630440112044,
+   "exchange": 2.0999999999999996,
+   "best_exchange_ich": 3,
+   "best_exchange_gegner": 0
+  },
+  {
+   "fen": "2k1r3/B3p3/npB5/2P1b2p/3p1P1P/2pP4/P1R3KR/4q1N1 w - - 0 45",
+   "potential": 0.1345052750209775,
+   "material": -1.0,
+   "center": 0.006375016167907817,
+   "exchange": 3.2,
+   "best_exchange_ich": 5,
+   "best_exchange_gegner": 1
+  },
+  {
+   "fen": "4n1kr/3p4/2b1Rb1p/8/rp4p1/8/RN4PP/2K2B2 b - - 3 60",
+   "potential": 0.3608099728676293,
+   "material": 5.0,
+   "center": 0.28813469500432676,
+   "exchange": 2.0,
+   "best_exchange_ich": 5,
+   "best_exchange_gegner": 5
+  },
+  {
+   "fen": "1nb1k1r1/q3rp1p/5P2/pp4p1/P1p1pP2/1P1Bn1PP/2PKN3/RNBQ3R b - - 2 25",
+   "potential": 0.0159818229450398,
+   "material": -3.0,
+   "center": 0.25579630440112033,
+   "exchange": 2.999999999999999,
+   "best_exchange_ich": 6,
+   "best_exchange_gegner": 4
+  },
+  {
+   "fen": "1n6/4bp2/5n1p/2Bk4/2N5/1pp2P1B/1R2P3/N3K3 w - - 9 48",
+   "potential": 0.3373153547448216,
+   "material": 6.0,
+   "center": -0.3464514709686948,
+   "exchange": 0.8999999999999997,
+   "best_exchange_ich": 3,
+   "best_exchange_gegner": 4
+  },
+  {
+   "fen": "1r3k1r/2pbppbp/ppP5/6N1/2PPn3/P4P2/R3PB1P/3QKR1B b - - 6 25",
+   "potential": -0.4088437655375974,
+   "material": -10.0,
+   "center": -0.3983932307651552,
+   "exchange": 1.1999999999999997,
+   "best_exchange_ich": 3,
+   "best_exchange_gegner": 3
+  },
+  {
+   "fen": "4q3/p1rkpp2/4N1p1/Q1pp1b1p/p1PbP1P1/5P1P/3P4/R1B2KRN w - - 7 30",
+   "potential": 0.3319577698360329,
+   "material": 6.0,
+   "center": -0.20173454285731185,
+   "exchange": 0.5999999999999996,
+   "best_exchange_ich": 3,
+   "best_exchange_gegner": 5
+  },
+  {
+   "fen": "r1b1r3/p1kp2pp/6p1/Pp2pPN1/1p4P1/1n1P3B/2q2P1K/5R2 b - - 2 33",
+   "potential": 0.4883956290435893,
+   "material": 17.0,
+   "center": 0.3788048724977643,
+   "exchange": 0.39999999999999997,
+   "best_exchange_ich": 1,
+   "best_exchange_gegner": 1
+  },
+  {
+   "fen": "5bnr/1p1k2q1/r1bB4/p1p4p/P1P1p1N1/3P2p1/RP3P1P/1N2KB1R w - - 4 25",
+   "potential": -0.32808811858235537,
+   "material": -6.0,
+   "center": -0.08855017574608931,
+   "exchange": -0.19999999999999996,
+   "best_exchange_ich": 1,
+   "best_exchange_gegner": 3
+  },
+  {
+   "fen": "rnbqkbnr/2pp1pp1/1p2p2p/p5N1/P7/5P2/RPPPP1PP/1NBQKB1R b Kkq - 1 5",
+   "potential": 0.12831531190096712,
+   "material": 0.0,
+   "center": -1.5010925863034874e-05,
+   "exchange": 2.0999999999999996,
+   "best_exchange_ich": 3,
+   "best_exchange_gegner": 0
+  },
+  {
+   "fen": "r1b3n1/p3kB2/1qrpn3/1pp1P3/4Q2p/PP5N/2PP1RPP/2R1K3 b - - 5 35",
+   "potential": 0.12387058132960883,
+   "material": 1.0,
+   "center": -0.17596135046106884,
+   "exchange": 1.1999999999999997,
+   "best_exchange_ich": 3,
+   "best_exchange_gegner": 3
+  },
+  {
+   "fen": "rn2b1k1/p6p/3PPr1b/6p1/2P2P2/3NP1P1/q2B3P/RN2R1K1 w - - 3 27",
+   "potential": 0.02108567403394944,
+   "material": -5.0,
+   "center": 0.5375709941634024,
+   "exchange": 4.8,
+   "best_exchange_ich": 9,
+   "best_exchange_gegner": 5
+  },
+  {
+   "fen": "1n1qkbnr/rppbpp1p/3p4/p4Pp1/P2P4/4P3/RPP3PP/1NBQKBNR b Kk - 0 6",
+   "potential": 0.029615734717970486,
+   "material": 0.0,
+   "center": -0.2255929264711251,
+   "exchange": 0.7,
+   "best_exchange_ich": 1,
+   "best_exchange_gegner": 0
+  },
+  {
+   "fen": "1rbqkn2/1pr5/1B2pb2/7p/p1pP2p1/1nK1P2N/P4P1Q/1N2RB1R b - - 13 31",
+   "potential": 0.12045919769640795,
+   "material": 2.0,
+   "center": 0.06599095335071521,
+   "exchange": -0.10000000000000009,
+   "best_exchange_ich": 2,
+   "best_exchange_gegner": 5
+  },
+  {
+   "fen": "r1bk1b1r/p3n1qp/n3p3/1Ppp1PP1/1P6/2N4P/R3P2Q/2K1BBNR b - - 0 28",
+   "potential": -0.055273606597503785,
+   "material": -1.0,
+   "center": 0.3119930786181402,
+   "exchange": -0.19999999999999996,
+   "best_exchange_ich": 1,
+   "best_exchange_gegner": 3
+  },
+  {
+   "fen": "4B3/4p3/5p1n/2r2kp1/1p4p1/p2b4/1PP2b2/2K1B1r1 b - - 9 44",
+   "potential": 0.49197457954781737,
+   "material": 17.0,
+   "center": 1.0683336842469555,
+   "exchange": 1.1999999999999997,
+   "best_exchange_ich": 3,
+   "best_exchange_gegner": 3
+  },
+  {
+   "fen": "3N2k1/8/8/2P4p/3b1PBp/4P2P/8/3RK2R w - - 4 76",
+   "potential": 0.48532043580490114,
+   "material": 15.0,
+   "center": 0.3260422721723951,
+   "exchange": 1.4999999999999996,
+   "best_exchange_ich": 3,
+   "best_exchange_gegner": 2
+  },
+  {
+   "fen": "1r1R2nr/2k5/p5p1/P3pp1p/1B2p1Pq/3N1P2/1K2B3/6NR w - - 5 47",
+   "potential": 0.13453503023126398,
+   "material": -3.0,
+   "center": 0.40688824868041124,
+   "exchange": 4.8,
+   "best_exchange_ich": 9,
+   "best_exchange_gegner": 5
+  },
+  {
+   "fen": "2bk3r/7p/Qpp2p1n/8/P1Pp2PP/NB1P4/1B2N3/2K5 b - - 4 38",
+   "potential": -0.2412802208866724,
+   "material": -10.0,
+   "center": -0.2105327103489058,
+   "exchange": 6.0,
+   "best_exchange_ich": 9,
+   "best_exchange_gegner": 1
+  },
+  {
+   "fen": "rnbk4/5nrp/pp2p2b/qP1pP1P1/3K2p1/PRB4P/3n2B1/R1Q5 w - - 0 29",
+   "potential": -0.35099538552958304,
+   "material": -10.0,
+   "center": 0.33028227566709173,
+   "exchange": 2.6999999999999993,
+   "best_exchange_ich": 6,
+   "best_exchange_gegner": 5
+  },
+  {
+   "fen": "r3kb1r/pB1nP3/bNp2p1p/5K2/Pp5P/2P1P1PN/1PP2Q2/R1B4R w q - 3 26",
+   "potential": 0.4890298046873971,
+   "material": 15.0,
+   "center": 0.4061695559088133,
+   "exchange": 2.6,
+   "best_exchange_ich": 5,
+   "best_exchange_gegner": 3
+  },
+  {
+   "fen": "1r6/2P1k1q1/1pQ1P3/PP1p1nb1/5P2/8/1R3p1N/2B4K w - - 1 65",
+   "potential": 0.2755795874324991,
+   "material": 2.0,
+   "center": -0.2396421200253802,
+   "exchange": 3.2,
+   "best_exchange_ich": 5,
+   "best_exchange_gegner": 1
+  },
+  {
+   "fen": "2n5/5n2/p4q1p/P2k2r1/4p3/7p/4K3/3N4 b - - 1 72",
+   "potential": 0.4948196043980887,
+   "material": 20.0,
+   "center": 1.0307199769131445,
+   "exchange": 0.0,
+   "best_exchange_ich": 0,
+   "best_exchange_gegner": 0
+  },
+  {
+   "fen": "6k1/5R2/r6p/p6P/r1p3N1/6pP/5n2/bR4K1 b - - 3 56",
+   "potential": 0.3801833378270845,
+   "material": 5.0,
+   "center": 0.3766698598245529,
+   "exchange": 2.6,
+   "best_exchange_ich": 5,
+   "best_exchange_gegner": 3
+  },
+  {
+   "fen": "4k1nQ/7n/8/p4p1P/P4P2/4P1P1/R1P5/1KR5 b - - 2 43",
+   "potential": -0.4897128312233235,
+   "material": -17.0,
+   "center": -0.36606985108781176,
+   "exchange": -0.8999999999999999,
+   "best_exchange_ich": 0,
+   "best_exchange_gegner": 3
+  },
+  {
+   "fen": "3r2nr/1pp4p/1N6/2bppp1k/3P2b1/1P3P2/P1P1P1PP/R1BQKB1R w KQ - 1 16",
+   "potential": 0.45345983561905046,
+   "material": 11.0,
+   "center": -0.1208735554234327,
+   "exchange": 1.1999999999999997,
+   "best_exchange_ich": 3,
+   "best_exchange_gegner": 3
+  },
+  {
+   "fen": "8/1rn1Rbk1/1P2pr2/6p1/4pP2/K7/P4R1b/8 b - - 9 67",
+   "potential": 0.40601080244640814,
+   "material": 9.0,
+   "center": 0.26348549271333055,
+   "exchange": -0.19999999999999996,
+   "best_exchange_ich": 1,
+   "best_exchange_gegner": 3
+  },
+  {
+   "fen": "1rbqkb1r/2p1p1pp/p1Pp4/1Q3n2/4P1p1/p1P2NP1/RP3PBP/1N3K1R b - - 1 15",
+   "potential": 0.28605521241900034,
+   "material": 1.0,
+   "center": -0.5947637800225236,
+   "exchange": 4.8,
+   "best_exchange_ich": 9,
+   "best_exchange_gegner": 5
+  },
+  {
+   "fen": "1n1k1b1r/rbqpp1pp/B1p2pQn/p6P/1p2P3/PPP5/3P1PP1/RNBK2NR w - - 6 13",
+   "potential": -0.09750082290281879,
+   "material": 0.0,
+   "center": 0.11974956531818592,
+   "exchange": -1.7,
+   "best_exchange_ich": 1,
+   "best_exchange_gegner": 8
+  },
+  {
+   "fen": "2b1r3/2pp3q/Rpn1k2p/N5P1/2P1P1n1/r5bp/P7/2B1KB2 w - - 1 28",
+   "potential": -0.48568841136299723,
+   "material": -18.0,
+   "center": -0.6290827542953945,
+   "exchange": 2.0,
+   "best_exchange_ich": 5,
+   "best_exchange_gegner": 5
+  },
+  {
+   "fen": "r1q3r1/2p3P1/7k/2nn1p2/2R1pP1p/2N1P1RP/3PK3/6N1 w - - 1 41",
+   "potential": -0.34853565427824384,
+   "material": -8.0,
+   "center": 0.5073526053075442,
+   "exchange": 0.5999999999999996,
+   "best_exchange_ich": 3,
+   "best_exchange_gegner": 5
+  },
+  {
+   "fen": "1rbk1b1q/3p4/6p1/PPB1p2N/4P2p/PRP2r2/2K5/3B1R2 w - - 3 46",
+   "potential": -0.17510770357023941,
+   "material": -5.0,
+   "center": 0.07448597126597131,
+   "exchange": 2.0,
+   "best_exchange_ich": 5,
+   "best_exchange_gegner": 5
+  },
+  {
+   "fen": "8/k1p5/PrP3p1/1p1pbpB1/6n1/7r/KPN5/8 b - - 4 65",
+   "potential": 0.465629077055579,
+   "material": 12.0,
+   "center": 0.6422753542852316,
+   "exchange": 0.7,
+   "best_exchange_ich": 1,
+   "best_exchange_gegner": 0
+  },
+  {
+   "fen": "1b4R1/p5R1/5k2/P2p1p2/8/2pNP3/3B2K1/2Q5 w - - 2 77",
+   "potential": 0.49397462774019,
+   "material": 20.0,
+   "center": -0.17707032964045252,
+   "exchange": 0.5999999999999996,
+   "best_exchange_ich": 3,
+   "best_exchange_gegner": 5
+  },
+  {
+   "fen": "r7/pbp2kr1/3p4/Pp1Npppp/3P4/6R1/2QKB1PP/2B3NR b - - 2 27",
+   "potential": -0.4536381933298731,
+   "material": -14.0,
+   "center": 0.10476656369773982,
+   "exchange": 1.7999999999999996,
+   "best_exchange_ich": 3,
+   "best_exchange_gegner": 1
+  },
+  {
+   "fen": "2k2bb1/4p3/p7/1P1p3R/4p3/1Pp4N/1B2K3/R4r2 w - - 1 60",
+   "potential": 0.25748370183899394,
+   "material": 2.0,
+   "center": -0.04426758241011313,
+   "exchange": 2.6,
+   "best_exchange_ich": 5,
+   "best_exchange_gegner": 3
+  },
+  {
+   "fen": "7r/2kn4/8/Pp1q2p1/4N1PP/3B4/8/RN3K2 w - - 3 61",
+   "potential": -0.16561870487346028,
+   "material": -2.0,
+   "center": -0.5537401894650055,
+   "exchange": -0.19999999999999996,
+   "best_exchange_ich": 1,
+   "best_exchange_gegner": 3
+  },
+  {
+   "fen": "r2qk1r1/1bpp1p1p/n5P1/pp1PN1b1/P1P3P1/5N1B/1P1PKP1R/R1B2Q2 b q - 1 19",
+   "potential": -0.2748814447198314,
+   "material": -5.0,
+   "center": -0.34433146922134666,
+   "exchange": 0.39999999999999997,
+   "best_exchange_ich": 1,
+   "best_exchange_gegner": 1
+  },
+  {
+   "fen": "rnbqkb1r/1pppppnp/p7/6p1/4P1PP/2P5/PPQP1P2/RNBK1BNR w kq - 0 7",
+   "potential": 0.07324106752872864,
+   "material": 0.0,
+   "center": 0.48034818645255484,
+   "exchange": 0.7,
+   "best_exchange_ich": 1,
+   "best_exchange_gegner": 0
+  },
+  {
+   "fen": "2B2b2/1r2k2r/b4p1p/1q1pP1P1/p1p5/pPP1P3/4N2P/RNB1KR2 b Q - 1 25",
+   "potential": 0.1894273706773152,
+   "material": 3.0,
+   "center": 0.08977428233521337,
+   "exchange": 0.09999999999999998,
+   "best_exchange_ich": 1,
+   "best_exchange_gegner": 2
+  },
+  {
+   "fen": "3r3N/2n3k1/P7/1p3r1p/3p1p1P/P5P1/5N2/1q1RK3 b - - 0 73",
+   "potential": 0.4403822453111946,
+   "material": 11.0,
+   "center": 0.6333320375321714,
+   "exchange": -0.6000000000000001,
+   "best_exchange_ich": 3,
+   "best_exchange_gegner": 9
+  },
+  {
+   "fen": "r1bq1r2/2Nk1pb1/ppn1p1p1/P1p4p/2Ppn2P/1P1P3R/1Q4B1/R1B2K2 b - - 1 31",
+   "potential": 0.34432395451398623,
+   "material": 6.0,
+   "center": 0.1630361470120606,
+   "exchange": 0.5999999999999996,
+   "best_exchange_ich": 3,
+   "best_exchange_gegner": 5
+  },
+  {
+   "fen": "r3k1n1/2qbp1b1/nppp1pp1/p7/P3PP2/NPPP4/1R2N2r/2B1KB1R w Kq - 3 15",
+   "potential": -0.3773814002334012,
+   "material": -10.0,
+   "center": 0.12854773280977994,
+   "exchange": 2.0,
+   "best_exchange_ich": 5,
+   "best_exchange_gegner": 5
+  },
+  {
+   "fen": "rnb2bnr/pp1pp1p1/4k3/2p1p2p/Pq6/2NP3P/1PP1BPP1/R1BQK1NR b KQ - 0 9",
+   "potential": 0.0661472173629943,
+   "material": 1.0,
+   "center": 0.3645955187561799,
+   "exchange": -0.3,
+   "best_exchange_ich": 0,
+   "best_exchange_gegner": 1
+  },
+  {
+   "fen": "b6r/Bk1Bn3/p2p1p1r/6p1/1PP4p/1p3p1P/RN6/1R3K2 b - - 7 65",
+   "potential": 0.2553684232235198,
+   "material": 1.0,
+   "center": 0.00980919005955843,
+   "exchange": 3.5,
+   "best_exchange_ich": 5,
+   "best_exchange_gegner": 0
+  },
+  {
+   "fen": "2r5/r1p3k1/1p6/p4P2/P6p/1P1B2b1/8/5K2 w - - 1 58",
+   "potential": -0.44033858985482904,
+   "material": -11.0,
+   "center": -0.030218388855858168,
+   "exchange": 0.0,
+   "best_exchange_ich": 0,
+   "best_exchange_gegner": 0
+  },
+  {
+   "fen": "1n3k2/5p1b/r1p4r/pp6/1PP5/P2PK1NR/4P3/3Rb1N1 b - - 0 36",
+   "potential": 0.05340726743412239,
+   "material": 2.0,
+   "center": -0.34221146747399833,
+   "exchange": -0.8,
+   "best_exchange_ich": 1,
+   "best_exchange_gegner": 5
+  },
+  {
+   "fen": "r1b1B1kb/1p1p3r/2n3qp/N4p2/8/4B1p1/8/1K2n3 w - - 3 50",
+   "potential": -0.49623858041226027,
+   "material": -27.0,
+   "center": -0.7167613255512029,
+   "exchange": 5.4,
+   "best_exchange_ich": 9,
+   "best_exchange_gegner": 3
+  },
+  {
+   "fen": "2n5/4rk2/2Q4p/p3P3/P1N5/3q1P2/R3N1B1/4K3 w - - 5 69",
+   "potential": 0.41176968253430757,
+   "material": 7.0,
+   "center": 0.2417471108468654,
+   "exchange": 2.0999999999999996,
+   "best_exchange_ich": 3,
+   "best_exchange_gegner": 0
+  },
+  {
+   "fen": "1r6/n1p1k3/pN1p1p1b/1N1P1b2/1P5p/3P1PP1/P5R1/1R1K4 w - - 1 43",
+   "potential": 0.24816190174609334,
+   "material": 3.0,
+   "center": 0.15533194777398737,
+   "exchange": 1.1999999999999997,
+   "best_exchange_ich": 3,
+   "best_exchange_gegner": 3
+  },
+  {
+   "fen": "2rBbbr1/8/3N2k1/1qnP3p/P1pP2pP/R2R4/4p3/4K1N1 b - - 5 50",
+   "potential": 0.41544504252863673,
+   "material": 9.0,
+   "center": -0.27196549970272343,
+   "exchange": 0.8000000000000003,
+   "best_exchange_ich": 5,
+   "best_exchange_gegner": 9
+  },
+  {
+   "fen": "r1bqkbnr/ppp1p1pp/3p4/3n1p2/P3PP2/2N5/1PPPNKPP/R1BQ1B1R b kq - 2 6",
+   "potential": -0.0764331727364799,
+   "material": 0.0,
+   "center": -0.3325924594534956,
+   "exchange": -0.8999999999999999,
+   "best_exchange_ich": 0,
+   "best_exchange_gegner": 3
+  },
+  {
+   "fen": "1rb1kr2/Np2ppbp/p1p3p1/1Q1p2Nn/3qPP1P/2P3P1/7R/R3KB2 w Q - 1 24",
+   "potential": -0.03197208151041585,
+   "material": -3.0,
+   "center": -0.4122522422803544,
+   "exchange": 2.9,
+   "best_exchange_ich": 8,
+   "best_exchange_gegner": 9
+  },
+  {
+   "fen": "rn3bnr/p1p1pbp1/2k5/1q5p/1PpQ3B/N6N/P1PP1PPP/R4K1R w - - 6 19",
+   "potential": 0.1134919768357838,
+   "material": -2.0,
+   "center": -0.05194175979646025,
+   "exchange": 3.8999999999999995,
+   "best_exchange_ich": 6,
+   "best_exchange_gegner": 1
+  },
+  {
+   "fen": "1nb4q/5k1r/3B3P/3Ppp2/p1P5/P1QP3P/R3K2b/R7 w - - 0 42",
+   "potential": 0.23013893457008452,
+   "material": 2.0,
+   "center": 0.18131033313514902,
+   "exchange": 1.7999999999999996,
+   "best_exchange_ich": 3,
+   "best_exchange_gegner": 1
+  },
+  {
+   "fen": "rnbqkbnr/pp1p1ppp/2p5/4p3/8/2N3P1/PPPPPP1P/R1BQKBNR w KQkq - 0 3",
+   "potential": -0.0015424466159604047,
+   "material": 0.0,
+   "center": -0.024679224142722354,
+   "exchange": 0.0,
+   "best_exchange_ich": 0,
+   "best_exchange_gegner": 0
+  },
+  {
+   "fen": "8/1rB3p1/5kP1/2p1pB1p/6n1/N3p3/K6R/3RN3 b - - 5 53",
+   "potential": -0.346131449048598,
+   "material": -10.0,
+   "center": -0.01830420797481453,
+   "exchange": 3.2,
+   "best_exchange_ich": 5,
+   "best_exchange_gegner": 1
+  },
+  {
+   "fen": "5r2/1b3k1p/3p4/6K1/2p3Pp/p7/4qN2/8 w - - 9 75",
+   "potential": -0.4911825475698772,
+   "material": -18.0,
+   "center": -0.688662938442693,
+   "exchange": -0.19999999999999996,
+   "best_exchange_ich": 1,
+   "best_exchange_gegner": 3
+  },
+  {
+   "fen": "1k1q2n1/r2b3r/3B2pp/7P/5P2/4BKP1/4R3/b1n5 b - - 5 59",
+   "potential": 0.49136559241828043,
+   "material": 19.0,
+   "center": -0.2266868947246459,
+   "exchange": 0.5,
+   "best_exchange_ich": 2,
+   "best_exchange_gegner": 3
+  },
+  {
+   "fen": "1r6/1Qn1n3/1p1k1r1b/p1qp3p/P2B1pB1/R5PP/1P1KN3/R1N5 b - - 10 41",
+   "potential": 0.17449272480764358,
+   "material": -2.0,
+   "center": 0.41430430926800965,
+   "exchange": 4.5,
+   "best_exchange_ich": 9,
+   "best_exchange_gegner": 6
+  },
+  {
+   "fen": "r1bq1b1r/p1p2pp1/n1kpp2p/1p1n4/P1PP4/1P2P1PP/2Q2P1R/RNB1KBN1 b Q - 0 10",
+   "potential": -0.048212941543922916,
+   "material": 0.0,
+   "center": -0.17381132686199438,
+   "exchange": -0.6,
+   "best_exchange_ich": 0,
+   "best_exchange_gegner": 2
+  },
+  {
+   "fen": "1N2r3/8/b6p/1k2p2P/4P3/1p2bpp1/8/3R3K w - - 6 76",
+   "potential": -0.3531834434258644,
+   "material": -6.0,
+   "center": -0.1391627524723842,
+   "exchange": -0.8999999999999999,
+   "best_exchange_ich": 0,
+   "best_exchange_gegner": 3
+  },
+  {
+   "fen": "r3kb1r/pp2q1p1/1P4b1/7p/n1P3P1/BQ1PpP1R/4K2n/R4BN1 w q - 5 29",
+   "potential": 0.05501577413766094,
+   "material": -3.0,
+   "center": -0.016169195301603205,
+   "exchange": 3.8999999999999995,
+   "best_exchange_ich": 6,
+   "best_exchange_gegner": 1
+  },
+  {
+   "fen": "k2rr3/6b1/2P2p1p/1P1p3P/8/2n1B3/pR1K1P2/1R6 b - - 1 49",
+   "potential": 0.3203086509639034,
+   "material": 3.0,
+   "center": 0.47376008626348776,
+   "exchange": 2.6,
+   "best_exchange_ich": 5,
+   "best_exchange_gegner": 3
+  },
+  {
+   "fen": "rn6/N3b3/pp1pr1N1/P3k1p1/1p4P1/4PP2/Q1P3K1/1RBn4 b - - 3 44",
+   "potential": -0.13726099504467415,
+   "material": -4.0,
+   "center": 0.24601713619328802,
+   "exchange": 1.7999999999999996,
+   "best_exchange_ich": 3,
+   "best_exchange_gegner": 1
+  },
+  {
+   "fen": "1n4RR/3k4/8/2p5/6N1/2P2P2/4r2B/6NK b - - 8 64",
+   "potential": -0.46811770964797494,
+   "material": -12.0,
+   "center": -0.15321194602663912,
+   "exchange": -1.5,
+   "best_exchange_ich": 0,
+   "best_exchange_gegner": 5
+  },
+  {
+   "fen": "5k1b/2N5/3N1Pp1/3KP2p/3P3P/2p5/8/B1qb1B2 b - - 0 57",
+   "potential": 0.19019013201303456,
+   "material": 2.0,
+   "center": -0.8959666678648668,
+   "exchange": 2.0999999999999996,
+   "best_exchange_ich": 3,
+   "best_exchange_gegner": 0
+  },
+  {
+   "fen": "1nr2r2/3bk1q1/1p6/p1p3Pn/1PP1pPP1/N2p4/P3B3/R1B1KR2 w - - 1 35",
+   "potential": -0.3710690525275905,
+   "material": -8.0,
+   "center": -0.2417771326985915,
+   "exchange": 0.5999999999999996,
+   "best_exchange_ich": 3,
+   "best_exchange_gegner": 5
+  },
+  {
+   "fen": "2r2k2/7P/3n4/pp1p4/P1p1R3/8/1P2B2K/4B1r1 w - - 2 72",
+   "potential": -0.05533094109525861,
+   "material": -3.0,
+   "center": 0.11106436536387426,
+   "exchange": 2.0,
+   "best_exchange_ich": 5,
+   "best_exchange_gegner": 5
+  },
+  {
+   "fen": "8/N6k/3pBn2/8/prP1pPp1/P6p/4K3/7b w - - 0 62",
+   "potential": -0.20858449150884562,
+   "material": -7.0,
+   "center": -0.054076772469671575,
+   "exchange": 3.5,
+   "best_exchange_ich": 5,
+   "best_exchange_gegner": 0
+  },
+  {
+   "fen": "1q3n1r/1r6/2P1p1k1/PQ1PP1Pp/P7/7p/4K3/R5NR b - - 1 55",
+   "potential": -0.06576162406953383,
+   "material": -3.0,
+   "center": -0.058316775964368094,
+   "exchange": 2.0,
+   "best_exchange_ich": 5,
+   "best_exchange_gegner": 5
+  },
+  {
+   "fen": "8/6k1/8/2r4q/7B/8/5R1P/4K3 b - - 7 76",
+   "potential": 0.3708317248441595,
+   "material": 5.0,
+   "center": 0.5333309906687058,
+   "exchange": 2.0999999999999996,
+   "best_exchange_ich": 3,
+   "best_exchange_gegner": 0
+  },
+  {
+   "fen": "1rq5/3pbp1r/p4kp1/2pBp3/P1P1P2p/3PPK2/1P4PP/R4QNR b - - 5 23",
+   "potential": -0.2040180465029314,
+   "material": -4.0,
+   "center": -0.1660220220659071,
+   "exchange": 0.7,
+   "best_exchange_ich": 1,
+   "best_exchange_gegner": 0
+  },
+  {
+   "fen": "r2k4/2p1r1pp/1pPN3n/1P2p2P/p6P/B7/P1P1N1B1/1K3Q1q b - - 1 33",
+   "potential": -0.04554506492973643,
+   "material": 1.0,
+   "center": -0.4307466322942246,
+   "exchange": -1.2999999999999998,
+   "best_exchange_ich": 2,
+   "best_exchange_gegner": 9
+  },
+  {
+   "fen": "r1b2b1r/pp1p3k/8/4P2p/1QP1p2p/3B4/P2P3R/RNB2KN1 w - - 2 26",
+   "potential": 0.44507165428313344,
+   "material": 13.0,
+   "center": 0.3809248742451127,
+   "exchange": -1.9999999999999998,
+   "best_exchange_ich": 1,
+   "best_exchange_gegner": 9
+  },
+  {
+   "fen": "5r2/2qb2b1/n2p3k/p4p2/PpPp3p/1P6/RB2PNBP/1N2K3 b - - 3 38",
+   "potential": 0.3525290467815573,
+   "material": 7.0,
+   "center": 0.01830420797481449,
+   "exchange": 0.0,
+   "best_exchange_ich": 0,
+   "best_exchange_gegner": 0
+  },
+  {
+   "fen": "r1bqk2r/ppppp1bp/5npB/5p2/3n1P2/2NP4/PPPKP1PP/2RQ1BNR b k - 10 9",
+   "potential": 0.06505340945499181,
+   "material": 0.0,
+   "center": -0.15321194602663907,
+   "exchange": 1.1999999999999997,
+   "best_exchange_ich": 3,
+   "best_exchange_gegner": 3
+  },
+  {
+   "fen": "4r2r/2n5/3bk2P/R7/1p4K1/3p3N/3P4/8 w - - 0 78",
+   "potential": -0.39534160610120417,
+   "material": -8.0,
+   "center": -0.2860146932569785,
+   "exchange": -0.3,
+   "best_exchange_ich": 0,
+   "best_exchange_gegner": 1
+  },
+  {
+   "fen": "rn4r1/p1Q3p1/4k2b/Pp6/2Np3p/8/1P3PPP/4K1R1 b - - 3 30",
+   "potential": 0.023971034580802516,
+   "material": -1.0,
+   "center": -0.01616919530160322,
+   "exchange": 1.4,
+   "best_exchange_ich": 2,
+   "best_exchange_gegner": 0
+  },
+  {
+   "fen": "3k2r1/1b2b1N1/r3pp1n/4R3/pP1n2pP/P3PP1B/3K3R/8 b - - 2 40",
+   "potential": 0.3709238611825435,
+   "material": 5.0,
+   "center": 0.03660841594962904,
+   "exchange": 2.6,
+   "best_exchange_ich": 5,
+   "best_exchange_gegner": 3
+  },
+  {
+   "fen": "3Q4/p3Pp2/Prk5/B2n2pp/2p2P2/1Pp3PP/5R2/6KR b - - 0 49",
+   "potential": -0.4701872979404586,
+   "material": -14.0,
+   "center": -0.030218388855858175,
+   "exchange": 0.09999999999999998,
+   "best_exchange_ich": 1,
+   "best_exchange_gegner": 2
+  },
+  {
+   "fen": "7B/3P2nN/1p6/8/1pp2k2/3p1P2/2PK2bR/5B2 w - - 0 53",
+   "potential": 0.3801240622134556,
+   "material": 7.0,
+   "center": -0.22557791554526216,
+   "exchange": 1.1999999999999997,
+   "best_exchange_ich": 3,
+   "best_exchange_gegner": 3
+  },
+  {
+   "fen": "1nb1k3/rp2bp1r/p1p1p1p1/3p2n1/3P1PPp/2P1B2P/1R2P3/1NQK1BNR w - - 4 19",
+   "potential": 0.40575485277183587,
+   "material": 7.0,
+   "center": -0.04852259683067269,
+   "exchange": 2.0999999999999996,
+   "best_exchange_ich": 3,
+   "best_exchange_gegner": 0
+  },
+  {
+   "fen": "3r2k1/rb1Nbppp/n1p1pB2/pp6/P1PP2P1/1P3q2/R3PP1P/3QKBR1 w - - 1 24",
+   "potential": 0.3289328068850079,
+   "material": 1.0,
+   "center": -0.08766929151372817,
+   "exchange": 5.4,
+   "best_exchange_ich": 9,
+   "best_exchange_gegner": 3
+  },
+  {
+   "fen": "1rbk2nr/6b1/2p2q1p/2PpPp1p/pp1P3B/4QNP1/3RP1KR/1N6 b - - 1 38",
+   "potential": -0.04021066134363372,
+   "material": 2.0,
+   "center": -0.2447630077524378,
+   "exchange": -2.4,
+   "best_exchange_ich": 0,
+   "best_exchange_gegner": 8
+  },
+  {
+   "fen": "8/p3rk2/1n5p/2p4P/p4K1P/5p2/3P1P2/1R4N1 w - - 0 58",
+   "potential": -0.034813347988872353,
+   "material": -1.0,
+   "center": -0.2579163061484686,
+   "exchange": 0.7,
+   "best_exchange_ich": 1,
+   "best_exchange_gegner": 0
+  },
+  {
+   "fen": "r1bqkbr1/1p1p1ppp/p1n1pn2/2p5/2P2B2/3PP3/PPQ1BPPP/RN2K1NR w KQq - 2 9",
+   "potential": -0.01470557534757618,
+   "material": 0.0,
+   "center": -0.23535708375309453,
+   "exchange": 0.0,
+   "best_exchange_ich": 0,
+   "best_exchange_gegner": 0
+  },
+  {
+   "fen": "2Q5/1B2k3/3r2P1/2N2p1p/bp2Pb1P/4P2R/Pp6/2R4K b - - 5 76",
+   "potential": -0.45931799596313905,
+   "material": -15.0,
+   "center": -0.24174711084686545,
+   "exchange": 2.6,
+   "best_exchange_ich": 5,
+   "best_exchange_gegner": 3
+  },
+  {
+   "fen": "2b1k1r1/r1p5/7b/p3p2p/P4PP1/1nK2B1N/3q3P/6Rn w - - 0 36",
+   "potential": -0.47319592489617024,
+   "material": -20.0,
+   "center": -0.06812596602392651,
+   "exchange": 6.0,
+   "best_exchange_ich": 9,
+   "best_exchange_gegner": 1
+  },
+  {
+   "fen": "r1r2b2/1bNn2p1/Pp3k2/3pp2p/1Pp1pPPP/R1Kn4/3B4/1N3B1R b - - 2 30",
+   "potential": 0.21643337489825903,
+   "material": 2.0,
+   "center": 0.5073526053075442,
+   "exchange": 1.1999999999999997,
+   "best_exchange_ich": 3,
+   "best_exchange_gegner": 3
+  },
+  {
+   "fen": "rnb1k1r1/1p1p1N1p/p2n2p1/1BqP4/Q2bp1P1/7P/PBP2P2/2R2K1R w - - 3 29",
+   "potential": -0.12926344174933876,
+   "material": -3.0,
+   "center": -0.31623308211283674,
+   "exchange": 1.1999999999999997,
+   "best_exchange_ich": 3,
+   "best_exchange_gegner": 3
+  },
+  {
+   "fen": "rn1q1br1/1bpk1ppp/7n/p3p3/1QP2PPP/8/PB1PP3/RN3KNR b - - 1 15",
+   "potential": 0.36326750147545284,
+   "material": 2.0,
+   "center": -0.029207366287893617,
+   "exchange": 5.4,
+   "best_exchange_ich": 9,
+   "best_exchange_gegner": 3
+  },
+  {
+   "fen": "1rbqkbnr/1ppppppp/p3B1Q1/4P3/n7/2PP3N/1P3PPP/RNB1K2R b KQk - 3 10",
+   "potential": 0.308991960439129,
+   "material": 1.0,
+   "center": -0.6261061589836284,
+   "exchange": 5.4,
+   "best_exchange_ich": 9,
+   "best_exchange_gegner": 3
+  },
+  {
+   "fen": "2b3nr/1rk5/1Npq1p1p/4pP1P/6P1/3p1N1K/8/5R1B b - - 3 53",
+   "potential": 0.4807272884735571,
+   "material": 13.0,
+   "center": 0.6184169706714181,
+   "exchange": 2.0999999999999996,
+   "best_exchange_ich": 3,
+   "best_exchange_gegner": 0
+  },
+  {
+   "fen": "1nbqkb1r/rp1p1ppp/7n/p1Q1p3/8/2P1NP2/PP1PP1PP/R1B1KBNR b KQk - 0 8",
+   "potential": 0.18475408525125867,
+   "material": -1.0,
+   "center": -0.6971729672838124,
+   "exchange": 4.8,
+   "best_exchange_ich": 9,
+   "best_exchange_gegner": 5
+  },
+  {
+   "fen": "2b3n1/2p1bp1r/1p1k4/3p2pp/rpq3P1/BP1P1P1P/4P1B1/R2QK1NR w - - 7 27",
+   "potential": 0.21438221168542174,
+   "material": -1.0,
+   "center": -0.7329455317786692,
+   "exchange": 5.4,
+   "best_exchange_ich": 9,
+   "best_exchange_gegner": 3
+  },
+  {
+   "fen": "rnbk1b1r/2qpp3/5p1n/pp1B3p/6P1/PP1p3P/2PNPP2/R1BQK2R w KQ - 1 16",
+   "potential": 0.008987671595527146,
+   "material": -3.0,
+   "center": -0.056181763291156775,
+   "exchange": 3.2,
+   "best_exchange_ich": 5,
+   "best_exchange_gegner": 1
+  },
+  {
+   "fen": "7k/2Q1p3/1Pr4P/P1BP1pRB/5K2/2P5/8/8 b - - 0 63",
+   "potential": -0.48686003203562406,
+   "material": -18.0,
+   "center": -0.5754785713314706,
+   "exchange": 1.2999999999999998,
+   "best_exchange_ich": 4,
+   "best_exchange_gegner": 5
+  },
+  {
+   "fen": "r1bqkbnr/ppppppp1/2n5/8/3N1P2/3P2P1/PPP1PK2/RNBQ1B1R b q - 0 7",
+   "potential": 0.11437392518270029,
+   "material": 0.0,
+   "center": -0.13705776165089895,
+   "exchange": 2.0,
+   "best_exchange_ich": 5,
+   "best_exchange_gegner": 5
+  },
+  {
+   "fen": "1n1qkbr1/7n/rpp2pN1/p2P2Pp/5P2/P2P4/RPP4P/2BbK2R b K - 0 22",
+   "potential": 0.463321328758718,
+   "material": 12.0,
+   "center": -0.12723356066547747,
+   "exchange": 1.1999999999999997,
+   "best_exchange_ich": 3,
+   "best_exchange_gegner": 3
+  },
+  {
+   "fen": "1b2k3/4n3/QQ6/3p2p1/PB2B1P1/8/8/R1K2R2 w - - 6 58",
+   "potential": 0.4993515164867658,
+   "material": 28.0,
+   "center": 0.1609011343388493,
+   "exchange": 1.1999999999999997,
+   "best_exchange_ich": 3,
+   "best_exchange_gegner": 3
+  },
+  {
+   "fen": "3k4/4b3/Q5r1/3R1p2/pp3PP1/P2PP3/1p2KNP1/5R2 b - - 2 52",
+   "potential": -0.45559790299751335,
+   "material": -16.0,
+   "center": -0.7762020916208178,
+   "exchange": 4.8,
+   "best_exchange_ich": 9,
+   "best_exchange_gegner": 5
+  },
+  {
+   "fen": "5k1r/8/P2pPP2/N2P2RP/p2K4/P7/2R3b1/8 w - - 3 77",
+   "potential": 0.44863624019762505,
+   "material": 9.0,
+   "center": 0.5643702200534729,
+   "exchange": 2.0999999999999996,
+   "best_exchange_ich": 3,
+   "best_exchange_gegner": 0
+  },
+  {
+   "fen": "1rk5/8/P1PpP3/1b1r4/2np4/8/KR6/R3B3 b - - 0 63",
+   "potential": 0.23190134670986734,
+   "material": 2.0,
+   "center": 0.6171628422305682,
+   "exchange": 1.4,
+   "best_exchange_ich": 2,
+   "best_exchange_gegner": 0
+  },
+  {
+   "fen": "r1bqkb1r/p2nppp1/1p3n1p/2pp4/1P2PP1P/P7/2PPK1P1/RNBQ1BNR b kq - 0 7",
+   "potential": 0.06403899033128113,
+   "material": 0.0,
+   "center": 0.3302822756670917,
+   "exchange": 0.7,
+   "best_exchange_ich": 1,
+   "best_exchange_gegner": 0
+  },
+  {
+   "fen": "2b1kb1r/p1p2p1n/n5p1/2PBp3/P6P/5P2/3P1KP1/RrB1Q1R1 w - - 0 23",
+   "potential": 0.3256672698674003,
+   "material": 4.0,
+   "center": 0.22090462413862463,
+   "exchange": 2.0,
+   "best_exchange_ich": 5,
+   "best_exchange_gegner": 5
+  },
+  {
+   "fen": "r1r3n1/2p1b1pp/p2P2k1/P5B1/4bpPP/1p2P2R/R1Q1KPB1/1N6 b - - 1 30",
+   "potential": -0.22938680472344386,
+   "material": -9.0,
+   "center": -0.3660548401619488,
+   "exchange": 5.4,
+   "best_exchange_ich": 9,
+   "best_exchange_gegner": 3
+  },
+  {
+   "fen": "1n5k/8/3p4/r2P3p/3NPp1P/1pp4K/8/1R6 w - - 4 73",
+   "potential": -0.0851986164881804,
+   "material": -2.0,
+   "center": -0.07660597301331956,
+   "exchange": 0.7,
+   "best_exchange_ich": 1,
+   "best_exchange_gegner": 0
+  },
+  {
+   "fen": "3rr2k/7q/n3b3/P3bpp1/1P2BQ2/1N5p/2R1PP1P/6KR w - - 1 51",
+   "potential": -0.10399283684580832,
+   "material": -1.0,
+   "center": -0.08852015389436321,
+   "exchange": -0.6000000000000001,
+   "best_exchange_ich": 3,
+   "best_exchange_gegner": 9
+  },
+  {
+   "fen": "rn3bnr/2k2qp1/3p1pbp/p1p5/PPp1p1P1/Q2PPP1P/R5N1/1NBK1BR1 w - - 4 21",
+   "potential": -0.05515153737432919,
+   "material": -1.0,
+   "center": -0.28602970418284157,
+   "exchange": 0.39999999999999997,
+   "best_exchange_ich": 1,
+   "best_exchange_gegner": 1
+  },
+  {
+   "fen": "2N1k3/8/3B4/2Pp4/5b2/1r6/2K2p2/3R2n1 b - - 6 80",
+   "potential": -0.04073525996794517,
+   "material": 1.0,
+   "center": -0.15321194602663912,
+   "exchange": -1.5,
+   "best_exchange_ich": 0,
+   "best_exchange_gegner": 5
+  },
+  {
+   "fen": "2b5/1pQr1np1/n3pk1p/r2P1p2/P1B5/1P3N1P/R1PP2P1/b1B1K1R1 b - - 10 25",
+   "potential": -0.16468185485627335,
+   "material": -8.0,
+   "center": 0.4630850228974311,
+   "exchange": 4.8,
+   "best_exchange_ich": 9,
+   "best_exchange_gegner": 5
+  },
+  {
+   "fen": "4k1q1/4n2r/1pr2P2/2P3Pp/2bP3P/P5KN/PB3R2/5R2 w - - 1 44",
+   "potential": -0.18764869819373248,
+   "material": -4.0,
+   "center": 0.043401709103615044,
+   "exchange": 0.7999999999999999,
+   "best_exchange_ich": 2,
+   "best_exchange_gegner": 2
+  },
+  {
+   "fen": "4qb1r/2pkpb1p/3p1p1n/p2P2p1/5PP1/P3P2B/Rrn4P/1NBK2NR w - - 1 23",
+   "potential": -0.39043881374252315,
+   "material": -10.0,
+   "center": -0.38092487424511257,
+   "exchange": 2.0,
+   "best_exchange_ich": 5,
+   "best_exchange_gegner": 5
+  },
+  {
+   "fen": "1nbqkb1r/r1pppp1p/7n/pp4p1/P1N5/6PN/1PPPPP1P/R1BQKB1R w KQk - 0 8",
+   "potential": -0.0038013165463327884,
+   "material": 0.0,
+   "center": 0.13917776339824722,
+   "exchange": -0.19999999999999996,
+   "best_exchange_ich": 1,
+   "best_exchange_gegner": 3
+  },
+  {
+   "fen": "1Q6/6NP/6p1/3p2P1/7k/8/1p1P4/5q1K w - - 5 75",
+   "potential": 0.18384262557028402,
+   "material": 3.0,
+   "center": -0.014049193554254963,
+   "exchange": 0.39999999999999997,
+   "best_exchange_ich": 1,
+   "best_exchange_gegner": 1
+  },
+  {
+   "fen": "n1qr4/1r4kp/2Npp3/2pP1pb1/1pp1P1b1/BB5P/P2N1KP1/RR6 b - - 0 40",
+   "potential": 0.4175307568037403,
+   "material": 8.0,
+   "center": 0.1370427507250359,
+   "exchange": 1.4999999999999996,
+   "best_exchange_ich": 3,
+   "best_exchange_gegner": 2
+  },
+  {
+   "fen": "1rbqk1nr/pppnbp1p/6p1/3pp3/8/4PP1P/PPPP1KP1/RNBQ1BNR w k - 4 7",
+   "potential": -0.012004913297859552,
+   "material": 0.0,
+   "center": -0.19211553483680902,
+   "exchange": 0.0,
+   "best_exchange_ich": 0,
+   "best_exchange_gegner": 0
+  },
+  {
+   "fen": "2kB1r2/1b6/2p2P2/bp4r1/1p1p3R/3K2p1/6R1/2r5 w - - 2 65",
+   "potential": -0.4383814629633467,
+   "material": -12.0,
+   "center": -0.09277516831492277,
+   "exchange": 1.1999999999999997,
+   "best_exchange_ich": 3,
+   "best_exchange_gegner": 3
+  },
+  {
+   "fen": "4k1n1/2r1ppb1/1p4pr/1p1P2N1/p1p3b1/P2QB3/3KP2q/R4B1R w - - 5 38",
+   "potential": -0.19774542232573258,
+   "material": -4.0,
+   "center": 0.2536612917279091,
+   "exchange": 0.3999999999999999,
+   "best_exchange_ich": 4,
+   "best_exchange_gegner": 8
+  },
+  {
+   "fen": "1k2q3/4Bn2/8/1P6/p1P1P2r/P1P3pB/6R1/4RK2 b - - 4 55",
+   "potential": -0.10803625581099151,
+   "material": -2.0,
+   "center": -0.3562606610282534,
+   "exchange": 0.5999999999999996,
+   "best_exchange_ich": 3,
+   "best_exchange_gegner": 5
+  },
+  {
+   "fen": "8/2b2r1k/r7/pP1N1p1p/2p2B1P/R7/8/4K2R b - - 2 57",
+   "potential": -0.14285119691084022,
+   "material": -1.0,
+   "center": 0.14895693160607956,
+   "exchange": -1.5,
+   "best_exchange_ich": 0,
+   "best_exchange_gegner": 5
+  },
+  {
+   "fen": "4k3/5r2/5P2/2B5/P1P2r1R/1P5R/8/4b1K1 w - - 8 77",
+   "potential": 0.3198171552371583,
+   "material": 4.0,
+   "center": 0.06043677771171636,
+   "exchange": 2.0,
+   "best_exchange_ich": 5,
+   "best_exchange_gegner": 5
+  },
+  {
+   "fen": "4k3/3r4/2Qp3p/P5p1/3N2P1/2P4P/4r3/5K1R b - - 0 55",
+   "potential": -0.4187064434364031,
+   "material": -8.0,
+   "center": -0.19959953018410054,
+   "exchange": -1.5,
+   "best_exchange_ich": 0,
+   "best_exchange_gegner": 5
+  },
+  {
+   "fen": "r1bqkr2/p1p1b1p1/2npp2n/1pN2pPp/2B1PP2/5Q2/PPPP1N1P/R1B2K1R b - - 1 20",
+   "potential": 0.08807862954273073,
+   "material": 0.0,
+   "center": -0.07588728024172159,
+   "exchange": 1.4999999999999996,
+   "best_exchange_ich": 3,
+   "best_exchange_gegner": 2
+  },
+  {
+   "fen": "1nbq3r/2p2pp1/P1k1pr2/1p6/1B2pP1p/3P2PP/P1PKBn2/RNNQ3R b - - 1 19",
+   "potential": 0.0953915231711116,
+   "material": -3.0,
+   "center": 0.3451973425278447,
+   "exchange": 4.199999999999999,
+   "best_exchange_ich": 6,
+   "best_exchange_gegner": 0
+  },
+  {
+   "fen": "5k2/rp3P1p/2p2n2/p1n3pP/P1R5/b3Q2B/6b1/RN1K4 b - - 7 38",
+   "potential": -0.32863207343300704,
+   "material": -6.0,
+   "center": -0.10385349774119443,
+   "exchange": -0.19999999999999996,
+   "best_exchange_ich": 1,
+   "best_exchange_gegner": 3
+  },
+  {
+   "fen": "8/8/N3pk1p/n2qR2P/p1pP4/R1P1B3/1P6/2K2N2 w - - 12 62",
+   "potential": 0.38618346681454874,
+   "material": 7.0,
+   "center": -0.09065516656757452,
+   "exchange": 1.2999999999999998,
+   "best_exchange_ich": 4,
+   "best_exchange_gegner": 5
+  },
+  {
+   "fen": "3r1k2/p3qpr1/B2p1np1/2p1P3/pPPP1P1P/6Rb/PK1B4/2Q1R3 w - - 13 41",
+   "potential": 0.17591723088859382,
+   "material": 1.0,
+   "center": 0.1402867425776309,
+   "exchange": 1.7999999999999996,
+   "best_exchange_ich": 3,
+   "best_exchange_gegner": 1
+  },
+  {
+   "fen": "2k3r1/4p1b1/3pn3/p1nP4/P4qBP/1PB5/2Q3P1/R2K2NR b - - 2 49",
+   "potential": -0.28363539158896856,
+   "material": -7.0,
+   "center": 0.6520845443447901,
+   "exchange": 1.1999999999999997,
+   "best_exchange_ich": 3,
+   "best_exchange_gegner": 3
+  },
+  {
+   "fen": "r3kbn1/8/4p2p/pp1n4/2Ppp1PP/2B5/7Q/3K4 b - - 3 37",
+   "potential": 0.3338098970424577,
+   "material": 5.0,
+   "center": -0.04850758590480964,
+   "exchange": 1.4999999999999996,
+   "best_exchange_ich": 3,
+   "best_exchange_gegner": 2
+  },
+  {
+   "fen": "8/8/7k/5Rp1/4P2p/2r4P/3P4/2K5 w - - 2 79",
+   "potential": 0.24423684125282127,
+   "material": 1.0,
+   "center": 0.3724298563298566,
+   "exchange": 3.2,
+   "best_exchange_ich": 5,
+   "best_exchange_gegner": 1
+  },
+  {
+   "fen": "2r1n1k1/2n4r/3p2pP/3p2N1/1P3P2/Pp4P1/4bK2/R7 b - - 1 40",
+   "potential": 0.42458888268248923,
+   "material": 10.0,
+   "center": 0.2255779155452622,
+   "exchange": -0.19999999999999996,
+   "best_exchange_ich": 1,
+   "best_exchange_gegner": 3
+  },
+  {
+   "fen": "r1bqkb1r/pppppppp/n6n/8/8/P6P/1PPPPPP1/RNBQKBNR w KQkq - 1 3",
+   "potential": -0.0032453762275034864,
+   "material": 0.0,
+   "center": -0.05192674887059721,
+   "exchange": 0.0,
+   "best_exchange_ich": 0,
+   "best_exchange_gegner": 0
+  },
+  {
+   "fen": "2rqk2r/p4p2/R2p2p1/1Pp1p1p1/1P1Pn3/1PQ1Pb2/5PPP/1NB2K1R b - - 2 23",
+   "potential": 0.147529388735798,
+   "material": -1.0,
+   "center": 0.13278773630447635,
+   "exchange": 3.2999999999999994,
+   "best_exchange_ich": 6,
+   "best_exchange_gegner": 3
+  },
+  {
+   "fen": "2b1qbkr/1p1ppN2/2p2n2/2r2P1p/p1P5/4nKP1/P2PP2P/RN2QBR1 b - - 0 17",
+   "potential": 0.20143957177574362,
+   "material": 2.0,
+   "center": 0.21664960971806488,
+   "exchange": 1.1999999999999997,
+   "best_exchange_ich": 3,
+   "best_exchange_gegner": 3
+  },
+  {
+   "fen": "r1b2n1k/bp3p2/4p1p1/p1pp3p/1P3BRP/K1nP1P2/P1P3P1/RN2NB2 b - - 9 36",
+   "potential": -0.12065500538844964,
+   "material": -4.0,
+   "center": 0.13068274548299116,
+   "exchange": 1.9,
+   "best_exchange_ich": 4,
+   "best_exchange_gegner": 3
+  },
+  {
+   "fen": "8/k7/p3p3/1P4N1/5p2/2RB1Pq1/3K4/4B3 w - - 5 78",
+   "potential": 0.3694597168331764,
+   "material": 4.0,
+   "center": 0.2847605648161283,
+   "exchange": 3.2999999999999994,
+   "best_exchange_ich": 6,
+   "best_exchange_gegner": 3
+  },
+  {
+   "fen": "1nQ2br1/r3kp1p/p5pn/1p1pPb2/1q1pP2P/NP3BR1/P5K1/R1B3N1 b - - 2 22",
+   "potential": 0.3692409257594747,
+   "material": 2.0,
+   "center": 0.1770553187145895,
+   "exchange": 5.4,
+   "best_exchange_ich": 9,
+   "best_exchange_gegner": 3
+  },
+  {
+   "fen": "rN1r4/4nkp1/p2pb2n/2P2P1p/p1PPP2q/5B2/1B5P/RN3KQR b - - 2 30",
+   "potential": -0.1594062142395471,
+   "material": -4.0,
+   "center": -0.14259692636403476,
+   "exchange": 1.4999999999999996,
+   "best_exchange_ich": 3,
+   "best_exchange_gegner": 2
+  },
+  {
+   "fen": "2bN4/3qk2p/p4pr1/Prp2P2/2p1p2b/P2Pp2R/1Q2PPB1/RN2K3 b Q - 0 35",
+   "potential": 0.1905658637460975,
+   "material": -2.0,
+   "center": 0.11106436536387429,
+   "exchange": 5.1,
+   "best_exchange_ich": 9,
+   "best_exchange_gegner": 4
+  },
+  {
+   "fen": "r1N1kr2/4p2p/ppN5/P1pb4/3P1Pn1/1q1P2PP/2Q1K3/2RR4 b - - 1 41",
+   "potential": 0.012150471411877126,
+   "material": -1.0,
+   "center": -0.005554175638998876,
+   "exchange": 1.1999999999999997,
+   "best_exchange_ich": 3,
+   "best_exchange_gegner": 3
+  },
+  {
+   "fen": "6k1/3B4/P2P4/4K2R/p5p1/1p6/4n3/8 w - - 2 74",
+   "potential": 0.28902712029372346,
+   "material": 4.0,
+   "center": 0.5762844009345165,
+   "exchange": 0.7,
+   "best_exchange_ich": 1,
+   "best_exchange_gegner": 0
+  },
+  {
+   "fen": "3Q3N/3b4/P2b3k/2pP4/2n1P3/2PK4/1R6/4r3 b - - 1 61",
+   "potential": -0.20321545719524206,
+   "material": -6.0,
+   "center": -0.05062758765215792,
+   "exchange": 2.6,
+   "best_exchange_ich": 5,
+   "best_exchange_gegner": 3
+  },
+  {
+   "fen": "6k1/2R1r2q/4P3/3r1p2/p2p3B/P2Pb1P1/2R5/1Q1K4 b - - 4 74",
+   "potential": 0.08199703194909091,
+   "material": -1.0,
+   "center": 0.32390725949918375,
+   "exchange": 2.0,
+   "best_exchange_ich": 5,
+   "best_exchange_gegner": 5
+  },
+  {
+   "fen": "2b4r/p2k2pp/R1pp1P2/5p1P/3P2qR/8/1r2PPB1/1N2K1N1 b - - 1 31",
+   "potential": 0.3384897398314241,
+   "material": 4.0,
+   "center": 0.28813469500432676,
+   "exchange": 2.3,
+   "best_exchange_ich": 5,
+   "best_exchange_gegner": 4
+  },
+  {
+   "fen": "2B1nb2/5k2/5B2/1pP1P2r/3p1PP1/4R1K1/b7/8 b - - 2 59",
+   "potential": 0.16867981724513248,
+   "material": 1.0,
+   "center": -0.19111952319470749,
+   "exchange": 2.0,
+   "best_exchange_ich": 5,
+   "best_exchange_gegner": 5
+  },
+  {
+   "fen": "rnbq1b1r/pppppk1p/6pn/2PP1p2/8/8/PP1NPPPP/R1BQKBNR b KQ - 0 5",
+   "potential": 0.0014208957693200726,
+   "material": 0.0,
+   "center": 0.022734393508566646,
+   "exchange": 0.0,
+   "best_exchange_ich": 0,
+   "best_exchange_gegner": 0
+  },
+  {
+   "fen": "r1b1k3/pp1p3p/4p2b/1P1pnP2/P7/2QB1Pp1/R2P4/2B1K1NR b q - 0 31",
+   "potential": -0.46444753603339134,
+   "material": -12.0,
+   "center": -0.3021838885585817,
+   "exchange": -0.8999999999999999,
+   "best_exchange_ich": 0,
+   "best_exchange_gegner": 3
+  },
+  {
+   "fen": "2rq3k/8/b5pp/8/p1R5/2P4P/2BNr3/5K1N b - - 3 69",
+   "potential": 0.43977470376993605,
+   "material": 9.0,
+   "center": -0.009809190059558465,
+   "exchange": 2.0,
+   "best_exchange_ich": 5,
+   "best_exchange_gegner": 5
+  },
+  {
+   "fen": "1nb2b1r/2r1k2p/1p2p1p1/P3p3/q2pP1n1/2N1Q1P1/1RPBK2P/R7 b - - 1 30",
+   "potential": 0.42401510104718,
+   "material": 7.0,
+   "center": 0.09277516831492279,
+   "exchange": 2.9,
+   "best_exchange_ich": 8,
+   "best_exchange_gegner": 9
+  },
+  {
+   "fen": "7b/1b3k2/p4r2/B1P3r1/1PK2P1p/N2B1N2/P7/8 w - - 4 64",
+   "potential": 0.045672502849912894,
+   "material": -2.0,
+   "center": 0.1328027472303394,
+   "exchange": 2.6,
+   "best_exchange_ich": 5,
+   "best_exchange_gegner": 3
+  },
+  {
+   "fen": "r1bqkb1r/1pppppp1/5n2/p1P1n2p/4P3/NQ4P1/PP1P1P1P/R1B1KBNR w KQq - 1 8",
+   "potential": -0.011937769973888353,
+   "material": 0.0,
+   "center": 0.10895937454238905,
+   "exchange": -0.3,
+   "best_exchange_ich": 0,
+   "best_exchange_gegner": 1
+  },
+  {
+   "fen": "1B6/8/1P1p1k2/4np2/1pP2P2/3P1b1r/N2K2P1/2R2Br1 w - - 9 39",
+   "potential": 0.17358706928775447,
+   "material": 0.0,
+   "center": -0.3021838885585817,
+   "exchange": 3.2,
+   "best_exchange_ich": 5,
+   "best_exchange_gegner": 1
+  },
+  {
+   "fen": "5n2/4rn1k/7P/p3N3/p1BP2PR/8/2N5/1K6 b - - 12 75",
+   "potential": -0.25566506438732883,
+   "material": -4.0,
+   "center": -0.3162330821128366,
+   "exchange": -0.19999999999999996,
+   "best_exchange_ich": 1,
+   "best_exchange_gegner": 3
+  },
+  {
+   "fen": "2q2b1r/3kp2N/n2p4/6pp/bp3Pp1/P2p4/2r1P2P/R2K1BBR w - - 0 30",
+   "potential": -0.41459135217014126,
+   "material": -12.0,
+   "center": -0.0841199902123372,
+   "exchange": 2.6,
+   "best_exchange_ich": 5,
+   "best_exchange_gegner": 3
+  },
+  {
+   "fen": "rn1k1bnr/7q/3p2p1/p3pp1p/3P1P1P/pPP1P3/6P1/RNBQKR2 b Q - 3 17",
+   "potential": 0.14565179357311697,
+   "material": 3.0,
+   "center": -0.3000788977370965,
+   "exchange": -0.3,
+   "best_exchange_ich": 0,
+   "best_exchange_gegner": 1
+  },
+  {
+   "fen": "rq2kb1r/1bpppp1p/ppn2n2/6p1/3P1P2/1PP3P1/PB2PK1P/RN1Q1BNR b kq - 2 8",
+   "potential": -0.02089241575911686,
+   "material": 0.0,
+   "center": -0.034473403276417736,
+   "exchange": -0.3,
+   "best_exchange_ich": 0,
+   "best_exchange_gegner": 1
+  },
+  {
+   "fen": "1n4N1/1b3kp1/r7/R1pPPPP1/1r5p/2PK1P2/3R4/8 w - - 7 54",
+   "potential": 0.08336363218267528,
+   "material": 0.0,
+   "center": 0.046387584157461394,
+   "exchange": 1.2999999999999998,
+   "best_exchange_ich": 4,
+   "best_exchange_gegner": 5
+  },
+  {
+   "fen": "8/2R5/2pr2k1/2P5/6P1/P1p4R/8/7K b - - 4 80",
+   "potential": -0.3573545584625839,
+   "material": -6.0,
+   "center": 0.3260422721723952,
+   "exchange": -1.5,
+   "best_exchange_ich": 0,
+   "best_exchange_gegner": 5
+  },
+  {
+   "fen": "4k3/3N1prp/prPp1b1P/Qp3Bpn/3nKP1P/4P3/8/RN6 w - - 1 37",
+   "potential": 0.32507138656355306,
+   "material": 3.0,
+   "center": 0.6043677771171634,
+   "exchange": 2.6,
+   "best_exchange_ich": 5,
+   "best_exchange_gegner": 3
+  },
+  {
+   "fen": "1n5r/4kppp/6n1/pPrp3P/2bpP1K1/PPR3P1/8/RN2QBN1 w - - 1 38",
+   "potential": 0.41857801927799143,
+   "material": 9.0,
+   "center": -0.20727370757044766,
+   "exchange": 0.8999999999999997,
+   "best_exchange_ich": 3,
+   "best_exchange_gegner": 4
+  },
+  {
+   "fen": "rn2k2r/p2pp1b1/bpp2n1p/4q1p1/2P2pP1/P4P2/NB1P3P/RQ1KNBR1 b kq - 3 21",
+   "potential": -0.03014477713636772,
+   "material": 2.0,
+   "center": 0.21709790855586913,
+   "exchange": -2.6999999999999997,
+   "best_exchange_ich": 0,
+   "best_exchange_gegner": 9
+  },
+  {
+   "fen": "5b2/5kr1/2pr1p1p/2N1pPpP/B1R3P1/p1B5/n3K1R1/8 b - - 3 62",
+   "potential": -0.0028991915177089753,
+   "material": 0.0,
+   "center": -0.046387584157461394,
+   "exchange": 0.0,
+   "best_exchange_ich": 0,
+   "best_exchange_gegner": 0
+  },
+  {
+   "fen": "1nbqkb1r/1p1ppppp/2p5/r7/p2Pn3/NP1K1NP1/P1P1PP1P/R1BQ1B1R w k - 0 8",
+   "potential": 0.12692679723157302,
+   "material": 0.0,
+   "center": 0.2762205141232832,
+   "exchange": 1.7999999999999996,
+   "best_exchange_ich": 3,
+   "best_exchange_gegner": 1
+  },
+  {
+   "fen": "6k1/6p1/3N1bP1/R6P/2r5/4K2n/P7/R7 b - - 3 73",
+   "potential": -0.13129420563108662,
+   "material": -4.0,
+   "center": -0.15109194427929087,
+   "exchange": 2.0,
+   "best_exchange_ich": 5,
+   "best_exchange_gegner": 5
+  },
+  {
+   "fen": "1n4n1/8/pr2pkr1/P1P1Npp1/2PPPB2/N7/8/3Q1K1b w - - 5 45",
+   "potential": 0.16995565075233313,
+   "material": 0.0,
+   "center": 0.2319379207873069,
+   "exchange": 2.6,
+   "best_exchange_ich": 5,
+   "best_exchange_gegner": 3
+  },
+  {
+   "fen": "2b5/1k3B2/8/rn2pPp1/1Np5/1R1Bb3/8/6K1 w - - 4 57",
+   "potential": -0.16119174106994377,
+   "material": -2.0,
+   "center": 0.12556185775593348,
+   "exchange": -0.5,
+   "best_exchange_ich": 1,
+   "best_exchange_gegner": 4
+  },
+  {
+   "fen": "1k3nR1/p4N2/n2P3r/2b2P2/1PK4P/P3q3/8/8 w - - 0 62",
+   "potential": -0.4158007548123106,
+   "material": -11.0,
+   "center": -0.3464514709686949,
+   "exchange": 1.7999999999999996,
+   "best_exchange_ich": 3,
+   "best_exchange_gegner": 1
+  },
+  {
+   "fen": "8/4Bk1n/p7/P1r2p2/1p3p2/3b1K2/6r1/4N2B b - - 4 61",
+   "potential": 0.4416629741763,
+   "material": 10.0,
+   "center": 0.5256418023564957,
+   "exchange": 0.5999999999999996,
+   "best_exchange_ich": 3,
+   "best_exchange_gegner": 5
+  },
+  {
+   "fen": "r3k1r1/q5p1/2n2p1p/pQ3P2/RP1P2n1/5NPP/3KP1B1/2B4R b - - 5 32",
+   "potential": -0.2971417613090237,
+   "material": -5.0,
+   "center": -0.27410051237593486,
+   "exchange": -0.19999999999999996,
+   "best_exchange_ich": 1,
+   "best_exchange_gegner": 3
+  },
+  {
+   "fen": "rn1qkbnr/ppp1ppp1/7p/3p4/8/2PP3b/PP1QPPPP/RNB1KBNR w KQkq - 2 4",
+   "potential": 0.1283161882953662,
+   "material": 0.0,
+   "center": 6.938893903907228e-18,
+   "exchange": 2.0999999999999996,
+   "best_exchange_ich": 3,
+   "best_exchange_gegner": 0
+  },
+  {
+   "fen": "6nr/1r1b1kQq/Pp1P2p1/P1p2pPp/5P1P/4P3/2n1RKN1/2B2BR1 b - - 4 47",
+   "potential": 0.14711339170919202,
+   "material": -2.0,
+   "center": -0.07450098219183435,
+   "exchange": 4.8,
+   "best_exchange_ich": 9,
+   "best_exchange_gegner": 5
+  },
+  {
+   "fen": "3rR1Br/7p/6k1/1np2p1N/p4P2/P1bn2Pb/1P4NP/R1B4K b - - 6 43",
+   "potential": 0.0778501569314994,
+   "material": -1.0,
+   "center": 0.2558170465107661,
+   "exchange": 2.0,
+   "best_exchange_ich": 5,
+   "best_exchange_gegner": 5
+  },
+  {
+   "fen": "4k2r/r2qb2p/n2Pbp2/Ppp1P1p1/N5P1/P3Kn1N/B1PPQ2P/R1B2R2 w k - 4 22",
+   "potential": 0.23759504503540915,
+   "material": 3.0,
+   "center": -0.06597594242485216,
+   "exchange": 1.1999999999999997,
+   "best_exchange_ich": 3,
+   "best_exchange_gegner": 3
+  },
+  {
+   "fen": "2n2k2/8/p6P/P1P5/1p4p1/1PN1pN1P/3R2B1/5KbR b - - 1 59",
+   "potential": -0.46153453015145507,
+   "material": -14.0,
+   "center": -0.7750781015155711,
+   "exchange": 1.9,
+   "best_exchange_ich": 4,
+   "best_exchange_gegner": 3
+  },
+  {
+   "fen": "5B1b/8/1n6/2P4R/1k1r2B1/1nn1K3/8/7R b - - 3 77",
+   "potential": 0.06730827014800099,
+   "material": 0.0,
+   "center": 0.4835092326195938,
+   "exchange": 0.5999999999999996,
+   "best_exchange_ich": 3,
+   "best_exchange_gegner": 5
+  },
+  {
+   "fen": "1nb1k3/2qppprp/1pB4n/p1p3p1/5P2/N1PP2PN/PP2P2P/R1BQ2KR w - - 3 15",
+   "potential": 0.3851412079354066,
+   "material": 8.0,
+   "center": 0.36817484190929695,
+   "exchange": -0.19999999999999996,
+   "best_exchange_ich": 1,
+   "best_exchange_gegner": 3
+  },
+  {
+   "fen": "rnbqkbnr/pppp3p/4p3/5p2/4P1p1/6P1/PPPPQP1P/RNB1KBNR w KQkq - 0 5",
+   "potential": 0.0021545743687007026,
+   "material": 0.0,
+   "center": 0.03447340327641774,
+   "exchange": 0.0,
+   "best_exchange_ich": 0,
+   "best_exchange_gegner": 0
+  },
+  {
+   "fen": "r1b1k3/p2p1p2/2p1p2r/1B3n1N/2p3PR/1P2P3/P1PbNP2/6qK w q - 0 22",
+   "potential": -0.4165679586865906,
+   "material": -14.0,
+   "center": -0.086415163072878,
+   "exchange": 4.8,
+   "best_exchange_ich": 9,
+   "best_exchange_gegner": 5
+  },
+  {
+   "fen": "r1bqkbnr/pppp2pp/4p3/4np2/1P1P1PP1/8/P1P1PN1P/RNBQKB1R w KQkq - 0 7",
+   "potential": 0.12181194305772802,
+   "material": 0.0,
+   "center": 0.18898451052149617,
+   "exchange": 1.7999999999999996,
+   "best_exchange_ich": 3,
+   "best_exchange_gegner": 1
+  },
+  {
+   "fen": "r4bn1/p3p1k1/2q4r/1P1p2pP/2P2p2/NP5P/2nKPPR1/2B1QB2 w - - 0 27",
+   "potential": 0.024940822057855427,
+   "material": -3.0,
+   "center": -0.4006153802698144,
+   "exchange": 3.8,
+   "best_exchange_ich": 8,
+   "best_exchange_gegner": 6
+  },
+  {
+   "fen": "1r2k1nr/6pp/ppp5/4b3/PNP3b1/2pK1PBP/1PQ3P1/1R4R1 w - - 2 26",
+   "potential": 0.37361743164021793,
+   "material": 6.0,
+   "center": 0.5333159797428427,
+   "exchange": 1.1999999999999997,
+   "best_exchange_ich": 3,
+   "best_exchange_gegner": 3
+  },
+  {
+   "fen": "2qrkb2/pp2p2r/n3b1p1/3P1p2/P1PB1Pnp/1P5N/R1QN2PP/4KB1R w K - 1 21",
+   "potential": 0.1568692988380613,
+   "material": 1.0,
+   "center": 0.19749453936261532,
+   "exchange": 1.4,
+   "best_exchange_ich": 2,
+   "best_exchange_gegner": 0
+  },
+  {
+   "fen": "1n6/3k2p1/rBpp4/p1P2PP1/P2pN2p/5N2/b2KPP2/Q2R1B2 w - - 10 37",
+   "potential": 0.4867279059878408,
+   "material": 15.0,
+   "center": 0.13492274897768766,
+   "exchange": 2.0999999999999996,
+   "best_exchange_ich": 3,
+   "best_exchange_gegner": 0
+  },
+  {
+   "fen": "8/4Nk2/b4P2/p1p5/P3pK2/8/n5r1/3R4 b - - 1 80",
+   "potential": 0.2897072747550854,
+   "material": 4.0,
+   "center": -0.5073526053075442,
+   "exchange": 1.7999999999999996,
+   "best_exchange_ich": 3,
+   "best_exchange_gegner": 1
+  },
+  {
+   "fen": "3rkn2/1b6/2N1P3/pp4Br/1P1b4/R1pN3p/8/K4R2 b - - 1 71",
+   "potential": 0.20325979514434633,
+   "material": 2.0,
+   "center": -0.0485225968306727,
+   "exchange": 1.4999999999999996,
+   "best_exchange_ich": 3,
+   "best_exchange_gegner": 2
+  },
+  {
+   "fen": "1b3N2/5n2/p4kp1/2p5/p1P1Pp2/r3N1p1/1R4K1/8 b - - 11 62",
+   "potential": 0.2969696907727432,
+   "material": 4.0,
+   "center": 0.2698454979553753,
+   "exchange": 1.1999999999999997,
+   "best_exchange_ich": 3,
+   "best_exchange_gegner": 3
+  },
+  {
+   "fen": "8/p2kBBb1/4p3/5p2/8/3pN1Pp/7P/1q1RKR2 b - - 5 58",
+   "potential": -0.24323616820024663,
+   "material": -4.0,
+   "center": 0.34857147271604305,
+   "exchange": -0.6000000000000001,
+   "best_exchange_ich": 3,
+   "best_exchange_gegner": 9
+  },
+  {
+   "fen": "B1N5/N4b2/k2p4/6p1/pP2R3/Pnnb4/1K6/8 b - - 7 78",
+   "potential": 0.11228432404281587,
+   "material": -1.0,
+   "center": 0.22769791729261038,
+   "exchange": 2.6,
+   "best_exchange_ich": 5,
+   "best_exchange_gegner": 3
+  },
+  {
+   "fen": "2k1b3/2p2p2/1p1Pp3/PP6/3p1r1B/1P3p1P/1K1N4/R5NR b - - 1 43",
+   "potential": -0.3756417176760476,
+   "material": -10.0,
+   "center": 0.39283905512615624,
+   "exchange": 1.7999999999999996,
+   "best_exchange_ich": 3,
+   "best_exchange_gegner": 1
+  },
+  {
+   "fen": "rn3bnr/3k2pp/p2pb2N/3p4/2p4P/N3pP1B/PP1BP3/2RQK2R b K - 1 16",
+   "potential": -0.2731260951732866,
+   "material": -7.0,
+   "center": 0.29580887239067394,
+   "exchange": 1.7999999999999996,
+   "best_exchange_ich": 3,
+   "best_exchange_gegner": 1
+  },
+  {
+   "fen": "rnb2bn1/2kpp1pr/1pp2p1p/NP6/2P2P1P/7R/P3PKP1/R1BQ1BN1 b - - 0 15",
+   "potential": -0.36027780638295603,
+   "material": -9.0,
+   "center": -0.3703969914139562,
+   "exchange": 2.0999999999999996,
+   "best_exchange_ich": 3,
+   "best_exchange_gegner": 0
+  },
+  {
+   "fen": "2rk4/8/2p5/PP6/q5R1/4pr1b/1b3N2/1B5K w - - 6 58",
+   "potential": -0.41533968429248874,
+   "material": -14.0,
+   "center": -0.3225930873548815,
+   "exchange": 4.8,
+   "best_exchange_ich": 9,
+   "best_exchange_gegner": 5
+  },
+  {
+   "fen": "5k1r/p4p2/1p4Rn/2N2p1n/r2P3p/1pP2K1P/8/2N5 b - - 1 45",
+   "potential": 0.4166958933628706,
+   "material": 8.0,
+   "center": -0.4068882486804112,
+   "exchange": 2.0,
+   "best_exchange_ich": 5,
+   "best_exchange_gegner": 5
+  },
+  {
+   "fen": "2bk1bnr/1Qp1qp1p/r2pp1p1/p7/7P/3P4/PPNnPPPN/R1B1KB1R b - - 6 13",
+   "potential": 0.29048808317532815,
+   "material": 0.0,
+   "center": -0.08852015389436324,
+   "exchange": 5.4,
+   "best_exchange_ich": 9,
+   "best_exchange_gegner": 3
+  },
+  {
+   "fen": "r1bnkbr1/1p1qp1pp/p2p3n/2p2p2/PPPP1PP1/4B2B/1KN1P2P/R2Q2NR w q - 4 16",
+   "potential": 0.04799519563396998,
+   "material": 0.0,
+   "center": 0.37029484365664517,
+   "exchange": 0.39999999999999997,
+   "best_exchange_ich": 1,
+   "best_exchange_gegner": 1
+  },
+  {
+   "fen": "r7/2R5/4kpP1/2Pp3p/3P1p2/1K2P3/2r4b/1Q3r2 w - - 6 61",
+   "potential": -0.21213263862466233,
+   "material": -4.0,
+   "center": -0.4230574439820143,
+   "exchange": 0.8000000000000003,
+   "best_exchange_ich": 5,
+   "best_exchange_gegner": 9
+  },
+  {
+   "fen": "2kn3N/1b2r3/1P6/pRnp4/3P1Bp1/2P4p/2K1P1P1/6Q1 b - - 6 66",
+   "potential": -0.3596961966417717,
+   "material": -7.0,
+   "center": -0.05107588648996217,
+   "exchange": -0.19999999999999996,
+   "best_exchange_ich": 1,
+   "best_exchange_gegner": 3
+  },
+  {
+   "fen": "3b2n1/3k4/Qpn3p1/5N1p/P2P1P2/1KP1p1P1/1P2P3/RN2BBR1 w - - 3 32",
+   "potential": 0.49816526858922144,
+   "material": 25.0,
+   "center": 0.39608304697875135,
+   "exchange": -0.19999999999999996,
+   "best_exchange_ich": 1,
+   "best_exchange_gegner": 3
+  },
+  {
+   "fen": "Brb1k3/3p4/1p6/2n1B3/1nP5/b3PP1p/5KRN/2R5 w - - 0 46",
+   "potential": 0.2609909946647011,
+   "material": 2.0,
+   "center": 0.6324811751515363,
+   "exchange": 2.0,
+   "best_exchange_ich": 5,
+   "best_exchange_gegner": 5
+  },
+  {
+   "fen": "rnbqk1nr/2p5/p2ppb1p/P4p2/1pN2Pp1/RPP1P1K1/3P2PP/1NBQ1BR1 w kq - 0 14",
+   "potential": -0.039862889626153114,
+   "material": 0.0,
+   "center": -0.1391627524723842,
+   "exchange": -0.5,
+   "best_exchange_ich": 1,
+   "best_exchange_gegner": 4
+  },
+  {
+   "fen": "6n1/6k1/p4b2/1pP1p3/1Pr5/4RPpR/qB1K2B1/1Q4N1 w - - 2 48",
+   "potential": 0.43878106612337303,
+   "material": 7.0,
+   "center": 0.3205031074592592,
+   "exchange": 3.6,
+   "best_exchange_ich": 9,
+   "best_exchange_gegner": 9
+  },
+  {
+   "fen": "r1b2kr1/Qp1p2p1/P4q1p/2bnpp2/P1P5/R3Pn1N/1BR1KPPP/1B6 w - - 4 25",
+   "potential": -0.09207921331113453,
+   "material": -2.0,
+   "center": -0.29026970767753807,
+   "exchange": 0.8000000000000003,
+   "best_exchange_ich": 5,
+   "best_exchange_gegner": 9
+  },
+  {
+   "fen": "3r3r/7p/4p1kn/pqN1Bp2/4b1P1/1N1P4/3bP2R/5BK1 b - - 0 37",
+   "potential": 0.4510077186170272,
+   "material": 12.0,
+   "center": 0.06343766369142576,
+   "exchange": -0.19999999999999996,
+   "best_exchange_ich": 1,
+   "best_exchange_gegner": 3
+  },
+  {
+   "fen": "6nr/4n2N/P4Rk1/2bp2p1/KP1P4/8/7N/8 b - - 1 74",
+   "potential": 0.258325580972092,
+   "material": 2.0,
+   "center": 0.2740855014500718,
+   "exchange": 2.6,
+   "best_exchange_ich": 5,
+   "best_exchange_gegner": 3
+  },
+  {
+   "fen": "rnbqkbnr/pp1p3p/6p1/2p1pP2/8/1P3P2/P1PP2PP/RNBQKBNR w KQkq e6 0 5",
+   "potential": 0.039146842658129004,
+   "material": 1.0,
+   "center": -0.07236596951862306,
+   "exchange": -0.3,
+   "best_exchange_ich": 0,
+   "best_exchange_gegner": 1
+  },
+  {
+   "fen": "2b2bnr/r2p1kp1/4p2p/ppp2p2/2Pq4/n5PN/P2K1PBP/2B3RR w - - 0 26",
+   "potential": -0.4715556497483801,
+   "material": -15.0,
+   "center": -0.6237959751972247,
+   "exchange": 1.7999999999999996,
+   "best_exchange_ich": 3,
+   "best_exchange_gegner": 1
+  },
+  {
+   "fen": "r1b2b2/3kp1p1/nP4p1/3P2nr/4BP1p/1q5N/N1P1K2P/2BQ1R2 w - - 0 26",
+   "potential": 0.10351169696572103,
+   "material": -4.0,
+   "center": 0.28047552854384267,
+   "exchange": 5.4,
+   "best_exchange_ich": 9,
+   "best_exchange_gegner": 3
+  },
+  {
+   "fen": "r2k3r/p1pp3p/3Ppppn/5N2/pR2Pb2/3b1BP1/q4P1P/B3KRN1 b - - 3 31",
+   "potential": 0.4265010689437898,
+   "material": 9.0,
+   "center": -0.06342265276556269,
+   "exchange": 1.1999999999999997,
+   "best_exchange_ich": 3,
+   "best_exchange_gegner": 3
+  },
+  {
+   "fen": "2bqkb2/8/2p2p2/pN2PPr1/1rp5/RP1n3N/3PK2P/3Q1R2 w - - 0 32",
+   "potential": -0.07348634952976206,
+   "material": -2.0,
+   "center": -0.38435904813676314,
+   "exchange": 1.1999999999999997,
+   "best_exchange_ich": 3,
+   "best_exchange_gegner": 3
+  },
+  {
+   "fen": "1rb3nr/3k4/p1p4p/2bp4/p1p1PP1p/5R1N/1P4K1/3B2BR b - - 1 42",
+   "potential": 0.2181737542281014,
+   "material": 4.0,
+   "center": -0.0583167759643681,
+   "exchange": -0.19999999999999996,
+   "best_exchange_ich": 1,
+   "best_exchange_gegner": 3
+  },
+  {
+   "fen": "r3k2r/2pqpp2/Q4B2/3n2Pp/1pN1P3/8/P1PP1PP1/1R1KN2R b - - 1 23",
+   "potential": -0.21324544366024412,
+   "material": -8.0,
+   "center": -0.44479582584847965,
+   "exchange": 4.8,
+   "best_exchange_ich": 9,
+   "best_exchange_gegner": 5
+  },
+  {
+   "fen": "rnbqkbnr/pp1pp2p/6p1/2p2p2/4PPQ1/BP6/P1PP2PP/RN2KBNR b KQkq - 0 6",
+   "potential": 0.31195399080958136,
+   "material": 0.0,
+   "center": -0.14897194253194257,
+   "exchange": 6.0,
+   "best_exchange_ich": 9,
+   "best_exchange_gegner": 1
+  },
+  {
+   "fen": "rn2kb2/1b1p4/p3p1pr/1p1P1qN1/1PPP2pQ/P4Rn1/3KB3/2B4R b - - 2 28",
+   "potential": 0.34085388538917294,
+   "material": 4.0,
+   "center": 0.35838066277560154,
+   "exchange": 2.3,
+   "best_exchange_ich": 5,
+   "best_exchange_gegner": 4
+  },
+  {
+   "fen": "5b2/1rR4N/n7/pP6/q5p1/3Pk3/Q6R/4K3 b - - 3 69",
+   "potential": -0.06086307151074784,
+   "material": -2.0,
+   "center": 0.22133791205056583,
+   "exchange": 0.8000000000000003,
+   "best_exchange_ich": 5,
+   "best_exchange_gegner": 9
+  },
+  {
+   "fen": "2rq2nr/1Bbb1k1p/1p3p2/1N1p1P2/pp2p1n1/2P4R/P5Q1/R4K2 b - - 7 40",
+   "potential": 0.442817103336242,
+   "material": 10.0,
+   "center": 0.010469870401137858,
+   "exchange": 1.1999999999999997,
+   "best_exchange_ich": 3,
+   "best_exchange_gegner": 3
+  },
+  {
+   "fen": "2k2bnr/r7/1q1P1p2/2n4p/2b2pPp/NQ1B1P2/Rp1P3R/2B2K2 b - - 1 31",
+   "potential": 0.37608428938659755,
+   "material": 4.0,
+   "center": 0.22344290287205087,
+   "exchange": 3.6,
+   "best_exchange_ich": 9,
+   "best_exchange_gegner": 9
+  },
+  {
+   "fen": "r4k1r/1b1n4/8/1pb1PNP1/pPP4p/P2Q2BP/3N1q1K/R7 w - - 5 65",
+   "potential": 0.10328401438757517,
+   "material": -2.0,
+   "center": 0.37666985982455303,
+   "exchange": 3.599999999999999,
+   "best_exchange_ich": 6,
+   "best_exchange_gegner": 2
+  },
+  {
+   "fen": "r3kqnr/1bpp3p/Bp1b4/p2n2P1/P4NP1/2P1Pp2/3P3P/RNB2K1R b kq - 1 19",
+   "potential": 0.4098329455539292,
+   "material": 8.0,
+   "center": 0.046387584157461394,
+   "exchange": 1.1999999999999997,
+   "best_exchange_ich": 3,
+   "best_exchange_gegner": 3
+  },
+  {
+   "fen": "1r6/1b4k1/1p3pN1/3p4/R6K/1pB4P/2B3P1/8 b - - 0 52",
+   "potential": -0.1596486676247233,
+   "material": -4.0,
+   "center": -0.4469158275958278,
+   "exchange": 1.7999999999999996,
+   "best_exchange_ich": 3,
+   "best_exchange_gegner": 1
+  },
+  {
+   "fen": "5br1/4p1p1/r2k1p2/P2P3p/P1P1n2P/3R3P/4P1K1/R1BN1B2 b - - 0 42",
+   "potential": -0.29400760570295964,
+   "material": -6.0,
+   "center": -0.09701517180961935,
+   "exchange": 0.7,
+   "best_exchange_ich": 1,
+   "best_exchange_gegner": 0
+  },
+  {
+   "fen": "4r3/2p1rB2/ppP1pp1n/3k2p1/7P/1R3P1P/P1KB4/1R6 b - - 4 60",
+   "potential": 0.00498130792951503,
+   "material": -2.0,
+   "center": 0.5797035639003041,
+   "exchange": 1.4999999999999996,
+   "best_exchange_ich": 3,
+   "best_exchange_gegner": 2
+  },
+  {
+   "fen": "q1n1kbn1/3b3r/4ppN1/QN1p2pp/P5PP/1p1P2R1/2R2P2/4KB2 b - - 0 49",
+   "potential": 0.1566512240240635,
+   "material": -1.0,
+   "center": -0.006375016167907838,
+   "exchange": 3.6,
+   "best_exchange_ich": 9,
+   "best_exchange_gegner": 9
+  },
+  {
+   "fen": "r7/3nk3/7b/pbP5/2P1p1pp/p1R1P3/Pq6/6K1 w - - 10 62",
+   "potential": -0.4917526287270174,
+   "material": -19.0,
+   "center": -0.058316775964368094,
+   "exchange": -0.10000000000000009,
+   "best_exchange_ich": 2,
+   "best_exchange_gegner": 5
+  },
+  {
+   "fen": "6k1/R2b4/1p6/PN1P3p/6n1/P1P5/6b1/1R1K4 w - - 5 63",
+   "potential": 0.36638324919294235,
+   "material": 6.0,
+   "center": -0.32259308735488146,
+   "exchange": 1.7999999999999996,
+   "best_exchange_ich": 3,
+   "best_exchange_gegner": 1
+  },
+  {
+   "fen": "1rbqk1nr/2pp1p2/p3pbpp/1Q6/Np3PP1/PP5B/1R1PP2P/2B1K1NR w Kk - 0 15",
+   "potential": 0.1730767192655946,
+   "material": 2.0,
+   "center": 0.08853516482022628,
+   "exchange": 0.8000000000000003,
+   "best_exchange_ich": 5,
+   "best_exchange_gegner": 9
+  },
+  {
+   "fen": "3k4/4N3/PK1p4/2p3R1/1p6/3P3p/1R3N1N/1q6 b - - 2 73",
+   "potential": -0.37103475798562685,
+   "material": -8.0,
+   "center": -0.44055582235378304,
+   "exchange": 0.8000000000000003,
+   "best_exchange_ich": 5,
+   "best_exchange_gegner": 9
+  },
+  {
+   "fen": "8/7k/p3R3/bN2p3/1P1pP1pp/5P2/3BKn2/1r2n3 b - - 0 64",
+   "potential": 0.30739456259931924,
+   "material": 5.0,
+   "center": -0.4673250263921275,
+   "exchange": 1.1999999999999997,
+   "best_exchange_ich": 3,
+   "best_exchange_gegner": 3
+  },
+  {
+   "fen": "k6r/8/5np1/pp3pp1/1P1P4/5P2/1b4BB/4K2R b - - 7 52",
+   "potential": 0.15801754978904264,
+   "material": 2.0,
+   "center": 0.21788872723305203,
+   "exchange": 0.39999999999999997,
+   "best_exchange_ich": 1,
+   "best_exchange_gegner": 1
+  },
+  {
+   "fen": "rnb2br1/p2k1p1p/4pp2/1pp1qn2/1PP2P1P/2NPP3/P5PB/1RQK1B1R w - - 2 20",
+   "potential": 0.21824365144311852,
+   "material": -2.0,
+   "center": -0.2569353054322302,
+   "exchange": 6.0,
+   "best_exchange_ich": 9,
+   "best_exchange_gegner": 1
+  },
+  {
+   "fen": "rnbqkbnr/p2p1ppp/1pp1p3/8/8/N1P5/PP1PPPPP/R1BQKBNR b KQkq - 1 4",
+   "potential": 0.007156608105879839,
+   "material": 0.0,
+   "center": 0.11451355018138791,
+   "exchange": 0.0,
+   "best_exchange_ich": 0,
+   "best_exchange_gegner": 0
+  },
+  {
+   "fen": "rkb4b/2qB4/1P1B1n2/n6r/2pp1p1P/2P5/R1KNP3/6NR w - - 0 45",
+   "potential": -0.20195125822752547,
+   "material": -8.0,
+   "center": -0.12642773106243158,
+   "exchange": 4.699999999999999,
+   "best_exchange_ich": 8,
+   "best_exchange_gegner": 3
+  },
+  {
+   "fen": "rnb1kbnr/p1pqpppp/8/1B1p4/7P/2P1P3/PP1P1PP1/RNBQK1NR w KQkq - 0 5",
+   "potential": 0.2416933630445348,
+   "material": 1.0,
+   "center": -0.08084597650801609,
+   "exchange": 3.2999999999999994,
+   "best_exchange_ich": 6,
+   "best_exchange_gegner": 3
+  },
+  {
+   "fen": "4r3/pr1p1kbp/1Q3p2/1P1n2p1/P1Pp3P/N1BBPp2/2R2K1R/8 w - - 13 41",
+   "potential": 0.4395521181280827,
+   "material": 10.0,
+   "center": 0.17448701812943695,
+   "exchange": 0.8000000000000003,
+   "best_exchange_ich": 5,
+   "best_exchange_gegner": 9
+  },
+  {
+   "fen": "3q1bn1/r1ppk1r1/1pn5/p1P1pppp/1Q6/P2bPPPP/1P6/RNBK1BNR b - - 3 18",
+   "potential": 0.33756507890534915,
+   "material": 1.0,
+   "center": 0.16088612341298628,
+   "exchange": 5.4,
+   "best_exchange_ich": 9,
+   "best_exchange_gegner": 3
+  },
+  {
+   "fen": "3kr3/3np3/b1r3Bb/p3P3/P1p2pQP/2pP4/RPP2P1K/2B1N2R w - - 3 38",
+   "potential": 0.45526287988056324,
+   "material": 11.0,
+   "center": 0.1447319390372461,
+   "exchange": 1.0999999999999999,
+   "best_exchange_ich": 2,
+   "best_exchange_gegner": 1
+  },
+  {
+   "fen": "5k2/6p1/2Pp2P1/2Pb1p2/5b2/7p/8/1K6 b - - 3 51",
+   "potential": 0.38978541969182023,
+   "material": 7.0,
+   "center": 0.6542045460921384,
+   "exchange": 0.7,
+   "best_exchange_ich": 1,
+   "best_exchange_gegner": 0
+  },
+  {
+   "fen": "1rb2k1r/2p3pn/1p5p/NQR1pp2/2P1p3/3PPPq1/P4K1P/2B4R w - - 2 29",
+   "potential": 0.23542395427337162,
+   "material": -1.0,
+   "center": 0.2892736960354367,
+   "exchange": 5.1,
+   "best_exchange_ich": 9,
+   "best_exchange_gegner": 4
+  },
+  {
+   "fen": "r1bqkb1r/pp1ppppp/5n2/2p2n2/P7/5P1N/RPPPP1PP/1NBQKBR1 w kq - 2 6",
+   "potential": -0.023870841356831284,
+   "material": 0.0,
+   "center": -0.38222403546355194,
+   "exchange": 0.0,
+   "best_exchange_ich": 0,
+   "best_exchange_gegner": 0
+  },
+  {
+   "fen": "1q2kb1r/rb3p1p/1p1pp2n/R7/1pP5/3P1P2/P3P1B1/RNB1K1N1 b Q - 0 22",
+   "potential": 0.43003499421464203,
+   "material": 7.0,
+   "center": -0.15109194427929085,
+   "exchange": 3.5,
+   "best_exchange_ich": 5,
+   "best_exchange_gegner": 0
+  },
+  {
+   "fen": "3Q4/k7/2R2p2/2p2P1r/2bP4/Pr6/2K5/8 b - - 14 69",
+   "potential": -0.1705197831587315,
+   "material": -2.0,
+   "center": -0.042147580662764875,
+   "exchange": -0.8,
+   "best_exchange_ich": 1,
+   "best_exchange_gegner": 5
+  },
+  {
+   "fen": "rnb1k1nr/1p1p1pb1/2p1pqp1/P6p/5P2/1N4P1/P1PPP2P/RNBQKB1R b KQkq - 4 8",
+   "potential": -0.04698396447415377,
+   "material": -1.0,
+   "center": 0.24603214711915106,
+   "exchange": 0.0,
+   "best_exchange_ich": 0,
+   "best_exchange_gegner": 0
+  },
+  {
+   "fen": "1n2kr2/r1p5/1p4n1/p1b1p1PP/1q2Np2/1PBBR3/2P5/R2K4 b - - 7 33",
+   "potential": 0.4508391220892363,
+   "material": 10.0,
+   "center": 0.14898695345780566,
+   "exchange": 1.7000000000000002,
+   "best_exchange_ich": 5,
+   "best_exchange_gegner": 6
+  },
+  {
+   "fen": "rn1k1b2/4R3/5p2/p3pp1p/1P1pR2P/p2P4/8/4K3 w - - 0 58",
+   "potential": -0.32915811919309246,
+   "material": -5.0,
+   "center": 0.18131033313514905,
+   "exchange": -1.5,
+   "best_exchange_ich": 0,
+   "best_exchange_gegner": 5
+  },
+  {
+   "fen": "1r2kbn1/q2n3r/3p1p1p/pp3Pp1/2P1p1P1/2PPBB2/P3PKNP/RN1Q1R2 w - - 1 19",
+   "potential": 0.4254231528404991,
+   "material": 4.0,
+   "center": 0.3736839847707066,
+   "exchange": 5.7,
+   "best_exchange_ich": 9,
+   "best_exchange_gegner": 2
+  },
+  {
+   "fen": "2b2R2/1rnk4/p7/4Pp2/pPN5/2P5/2K1N3/5RR1 b - - 1 60",
+   "potential": -0.4343786441749157,
+   "material": -10.0,
+   "center": -0.32392227042504684,
+   "exchange": -0.3,
+   "best_exchange_ich": 0,
+   "best_exchange_gegner": 1
+  },
+  {
+   "fen": "1nbk1bnB/2r2p1p/1p4pP/p2p2P1/1p6/8/P2P2B1/RN1K2NR b - - 2 28",
+   "potential": -0.15883273521188382,
+   "material": -2.0,
+   "center": -0.33238726648857675,
+   "exchange": -0.3,
+   "best_exchange_ich": 0,
+   "best_exchange_gegner": 1
+  },
+  {
+   "fen": "rnb1k1nr/ppppq2p/6p1/P3pp2/2P3P1/RP6/3PPP1P/1NBQKBNR b Kkq - 0 6",
+   "potential": -0.11947568635966814,
+   "material": -3.0,
+   "center": 0.3507064853892544,
+   "exchange": 0.7,
+   "best_exchange_ich": 1,
+   "best_exchange_gegner": 0
+  },
+  {
+   "fen": "3n1bbr/1rk4p/1p6/2Pp1p2/pP1R1PP1/PQK1P1PB/7R/2B3Nq b - - 8 34",
+   "potential": 0.04178773824381631,
+   "material": -2.0,
+   "center": -0.22983292996582166,
+   "exchange": 2.9,
+   "best_exchange_ich": 8,
+   "best_exchange_gegner": 9
+  },
+  {
+   "fen": "1n4k1/2p5/7r/1p2B3/1p2Pqpb/3P1B2/4RPK1/3QR3 b - - 4 46",
+   "potential": -0.2722348523754665,
+   "material": -4.0,
+   "center": -0.28389469150963026,
+   "exchange": -0.6000000000000001,
+   "best_exchange_ich": 3,
+   "best_exchange_gegner": 9
+  },
+  {
+   "fen": "5n2/k7/3q4/r2p3p/4p2P/3pKRb1/8/2R5 w - - 30 77",
+   "potential": -0.46927311047310755,
+   "material": -13.0,
+   "center": -0.3056330733760954,
+   "exchange": -0.5,
+   "best_exchange_ich": 1,
+   "best_exchange_gegner": 4
+  },
+  {
+   "fen": "Q1b2k2/6b1/3p4/P1pr3R/2P1pn2/5P1q/P2P2P1/R1B1KB2 w Q - 1 29",
+   "potential": 0.41542799466624697,
+   "material": 5.0,
+   "center": -0.27284638393508476,
+   "exchange": 4.8,
+   "best_exchange_ich": 9,
+   "best_exchange_gegner": 5
+  },
+  {
+   "fen": "3B3n/3k1r2/3P4/1pq3p1/5n2/8/7K/8 b - - 5 64",
+   "potential": 0.49475356176751545,
+   "material": 18.0,
+   "center": 0.8797824616374003,
+   "exchange": 2.0999999999999996,
+   "best_exchange_ich": 3,
+   "best_exchange_gegner": 0
+  },
+  {
+   "fen": "rnbq1b1r/ppppkppp/7n/4p3/P7/7P/RPPPPPP1/1NBQKBNR w K - 1 4",
+   "potential": -0.013217465020365408,
+   "material": 0.0,
+   "center": -0.21152872199100722,
+   "exchange": 0.0,
+   "best_exchange_ich": 0,
+   "best_exchange_gegner": 0
+  },
+  {
+   "fen": "8/1k6/8/2B5/3P1P1p/1N4RP/4K3/6r1 b - - 0 79",
+   "potential": -0.34057212500837647,
+   "material": -8.0,
+   "center": -0.6499645425974419,
+   "exchange": 2.0,
+   "best_exchange_ich": 5,
+   "best_exchange_gegner": 5
+  },
+  {
+   "fen": "rn3b1B/qb1k4/4N3/2P2P1p/P2KP2r/1R3R1p/1P5n/N1Q5 b - - 2 61",
+   "potential": 0.03088329600025176,
+   "material": 0.0,
+   "center": -0.7052374310779449,
+   "exchange": 1.1999999999999997,
+   "best_exchange_ich": 3,
+   "best_exchange_gegner": 3
+  },
+  {
+   "fen": "4kbqr/6pp/p2p2pn/B4r2/p2p2P1/N2Q4/1P5P/1RK2B1R b k - 2 36",
+   "potential": 0.12919023351670955,
+   "material": 1.0,
+   "center": 0.21497790680852086,
+   "exchange": 0.8999999999999997,
+   "best_exchange_ich": 3,
+   "best_exchange_gegner": 4
+  },
+  {
+   "fen": "1nbk2r1/rp2p3/2pp1q2/3BP2p/1p5P/P3n1P1/1BPPNP2/1R2K1NR b K - 6 23",
+   "potential": 0.24980104098090022,
+   "material": 5.0,
+   "center": -0.009794179133695458,
+   "exchange": -0.6000000000000001,
+   "best_exchange_ich": 3,
+   "best_exchange_gegner": 9
+  },
+  {
+   "fen": "r1bq2nr/ppp1kpb1/2np2Bp/3Qp3/6P1/N1P1PN2/PP1P1P1P/R1BK2R1 b - - 0 11",
+   "potential": 0.04413277468307966,
+   "material": -1.0,
+   "center": -0.39203322552311026,
+   "exchange": 2.0999999999999996,
+   "best_exchange_ich": 3,
+   "best_exchange_gegner": 0
+  },
+  {
+   "fen": "1k6/1n2r3/b4p1Q/P1ppP1B1/P1p3p1/8/K5RP/2R5 w - - 8 52",
+   "potential": 0.4161492614705694,
+   "material": 10.0,
+   "center": -0.5354359814901909,
+   "exchange": 0.09999999999999998,
+   "best_exchange_ich": 1,
+   "best_exchange_gegner": 2
+  },
+  {
+   "fen": "1rb2b1r/p2k1qpn/np1p3p/2p1p3/3BP2P/PN1P4/1PP2PP1/R3KB1R b Q - 3 17",
+   "potential": 0.4645055706523787,
+   "material": 11.0,
+   "center": 0.10895937454238906,
+   "exchange": 2.0999999999999996,
+   "best_exchange_ich": 3,
+   "best_exchange_gegner": 0
+  },
+  {
+   "fen": "N5nk/2b5/3n4/Pp1p4/2pN1p2/2P2P1B/2K5/rR6 b - - 7 67",
+   "potential": 0.010875573487889287,
+   "material": 1.0,
+   "center": -0.025963374435298607,
+   "exchange": -0.8,
+   "best_exchange_ich": 1,
+   "best_exchange_gegner": 5
+  },
+  {
+   "fen": "1R4r1/1p2Bk2/2p3p1/6R1/2rp1qP1/P2n3p/7P/6KB b - - 8 71",
+   "potential": 0.44822511043709407,
+   "material": 8.0,
+   "center": 0.4307466322942245,
+   "exchange": 3.2,
+   "best_exchange_ich": 5,
+   "best_exchange_gegner": 1
+  },
+  {
+   "fen": "5k2/4p3/1P4P1/1R5p/3P4/N1q1p2b/R6r/1K4R1 b - - 2 44",
+   "potential": -0.11480643208513837,
+   "material": -1.0,
+   "center": -0.07024596777127479,
+   "exchange": -0.8,
+   "best_exchange_ich": 1,
+   "best_exchange_gegner": 5
+  },
+  {
+   "fen": "8/b2k2r1/6p1/p2b2NP/P3n1P1/4R3/8/4BKN1 w - - 5 65",
+   "potential": 0.0899650185722262,
+   "material": 1.0,
+   "center": -0.14471692811138304,
+   "exchange": 0.5999999999999996,
+   "best_exchange_ich": 3,
+   "best_exchange_gegner": 5
+  },
+  {
+   "fen": "8/5k2/2n5/1r1rpp1p/P1pP1P1P/4P1K1/2P4N/6BR w - - 0 55",
+   "potential": 0.12012463054093188,
+   "material": 0.0,
+   "center": -0.5396909959107505,
+   "exchange": 2.5,
+   "best_exchange_ich": 4,
+   "best_exchange_gegner": 1
+  },
+  {
+   "fen": "5krb/N2n4/P3Pp2/3P2p1/1pp1P1Pp/5B1P/P6R/2K2b2 b - - 0 56",
+   "potential": 0.006862643393752449,
+   "material": 1.0,
+   "center": 0.009809190059558444,
+   "exchange": -0.8999999999999999,
+   "best_exchange_ich": 0,
+   "best_exchange_gegner": 3
+  },
+  {
+   "fen": "6k1/2B3pb/8/1r4Np/7R/8/5P1R/2n4K w - - 2 68",
+   "potential": 0.23093467189732736,
+   "material": 4.0,
+   "center": 0.19747952843675223,
+   "exchange": -0.19999999999999996,
+   "best_exchange_ich": 1,
+   "best_exchange_gegner": 3
+  },
+  {
+   "fen": "rn4r1/1p1k1n2/p1ppbp2/5ppp/3b1P1P/1P4P1/P3R3/R3NKN1 b - - 0 36",
+   "potential": 0.46352515305735154,
+   "material": 9.0,
+   "center": 0.5959027810536335,
+   "exchange": 3.5,
+   "best_exchange_ich": 5,
+   "best_exchange_gegner": 0
+  },
+  {
+   "fen": "5R2/2k5/1rr2N2/Bppp3p/P1P1P2p/1P3NnR/5P2/R3KB2 w - - 1 43",
+   "potential": 0.4790834066816006,
+   "material": 14.0,
+   "center": 0.18429620818899548,
+   "exchange": 1.1999999999999997,
+   "best_exchange_ich": 3,
+   "best_exchange_gegner": 3
+  },
+  {
+   "fen": "rnbqkb2/pp3p1p/2p1p1r1/3p3n/5pPP/PP1P1N1R/2P1P3/RNBQKB2 w Qq - 1 10",
+   "potential": 0.04964829812533915,
+   "material": -1.0,
+   "center": -0.0030008859797094056,
+   "exchange": 1.7999999999999996,
+   "best_exchange_ich": 3,
+   "best_exchange_gegner": 1
+  },
+  {
+   "fen": "4kb2/2r5/1r2p3/1pPN1Pp1/bP1N2p1/6P1/8/R1K1n3 w - - 3 66",
+   "potential": -0.3014413995999833,
+   "material": -8.0,
+   "center": -0.18131033313514905,
+   "exchange": 2.6,
+   "best_exchange_ich": 5,
+   "best_exchange_gegner": 3
+  },
+  {
+   "fen": "1n1N4/2pk4/3r1P1b/P1p4R/3PN1r1/5q1B/1K6/3b2R1 w - - 9 69",
+   "potential": -0.3330899615546056,
+   "material": -8.0,
+   "center": -0.4307466322942245,
+   "exchange": 2.0,
+   "best_exchange_ich": 5,
+   "best_exchange_gegner": 5
+  },
+  {
+   "fen": "6n1/1b2R1Pr/2pRp3/4B3/P1P1k3/8/1K2P1pn/8 b - - 5 73",
+   "potential": 0.16300313487136966,
+   "material": 0.0,
+   "center": 0.10682436186917774,
+   "exchange": 2.6,
+   "best_exchange_ich": 5,
+   "best_exchange_gegner": 3
+  },
+  {
+   "fen": "rn1qkb1r/3p1ppp/2p4n/p5B1/1p6/1P3PPB/P1P1b1KP/RN1Q2NR w kq - 1 13",
+   "potential": 0.04996913078521426,
+   "material": -1.0,
+   "center": 0.3021838885585816,
+   "exchange": 1.4999999999999996,
+   "best_exchange_ich": 6,
+   "best_exchange_gegner": 9
+  },
+  {
+   "fen": "rnb3r1/pp1pqk2/3bN1pn/4pp1p/P7/3P4/1PP1PPPP/R1BQKBNR b KQ - 4 11",
+   "potential": 0.020920450765551782,
+   "material": -1.0,
+   "center": 0.13492274897768766,
+   "exchange": 1.1999999999999997,
+   "best_exchange_ich": 3,
+   "best_exchange_gegner": 3
+  },
+  {
+   "fen": "rn3r2/pbn1k3/q1p2Np1/1pP5/1P1P1p1p/P2K1N1P/3P2P1/2RR4 b - - 0 36",
+   "potential": 0.45549651006501296,
+   "material": 11.0,
+   "center": -0.5333460015945688,
+   "exchange": 1.7999999999999996,
+   "best_exchange_ich": 3,
+   "best_exchange_gegner": 1
+  },
+  {
+   "fen": "r1bqkbnr/ppp1pppp/2n5/8/P2p4/5PP1/1PPPP1BP/RNBQK1NR b KQkq - 0 4",
+   "potential": 0.025409545705874625,
+   "material": 0.0,
+   "center": 0.40690325960627427,
+   "exchange": 0.0,
+   "best_exchange_ich": 0,
+   "best_exchange_gegner": 0
+  },
+  {
+   "fen": "r3k2r/4bppp/bp3n2/p1n4P/P4PPR/N7/R1PQP3/1N2KB2 b - - 0 19",
+   "potential": -0.3335294599060469,
+   "material": -7.0,
+   "center": -0.1434027559670807,
+   "exchange": 0.7,
+   "best_exchange_ich": 1,
+   "best_exchange_gegner": 0
+  },
+  {
+   "fen": "5b1r/3k2pp/brnp4/4qpNP/pPp5/2N1p1P1/2PBPP2/R2K2RB w - - 3 39",
+   "potential": -0.35739909828492217,
+   "material": -7.0,
+   "center": -0.2754146845202372,
+   "exchange": 0.09999999999999998,
+   "best_exchange_ich": 1,
+   "best_exchange_gegner": 2
+  },
+  {
+   "fen": "1r2krB1/6pp/3p1q2/1pb1p3/Qp4R1/B1PP1P1b/P3n3/3K2N1 b - - 5 36",
+   "potential": 0.4589302189259799,
+   "material": 7.0,
+   "center": 0.2021828416951161,
+   "exchange": 5.4,
+   "best_exchange_ich": 9,
+   "best_exchange_gegner": 3
+  },
+  {
+   "fen": "3NQ3/n6k/2p4p/B5Pp/4pP1P/4P1K1/8/5b2 b - - 5 65",
+   "potential": -0.42014241190603596,
+   "material": -9.0,
+   "center": -0.47713421645168597,
+   "exchange": -0.3,
+   "best_exchange_ich": 0,
+   "best_exchange_gegner": 1
+  },
+  {
+   "fen": "rnb1k1nr/1pp3b1/B2pp2p/5P2/PP2P2q/6P1/2PP2K1/RNBQ2NR b kq - 0 15",
+   "potential": -0.04592736072313067,
+   "material": -2.0,
+   "center": 0.46308502289743103,
+   "exchange": 0.8000000000000003,
+   "best_exchange_ich": 5,
+   "best_exchange_gegner": 9
+  },
+  {
+   "fen": "5bkr/r6p/pqp3p1/1pPpPQ2/1B3pN1/N6P/PP2PPP1/3RKBR1 w - - 9 23",
+   "potential": 0.4717910786458235,
+   "material": 10.0,
+   "center": 0.5580102148114281,
+   "exchange": 3.6,
+   "best_exchange_ich": 9,
+   "best_exchange_gegner": 9
+  },
+  {
+   "fen": "r2r1n1k/1bN5/3p3p/p1p5/2P4b/P2Q1N1q/RP4R1/2B2K2 b - - 33 66",
+   "potential": 0.1300479526570947,
+   "material": 1.0,
+   "center": -0.3703098545825083,
+   "exchange": 1.4999999999999996,
+   "best_exchange_ich": 3,
+   "best_exchange_gegner": 2
+  },
+  {
+   "fen": "1n3r2/2r5/1bp5/1pB1kpp1/8/1P2P2p/P6P/3bKQ2 b - - 3 48",
+   "potential": 0.40422094941260667,
+   "material": 8.0,
+   "center": 0.38011904464206675,
+   "exchange": 0.5999999999999996,
+   "best_exchange_ich": 3,
+   "best_exchange_gegner": 5
+  },
+  {
+   "fen": "2b5/p1r1kpr1/2pppnn1/P5p1/1p2P2p/1P4PP/RQKPBb2/1NBR4 b - - 3 41",
+   "potential": -0.16598411140604885,
+   "material": -4.0,
+   "center": 0.5396909959107505,
+   "exchange": 0.7,
+   "best_exchange_ich": 1,
+   "best_exchange_gegner": 0
+  },
+  {
+   "fen": "b6r/8/7n/1P1k2NP/3p2P1/5p1R/8/4R2K w - - 0 53",
+   "potential": 0.1884913227264306,
+   "material": 3.0,
+   "center": -0.22769791729261044,
+   "exchange": 0.39999999999999997,
+   "best_exchange_ich": 1,
+   "best_exchange_gegner": 1
+  },
+  {
+   "fen": "3rk2q/1b1pp2p/R5N1/3p3r/p3Pp1b/PP5N/3P1Q2/4KB1R w - - 0 35",
+   "potential": 0.2846483165486055,
+   "material": 1.0,
+   "center": -0.3281472629938805,
+   "exchange": 4.5,
+   "best_exchange_ich": 9,
+   "best_exchange_gegner": 6
+  },
+  {
+   "fen": "r2qkb1r/pbpppp2/1p4pp/8/N3P3/4nNP1/PPPPBP1P/R1BQK2R w KQkq - 3 9",
+   "potential": 0.19552198851623756,
+   "material": 3.0,
+   "center": 0.004255014420559568,
+   "exchange": 0.2999999999999998,
+   "best_exchange_ich": 3,
+   "best_exchange_gegner": 6
+  },
+  {
+   "fen": "r1b2k1r/1p1p2qp/2nbp3/p1pPnp2/2P3Pp/1B2P2P/PP3P2/R1NKNR2 b - - 6 23",
+   "potential": 0.459189799989145,
+   "material": 12.0,
+   "center": 0.5286276774103421,
+   "exchange": 0.09999999999999998,
+   "best_exchange_ich": 1,
+   "best_exchange_gegner": 2
+  },
+  {
+   "fen": "3N4/k7/4p3/7p/P2p1PR1/6p1/2nB2P1/2R1K3 w - - 3 48",
+   "potential": 0.4550343527173149,
+   "material": 12.0,
+   "center": -0.07660597301331956,
+   "exchange": 0.5999999999999996,
+   "best_exchange_ich": 3,
+   "best_exchange_gegner": 5
+  },
+  {
+   "fen": "r1b2b2/NBp1pk2/1n6/P1r1p1pq/1PP1Qp2/4PPn1/3K4/1RB1R3 b - - 0 34",
+   "potential": 0.28779431903939634,
+   "material": 3.0,
+   "center": -0.45327583283787254,
+   "exchange": 2.6999999999999993,
+   "best_exchange_ich": 6,
+   "best_exchange_gegner": 5
+  },
+  {
+   "fen": "rnq1k2r/pb5p/P1p4n/1p1pppp1/2P3P1/4P3/1P2KP1P/RNBQ1BNR b kq - 0 13",
+   "potential": -0.12120865085477224,
+   "material": -2.0,
+   "center": -0.07872597476066784,
+   "exchange": 0.09999999999999998,
+   "best_exchange_ich": 1,
+   "best_exchange_gegner": 2
+  },
+  {
+   "fen": "5rnr/p2b1p2/n2pk1P1/7R/Pb4P1/2qPpP1N/2PNP1B1/R2Q1K2 w - - 2 29",
+   "potential": -0.06957607536526117,
+   "material": 0.0,
+   "center": -0.22048704966993063,
+   "exchange": -0.8999999999999999,
+   "best_exchange_ich": 0,
+   "best_exchange_gegner": 3
+  },
+  {
+   "fen": "7B/8/3PPn1k/p6B/P3p2n/2P5/2K1bR2/4Rbr1 w - - 0 57",
+   "potential": 0.12615093652088438,
+   "material": 1.0,
+   "center": -0.1370427507250359,
+   "exchange": 1.1999999999999997,
+   "best_exchange_ich": 3,
+   "best_exchange_gegner": 3
+  },
+  {
+   "fen": "1n4b1/1r3qbr/p2p4/1kP1P3/p7/B1K3P1/P3NP2/RN3R2 w - - 2 41",
+   "potential": -0.3454524199791474,
+   "material": -7.0,
+   "center": -0.19747952843675226,
+   "exchange": 0.39999999999999997,
+   "best_exchange_ich": 1,
+   "best_exchange_gegner": 1
+  },
+  {
+   "fen": "4r3/3q4/2p4k/1n2p1R1/5PBp/Pp5P/1R6/3N1K2 b - - 7 73",
+   "potential": 0.1892973137809609,
+   "material": 2.0,
+   "center": 0.38734492319060965,
+   "exchange": 0.8000000000000003,
+   "best_exchange_ich": 5,
+   "best_exchange_gegner": 9
+  },
+  {
+   "fen": "r1b2bnr/pN3kp1/n3p3/3p1pp1/2p1P2P/PPP2q2/3PQPBR/R1B1K1N1 w Q - 0 21",
+   "potential": 0.28688705108234536,
+   "material": 0.0,
+   "center": -0.17495032789310425,
+   "exchange": 5.4,
+   "best_exchange_ich": 9,
+   "best_exchange_gegner": 3
+  },
+  {
+   "fen": "3rbb1k/6pr/4pn2/p1pqP1P1/1p3pPP/1P6/3B4/3K2R1 w - - 5 43",
+   "potential": -0.49363053821748926,
+   "material": -21.0,
+   "center": -0.999401888619983,
+   "exchange": 1.7999999999999996,
+   "best_exchange_ich": 3,
+   "best_exchange_gegner": 1
+  },
+  {
+   "fen": "rn5B/N2qk3/B2nb3/3pb3/3P3P/Q1P1Pp2/3B1K2/R4R2 w - - 2 58",
+   "potential": 0.3851820401684342,
+   "material": 7.0,
+   "center": -0.03021838885585816,
+   "exchange": 1.1999999999999997,
+   "best_exchange_ich": 3,
+   "best_exchange_gegner": 3
+  },
+  {
+   "fen": "8/7k/2N2p2/P3pP1p/2PpP1pn/6P1/1RB5/3K4 b - - 0 71",
+   "potential": -0.409458459665001,
+   "material": -8.0,
+   "center": -0.3281622739197435,
+   "exchange": -0.8999999999999999,
+   "best_exchange_ich": 0,
+   "best_exchange_gegner": 3
+  },
+  {
+   "fen": "r6r/1p3p2/n1p5/P1PQPpkp/6B1/P2P4/K2N3P/R5bR w - - 0 39",
+   "potential": 0.4188346112813903,
+   "material": 10.0,
+   "center": 0.3064689248308674,
+   "exchange": -0.6000000000000001,
+   "best_exchange_ich": 3,
+   "best_exchange_gegner": 9
+  },
+  {
+   "fen": "1rq1k2r/p3npb1/3pp1pp/Pp6/1pPn1Pb1/2B4P/2Q1P1PR/RN2KBN1 w k - 4 17",
+   "potential": -0.17441711619496605,
+   "material": -2.0,
+   "center": -0.31292688668433133,
+   "exchange": -0.6000000000000001,
+   "best_exchange_ich": 3,
+   "best_exchange_gegner": 9
+  },
+  {
+   "fen": "8/r6b/2Pk1bnp/N2Pp2P/p7/P2P4/4R1Rp/5K2 w - - 2 62",
+   "potential": 0.05774337082057104,
+   "material": 0.0,
+   "center": -0.27196549970272355,
+   "exchange": 1.1999999999999997,
+   "best_exchange_ich": 3,
+   "best_exchange_gegner": 3
+  },
+  {
+   "fen": "r1bqk1nr/3p1ppp/1pnb4/p3p3/1pP1PP1P/8/PQ1P2P1/RNB1KBNR w KQkq - 2 9",
+   "potential": -0.07553242812794163,
+   "material": -1.0,
+   "center": 0.08216014865231844,
+   "exchange": -0.3,
+   "best_exchange_ich": 0,
+   "best_exchange_gegner": 1
+  },
+  {
+   "fen": "3q4/N2pk3/r2b4/P1p1N2B/1nP5/4K3/3Pn3/3R4 w - - 7 52",
+   "potential": -0.3516720871252712,
+   "material": -8.0,
+   "center": -0.19110451226884445,
+   "exchange": 1.1999999999999997,
+   "best_exchange_ich": 3,
+   "best_exchange_gegner": 3
+  },
+  {
+   "fen": "6k1/p2r4/n2P3p/P1p1Pn2/R1P2p2/2N3r1/4B3/2K5 w - - 22 62",
+   "potential": -0.31052114000521774,
+   "material": -5.0,
+   "center": 0.08640015214701496,
+   "exchange": -0.8999999999999999,
+   "best_exchange_ich": 0,
+   "best_exchange_gegner": 3
+  },
+  {
+   "fen": "rnq1kb2/2ppppp1/1p3n1r/p6p/6P1/P2PP3/1PPKBP1P/RNB1Q1Nb w q - 0 10",
+   "potential": -0.2971761143716002,
+   "material": -5.0,
+   "center": -0.17495032789310427,
+   "exchange": -0.3,
+   "best_exchange_ich": 0,
+   "best_exchange_gegner": 1
+  },
+  {
+   "fen": "3k4/8/2b2bR1/2q1B3/P2P2p1/2P3p1/8/3B2K1 b - - 5 60",
+   "potential": 0.0859262336355599,
+   "material": 3.0,
+   "center": 0.38859905163145975,
+   "exchange": -1.9999999999999998,
+   "best_exchange_ich": 1,
+   "best_exchange_gegner": 9
+  },
+  {
+   "fen": "r2qk2r/p1p2pbp/n1P2n2/1p1ppbp1/4PP2/1P1B4/P2P2PP/RNBQ1KNR w kq - 1 9",
+   "potential": 0.08501062586544067,
+   "material": 0.0,
+   "center": -0.42649161787366513,
+   "exchange": 1.7999999999999996,
+   "best_exchange_ich": 3,
+   "best_exchange_gegner": 1
+  },
+  {
+   "fen": "r3b1n1/pp1q1p1r/1k3P1p/2p5/1PPp2pP/B5P1/P2Q1K1R/2N3R1 w - - 4 47",
+   "potential": -0.09361884992222926,
+   "material": -1.0,
+   "center": -0.21578373641156678,
+   "exchange": -0.3,
+   "best_exchange_ich": 0,
+   "best_exchange_gegner": 1
+  },
+  {
+   "fen": "1n4nr/5pkp/rp2p2q/1p1P4/1KNP3P/6bN/P1P2PPR/6R1 w - - 1 20",
+   "potential": -0.41269718555574275,
+   "material": -10.0,
+   "center": 0.011914180881043651,
+   "exchange": 0.5999999999999996,
+   "best_exchange_ich": 3,
+   "best_exchange_gegner": 5
+  },
+  {
+   "fen": "r5r1/p2b1kbN/1pp1p1pn/3p4/PP1P2BP/2q3P1/R1PNP3/2BQK1R1 b - - 0 22",
+   "potential": -0.08374226968694573,
+   "material": -4.0,
+   "center": 0.5473801842229608,
+   "exchange": 2.0999999999999996,
+   "best_exchange_ich": 3,
+   "best_exchange_gegner": 0
+  },
+  {
+   "fen": "rnbqkbnr/p1ppppp1/1p6/7p/3N2P1/8/PPPPPP1P/R1BQKBNR b KQkq - 1 4",
+   "potential": 0.0410233508474499,
+   "material": 0.0,
+   "center": -0.04214758066276486,
+   "exchange": 0.7,
+   "best_exchange_ich": 1,
+   "best_exchange_gegner": 0
+  },
+  {
+   "fen": "rn3knb/2pb1p2/R2p1qpr/1P1Pp3/1P3P1p/2PQ2PP/4PKNR/1NB2B2 b - - 2 17",
+   "potential": -0.1514944031209053,
+   "material": -2.0,
+   "center": -0.4024580631466591,
+   "exchange": -0.10000000000000009,
+   "best_exchange_ich": 2,
+   "best_exchange_gegner": 5
+  },
+  {
+   "fen": "rnbqkbnr/1pppp2p/p7/6p1/Q1P2p2/P7/1P1PPPPP/RNB1KBNR w KQkq - 0 5",
+   "potential": 0.009096045071708692,
+   "material": 0.0,
+   "center": 0.145552779566155,
+   "exchange": 0.0,
+   "best_exchange_ich": 0,
+   "best_exchange_gegner": 0
+  },
+  {
+   "fen": "rq3rk1/1b6/2p1p1pn/2Pp3p/p3BP1P/NPp1P1PR/7R/2bK2N1 w - - 5 45",
+   "potential": -0.4043388043730319,
+   "material": -10.0,
+   "center": -0.1855653475557086,
+   "exchange": 1.1999999999999997,
+   "best_exchange_ich": 3,
+   "best_exchange_gegner": 3
+  },
+  {
+   "fen": "r1Nn3r/ppk4p/2bb2p1/2B2P2/q1P1p1BP/6N1/1n6/3R1K1R b - - 3 34",
+   "potential": 0.4731331573261714,
+   "material": 11.0,
+   "center": -0.1414879471846511,
+   "exchange": 3.5,
+   "best_exchange_ich": 5,
+   "best_exchange_gegner": 0
+  },
+  {
+   "fen": "8/8/3P4/4B2p/4k3/8/1b2q1R1/4N1K1 b - - 0 57",
+   "potential": 0.07317806765530632,
+   "material": 1.0,
+   "center": 0.7793181050102675,
+   "exchange": -0.6000000000000001,
+   "best_exchange_ich": 3,
+   "best_exchange_gegner": 9
+  },
+  {
+   "fen": "r7/1b2r2k/4p1pP/6K1/1B1P4/PP6/R1P1p2P/Q2R2N1 b - - 3 46",
+   "potential": -0.46969753920427226,
+   "material": -15.0,
+   "center": -0.16302113608619756,
+   "exchange": 1.2999999999999998,
+   "best_exchange_ich": 4,
+   "best_exchange_gegner": 5
+  },
+  {
+   "fen": "3n2b1/2ppk3/5n1Q/6PP/1p1R4/r1B2P2/Np2P3/R2K1B2 w - - 2 52",
+   "potential": 0.4729572103098759,
+   "material": 14.0,
+   "center": 0.1316787571250926,
+   "exchange": 0.19999999999999996,
+   "best_exchange_ich": 2,
+   "best_exchange_gegner": 4
+  },
+  {
+   "fen": "2r2k2/q4p2/p1n3pr/Ppp3P1/QP1pPPnp/4P3/1R1B3P/1N3KNR w - - 4 26",
+   "potential": 0.1747333825695324,
+   "material": 3.0,
+   "center": -0.18131033313514905,
+   "exchange": 0.10000000000000009,
+   "best_exchange_ich": 4,
+   "best_exchange_gegner": 9
+  },
+  {
+   "fen": "q7/5k2/n1pP4/1pP1r3/PpR1p1b1/4K2B/1P5P/2N1B1R1 b - - 1 63",
+   "potential": 0.15463293308921594,
+   "material": 0.0,
+   "center": -0.042132569736901854,
+   "exchange": 2.6,
+   "best_exchange_ich": 5,
+   "best_exchange_gegner": 3
+  },
+  {
+   "fen": "2nk4/8/5PP1/1r6/1p1B4/Pp6/4B3/4bK2 w - - 2 64",
+   "potential": -0.05543709322206419,
+   "material": -4.0,
+   "center": -0.09065516656757452,
+   "exchange": 3.2,
+   "best_exchange_ich": 5,
+   "best_exchange_gegner": 1
+  },
+  {
+   "fen": "8/6k1/1rnN2pp/5pNP/P3RP1Q/R7/5K2/8 b - - 20 57",
+   "potential": -0.47546965087208065,
+   "material": -17.0,
+   "center": -0.5320318294502665,
+   "exchange": 2.8,
+   "best_exchange_ich": 4,
+   "best_exchange_gegner": 0
+  },
+  {
+   "fen": "1r6/3k4/P1r5/2b5/7p/3K1B2/8/5n2 w - - 0 77",
+   "potential": -0.4484679804760657,
+   "material": -13.0,
+   "center": 0.24942128823321244,
+   "exchange": 1.0999999999999999,
+   "best_exchange_ich": 2,
+   "best_exchange_gegner": 1
+  },
+  {
+   "fen": "4k2r/1q2n3/b2rpB2/p1ppNp1p/1np1P2P/N7/5PP1/R1QK1B1R w k - 2 31",
+   "potential": 0.16900673277912337,
+   "material": 0.0,
+   "center": -0.38521564170118106,
+   "exchange": 3.2,
+   "best_exchange_ich": 5,
+   "best_exchange_gegner": 1
+  },
+  {
+   "fen": "3qk2r/1r2np1p/pp1bp3/3p1bNP/P2pN3/2P1p3/1B5P/R1Q1KB1R b k - 1 22",
+   "potential": 0.19011608464329,
+   "material": 1.0,
+   "center": 0.40264824518571474,
+   "exchange": 1.7999999999999996,
+   "best_exchange_ich": 3,
+   "best_exchange_gegner": 1
+  },
+  {
+   "fen": "rn3r2/1b2qkp1/p3p2p/R1n2p1P/5PP1/2P2B2/Q2B4/5KNR w - - 3 30",
+   "potential": -0.061051708328013286,
+   "material": -1.0,
+   "center": 0.018274186123088426,
+   "exchange": 0.0,
+   "best_exchange_ich": 0,
+   "best_exchange_gegner": 0
+  },
+  {
+   "fen": "1n2q1nr/r1p1p2p/p1P2k2/3pbP2/PR3P2/3P3B/1P2K3/2B1Q1NR w - - 3 27",
+   "potential": 0.1410206882827815,
+   "material": 1.0,
+   "center": 0.21918788845149131,
+   "exchange": 1.0999999999999999,
+   "best_exchange_ich": 2,
+   "best_exchange_gegner": 1
+  },
+  {
+   "fen": "rnb1kb1r/p1qp1n1p/4p3/1pP2pp1/2P5/P4P2/2QPPKPP/RNB2BNR w kq - 0 12",
+   "potential": 0.0808405566062727,
+   "material": 1.0,
+   "center": -0.0951003630271897,
+   "exchange": 0.39999999999999997,
+   "best_exchange_ich": 1,
+   "best_exchange_gegner": 1
+  },
+  {
+   "fen": "7k/5Pb1/r7/p1rpq3/1PPPp2P/p7/P1R5/4K3 w - - 5 68",
+   "potential": -0.4321606827830713,
+   "material": -15.0,
+   "center": -0.7814531176834788,
+   "exchange": 5.3,
+   "best_exchange_ich": 8,
+   "best_exchange_gegner": 1
+  },
+  {
+   "fen": "1r4nr/3pk1B1/p1b5/1Np4p/1pP2P1P/PnRP1N2/1PQ1PPBR/4K3 b - - 19 38",
+   "potential": -0.4718083542158027,
+   "material": -15.0,
+   "center": -0.46053173323814156,
+   "exchange": 1.2999999999999998,
+   "best_exchange_ich": 4,
+   "best_exchange_gegner": 5
+  },
+  {
+   "fen": "rn4kr/p5pp/1bP2Q2/B7/2p2PP1/7P/6K1/Rq5R w - - 2 42",
+   "potential": 0.04554110513210262,
+   "material": -3.0,
+   "center": 0.13068274548299114,
+   "exchange": 3.6,
+   "best_exchange_ich": 9,
+   "best_exchange_gegner": 9
+  },
+  {
+   "fen": "qk4nr/6b1/2p2p1p/2PpP3/1p2P1Pp/2NB4/bN1P4/R1B3KR b - - 1 31",
+   "potential": 0.14631177553297034,
+   "material": 2.0,
+   "center": -0.08853516482022628,
+   "exchange": 0.5,
+   "best_exchange_ich": 2,
+   "best_exchange_gegner": 3
+  },
+  {
+   "fen": "rnbq2nr/1p1pkp2/p1p1p3/4PQpp/2BP1P2/7P/PPPbN1PR/RNB2K2 w - - 0 16",
+   "potential": -0.012013055046993853,
+   "material": 0.0,
+   "center": 0.4077541219869093,
+   "exchange": -0.6000000000000001,
+   "best_exchange_ich": 3,
+   "best_exchange_gegner": 9
+  },
+  {
+   "fen": "r2k3r/8/1p1b1p1n/p1qppP1p/P1pP2Pp/1PP1P3/1B1R4/R1K2N1B b - - 3 35",
+   "potential": 0.29001237342639746,
+   "material": 7.0,
+   "center": 0.0,
+   "exchange": -1.7,
+   "best_exchange_ich": 1,
+   "best_exchange_gegner": 8
+  },
+  {
+   "fen": "8/8/7p/2P1pR1P/4N1R1/k3P3/3KR2r/r2n4 b - - 0 80",
+   "potential": -0.38303805225545795,
+   "material": -6.0,
+   "center": -0.5860785800682118,
+   "exchange": -1.5,
+   "best_exchange_ich": 0,
+   "best_exchange_gegner": 5
+  },
+  {
+   "fen": "2r1k1nr/pb1pp1b1/nq5p/2p2pB1/1PpPP2Q/3R2PN/5P1P/1N2KB1R b Kk - 1 22",
+   "potential": 0.2219305961782824,
+   "material": 1.0,
+   "center": 0.31623308211283674,
+   "exchange": 2.5,
+   "best_exchange_ich": 4,
+   "best_exchange_gegner": 1
+  },
+  {
+   "fen": "3r1k2/r1Qq3n/4p2p/1Np3pP/p1P5/P2P3R/1P1KN1P1/R1B2B2 w - - 9 32",
+   "potential": 0.4496657282520316,
+   "material": 10.0,
+   "center": 0.3496954628212898,
+   "exchange": 1.4,
+   "best_exchange_ich": 5,
+   "best_exchange_gegner": 7
+  },
+  {
+   "fen": "2b2knr/p2p1p1p/1rp1p1p1/Npn3NP/P6R/2PP4/1P2P1P1/R1BQ1BK1 w - - 9 18",
+   "potential": 0.43991446377830207,
+   "material": 11.0,
+   "center": 0.3000788977370965,
+   "exchange": -0.3,
+   "best_exchange_ich": 0,
+   "best_exchange_gegner": 1
+  },
+  {
+   "fen": "3k1B2/4n2r/7p/8/r1RK4/1p1b2b1/8/8 w - - 5 79",
+   "potential": -0.42299224600164453,
+   "material": -13.0,
+   "center": 0.16514113783354584,
+   "exchange": 2.9,
+   "best_exchange_ich": 5,
+   "best_exchange_gegner": 2
+  },
+  {
+   "fen": "r1b1kb1r/pp2pp1p/n6n/q1ppP3/P1P3Pp/8/1P1P1P1P/RNBQKB1R b KQkq - 0 8",
+   "potential": 0.20843038136301675,
+   "material": 3.0,
+   "center": 0.15109194427929087,
+   "exchange": 0.39999999999999997,
+   "best_exchange_ich": 1,
+   "best_exchange_gegner": 1
+  },
+  {
+   "fen": "r1b1kb1r/1ppp2pp/4n1n1/pPP1pp2/4PPPP/3P4/B1qQ3R/1N2K1N1 w - - 0 22",
+   "potential": -0.18017497937642057,
+   "material": -9.0,
+   "center": -0.018304207974814524,
+   "exchange": 6.0,
+   "best_exchange_ich": 9,
+   "best_exchange_gegner": 1
+  },
+  {
+   "fen": "5R2/3n4/p1b1P3/npbP4/2p1k1P1/N1P3B1/P7/R1K2B2 b - - 0 51",
+   "potential": -0.30068916969201787,
+   "material": -9.0,
+   "center": 0.5375709941634024,
+   "exchange": 2.9,
+   "best_exchange_ich": 5,
+   "best_exchange_gegner": 2
+  },
+  {
+   "fen": "r2k3r/2p4p/b1nb3n/1q1pp1p1/pB3QP1/2PP3P/R2KPP2/1N3BR1 w - - 6 28",
+   "potential": -0.2783293583752321,
+   "material": -3.0,
+   "center": -0.023828361762087295,
+   "exchange": -1.9999999999999998,
+   "best_exchange_ich": 1,
+   "best_exchange_gegner": 9
+  },
+  {
+   "fen": "3r1r2/7p/1pk2b1n/p1p4P/3P2p1/Pp1RP1P1/bB6/1RN2K2 w - - 0 48",
+   "potential": -0.278918804727052,
+   "material": -4.0,
+   "center": -0.23750710735216887,
+   "exchange": -0.8,
+   "best_exchange_ich": 1,
+   "best_exchange_gegner": 5
+  },
+  {
+   "fen": "1R6/8/2kn4/2P3R1/N7/4p3/3B3r/2N2K2 w - - 0 79",
+   "potential": 0.44790454463669804,
+   "material": 11.0,
+   "center": 0.10470436012182949,
+   "exchange": 0.5,
+   "best_exchange_ich": 2,
+   "best_exchange_gegner": 3
+  },
+  {
+   "fen": "b1k5/6br/1r2p1P1/ppp5/1PP1PN2/3K4/P1nB2P1/R3NBR1 b - - 6 45",
+   "potential": -0.17302645349714088,
+   "material": -5.0,
+   "center": 0.11237853750817661,
+   "exchange": 2.0,
+   "best_exchange_ich": 5,
+   "best_exchange_gegner": 5
+  },
+  {
+   "fen": "2b4r/rp6/Pp2Bp1k/R1p3p1/3n4/8/3N1q1P/1n1Kn3 b - - 1 67",
+   "potential": 0.4984815341828671,
+   "material": 23.0,
+   "center": 0.3541406592809051,
+   "exchange": 2.6,
+   "best_exchange_ich": 5,
+   "best_exchange_gegner": 3
+  },
+  {
+   "fen": "k1q5/2b1R3/p1P5/1p2Bp1p/1P2n2P/P2N3P/3K4/8 w - - 0 74",
+   "potential": -0.06060198104806724,
+   "material": -3.0,
+   "center": 0.22557791554526216,
+   "exchange": 2.0999999999999996,
+   "best_exchange_ich": 3,
+   "best_exchange_gegner": 0
+  },
+  {
+   "fen": "r4k2/8/1pp5/4p3/p3PPNQ/P3q3/K7/2BR4 w - - 5 49",
+   "potential": 0.44089752834220836,
+   "material": 5.0,
+   "center": 0.07024596777127477,
+   "exchange": 6.0,
+   "best_exchange_ich": 9,
+   "best_exchange_gegner": 1
+  },
+  {
+   "fen": "r3kb1r/1pp1qppp/2np4/Pb2nP2/6P1/P1P4N/R2QP2P/1NB1KB1R w - - 5 17",
+   "potential": 0.04244943727864513,
+   "material": 1.0,
+   "center": -0.01917008128131261,
+   "exchange": -0.3,
+   "best_exchange_ich": 0,
+   "best_exchange_gegner": 1
+  },
+  {
+   "fen": "1r6/r5bk/Q5pn/1p3p1B/1p5P/1b3n1P/4KP2/3R4 w - - 1 52",
+   "potential": -0.304121996034529,
+   "material": -6.0,
+   "center": -0.44903582934317615,
+   "exchange": 0.8000000000000003,
+   "best_exchange_ich": 5,
+   "best_exchange_gegner": 9
+  },
+  {
+   "fen": "5r1b/1pk4p/5pr1/P1Pppp1P/P7/R1P1K3/1Q4R1/1NB4N b - - 0 40",
+   "potential": -0.4789847831670354,
+   "material": -14.0,
+   "center": 0.13492274897768766,
+   "exchange": -1.5,
+   "best_exchange_ich": 0,
+   "best_exchange_gegner": 5
+  },
+  {
+   "fen": "3kq2r/3n4/2r2p1Q/2pppp2/ppP1N1P1/PP1PP2P/2R1K1B1/2B5 b - - 3 37",
+   "potential": 0.2798499052802489,
+   "material": -1.0,
+   "center": 0.05916763834500314,
+   "exchange": 6.0,
+   "best_exchange_ich": 9,
+   "best_exchange_gegner": 1
+  },
+  {
+   "fen": "rnbqkbn1/ppppppp1/7r/7p/3P3P/P7/1PP1PPP1/RNBQKBNR b KQq - 0 3",
+   "potential": -0.0592141085298857,
+   "material": 0.0,
+   "center": -0.35189267907041133,
+   "exchange": -0.6,
+   "best_exchange_ich": 0,
+   "best_exchange_gegner": 2
+  },
+  {
+   "fen": "B6R/5nk1/7p/1r6/3K2PP/8/N1p5/5q2 b - - 0 73",
+   "potential": 0.4111064472146098,
+   "material": 6.0,
+   "center": -0.1911195231947075,
+   "exchange": 3.5,
+   "best_exchange_ich": 5,
+   "best_exchange_gegner": 0
+  },
+  {
+   "fen": "rnbq1knr/2p1pp1p/3p2pb/p5P1/1p1P4/2P1PP2/PP2B2P/RNBQKRN1 b Q - 0 10",
+   "potential": -0.019357452759913577,
+   "material": 0.0,
+   "center": -0.4098741237342576,
+   "exchange": 0.09999999999999998,
+   "best_exchange_ich": 1,
+   "best_exchange_gegner": 2
+  },
+  {
+   "fen": "5B1b/8/n1r3k1/2R2p2/p2P1P1P/P1PK2p1/5r2/3b4 b - - 1 59",
+   "potential": 0.3904341391753145,
+   "material": 9.0,
+   "center": -0.5192667861885878,
+   "exchange": -0.10000000000000009,
+   "best_exchange_ich": 2,
+   "best_exchange_gegner": 5
+  },
+  {
+   "fen": "b1r2b1r/p1pkpppp/1pn2n2/P3Pq2/1P1p4/2PP1NB1/5PPP/RN1QKB1R w KQ - 7 18",
+   "potential": 0.0718882803662739,
+   "material": 0.0,
+   "center": -0.24176212177272846,
+   "exchange": 1.4,
+   "best_exchange_ich": 2,
+   "best_exchange_gegner": 0
+  },
+  {
+   "fen": "rq3bnr/pb1kppp1/nppp4/5P1p/2B1P1P1/2P2N2/PP1P1KQP/RNBR4 b - - 9 16",
+   "potential": -0.04327509327178092,
+   "material": 0.0,
+   "center": -0.39413821634459545,
+   "exchange": -0.3,
+   "best_exchange_ich": 0,
+   "best_exchange_gegner": 1
+  },
+  {
+   "fen": "3knr2/2pr3b/2P5/1p6/3N1p2/1P3P2/4K3/8 w - - 0 61",
+   "potential": -0.4459702664463014,
+   "material": -13.0,
+   "center": -0.3507064853892545,
+   "exchange": 1.9,
+   "best_exchange_ich": 4,
+   "best_exchange_gegner": 3
+  },
+  {
+   "fen": "2n1kb2/r2b4/p5r1/P1P1p2p/3PB1pP/1Q4P1/1B2P3/1KR5 b - - 10 46",
+   "potential": -0.27658603879145754,
+   "material": -3.0,
+   "center": -0.483524243545457,
+   "exchange": -1.5,
+   "best_exchange_ich": 0,
+   "best_exchange_gegner": 5
+  },
+  {
+   "fen": "8/3k2P1/8/p4PPr/P2Rp3/n1PpPn2/6Kb/1q6 b - - 2 72",
+   "potential": 0.4771820332936221,
+   "material": 15.0,
+   "center": -0.1715011430755906,
+   "exchange": 0.5,
+   "best_exchange_ich": 2,
+   "best_exchange_gegner": 3
+  },
+  {
+   "fen": "r7/p1pqbpp1/2kpp3/1p1N1P1P/Pn1P3p/BP5B/3KP2P/R2Q2NR b - - 0 29",
+   "potential": -0.3948735069019073,
+   "material": -10.0,
+   "center": 0.2339277841990518,
+   "exchange": 1.1999999999999997,
+   "best_exchange_ich": 3,
+   "best_exchange_gegner": 3
+  },
+  {
+   "fen": "rnbq1br1/p1p1k1p1/P3p2p/1p1p1n2/RPPP4/3Q1N2/1B2PPPP/1N2KB1R w K - 0 12",
+   "potential": 0.030881262919682153,
+   "material": 1.0,
+   "center": 0.29472991506301627,
+   "exchange": -0.8,
+   "best_exchange_ich": 1,
+   "best_exchange_gegner": 5
+  },
+  {
+   "fen": "4Bk2/q3n3/2p5/5p2/1P1pP2P/p2N1RP1/P2QKB1R/8 b - - 0 63",
+   "potential": -0.4785754409234093,
+   "material": -17.0,
+   "center": -0.08623999195968546,
+   "exchange": 1.7999999999999996,
+   "best_exchange_ich": 3,
+   "best_exchange_gegner": 1
+  },
+  {
+   "fen": "8/7k/4B3/p2P4/PNP5/6Rp/b2N3r/2B2K2 w - - 6 80",
+   "potential": 0.45082035418670924,
+   "material": 10.0,
+   "center": 0.6473812310864264,
+   "exchange": 1.1999999999999997,
+   "best_exchange_ich": 3,
+   "best_exchange_gegner": 3
+  },
+  {
+   "fen": "2b4Q/1r1p1k1p/P3nn1P/4pR2/2pb1p2/2NPPP2/1RP3N1/4KB2 w - - 1 45",
+   "potential": 0.47077250563357137,
+   "material": 12.0,
+   "center": 0.0119291918069067,
+   "exchange": 2.0,
+   "best_exchange_ich": 5,
+   "best_exchange_gegner": 5
+  },
+  {
+   "fen": "1r1k1b1r/pb1p1p2/2pnP1pp/1p6/1P2R1Bn/2PP2P1/P1N1K1P1/1RB3N1 w - - 1 26",
+   "potential": 0.11247867464779782,
+   "material": 0.0,
+   "center": 0.33097297786039725,
+   "exchange": 1.4999999999999996,
+   "best_exchange_ich": 3,
+   "best_exchange_gegner": 2
+  },
+  {
+   "fen": "5R2/1kr5/1pp5/3p4/1rP2RP1/K3PNB1/8/b7 w - - 5 70",
+   "potential": 0.333546608953624,
+   "material": 3.0,
+   "center": 0.24389713444593972,
+   "exchange": 3.2,
+   "best_exchange_ich": 5,
+   "best_exchange_gegner": 1
+  },
+  {
+   "fen": "6kb/4P2p/2P5/4r1p1/P1p5/K1B3N1/5R2/8 b - - 0 66",
+   "potential": -0.1703770313829972,
+   "material": -3.0,
+   "center": 0.06043677771171635,
+   "exchange": 0.09999999999999998,
+   "best_exchange_ich": 1,
+   "best_exchange_gegner": 2
+  },
+  {
+   "fen": "rn2k1r1/1pp1p3/p2pqb1p/3P1ppP/2P1bP2/P3nNP1/RP2K1N1/2BQ1BR1 w - - 3 26",
+   "potential": 0.1810703352027803,
+   "material": -1.0,
+   "center": -0.46522003557064245,
+   "exchange": 4.5,
+   "best_exchange_ich": 9,
+   "best_exchange_gegner": 6
+  },
+  {
+   "fen": "6n1/2k1r1r1/1p6/P1pP4/q1P1P1P1/1R2b1Pp/2KR4/3B2N1 w - - 8 74",
+   "potential": -0.2757493495575086,
+   "material": -6.0,
+   "center": -0.16426025360118468,
+   "exchange": 1.1999999999999997,
+   "best_exchange_ich": 3,
+   "best_exchange_gegner": 3
+  },
+  {
+   "fen": "3rn2B/N4Q2/2P2n2/4k1R1/Pp6/BP2p3/3PK2p/8 b - - 4 70",
+   "potential": -0.44071741981150225,
+   "material": -13.0,
+   "center": 0.44269083502699436,
+   "exchange": 1.7999999999999996,
+   "best_exchange_ich": 3,
+   "best_exchange_gegner": 1
+  },
+  {
+   "fen": "r4k2/3r3p/1pN2p1P/pb4pn/P5N1/6P1/2Kp1R2/1N6 b - - 1 74",
+   "potential": 0.32440586778325,
+   "material": 5.0,
+   "center": -0.014049193554254963,
+   "exchange": 1.1999999999999997,
+   "best_exchange_ich": 3,
+   "best_exchange_gegner": 3
+  },
+  {
+   "fen": "1n6/2k4r/P7/4p2p/4P2P/p2q4/5rNK/8 w - - 7 71",
+   "potential": -0.49318321052656194,
+   "material": -19.0,
+   "center": -0.6261061589836285,
+   "exchange": -0.3,
+   "best_exchange_ich": 0,
+   "best_exchange_gegner": 1
+  },
+  {
+   "fen": "8/8/4rk2/4pp2/1P3P1p/4PB1P/1R1BK2R/1b3BN1 w - - 2 47",
+   "potential": 0.485807386197633,
+   "material": 15.0,
+   "center": -0.1370427507250359,
+   "exchange": 2.0999999999999996,
+   "best_exchange_ich": 3,
+   "best_exchange_gegner": 0
+  },
+  {
+   "fen": "b2k1r2/p1N3Q1/n3p1p1/1P3pn1/1p1P4/1R1N1Pq1/P5B1/1K6 b - - 0 53",
+   "potential": 0.1024401768398481,
+   "material": 1.0,
+   "center": 0.06257179038492766,
+   "exchange": 0.5999999999999996,
+   "best_exchange_ich": 3,
+   "best_exchange_gegner": 5
+  },
+  {
+   "fen": "b2q2k1/1B2rR2/p3P2p/6p1/1K6/BPNp4/R2P4/8 b - - 1 69",
+   "potential": 0.1097724063314279,
+   "material": -1.0,
+   "center": -0.4145774369926214,
+   "exchange": 3.2,
+   "best_exchange_ich": 5,
+   "best_exchange_gegner": 1
+  },
+  {
+   "fen": "8/3kN3/1B4rn/5P2/P2P1n1p/R5p1/3K2R1/1N6 w - - 3 51",
+   "potential": 0.44467816473278293,
+   "material": 9.0,
+   "center": 0.35070648538925453,
+   "exchange": 2.0,
+   "best_exchange_ich": 5,
+   "best_exchange_gegner": 5
+  },
+  {
+   "fen": "1n4r1/3p2k1/r2b1p2/qNp1p1p1/3PPBP1/8/1PP1KP1P/1R3R1Q b - - 1 29",
+   "potential": -0.006837618728204989,
+   "material": -2.0,
+   "center": -0.20940872024365903,
+   "exchange": 2.0999999999999996,
+   "best_exchange_ich": 3,
+   "best_exchange_gegner": 0
+  },
+  {
+   "fen": "rnb1q1r1/p1p1kpb1/1n6/1p2p2p/1P6/3P2P1/P1PQPP1P/RN3KNR w - - 0 14",
+   "potential": -0.24565017490072452,
+   "material": -4.0,
+   "center": -0.30218388855858175,
+   "exchange": 0.0,
+   "best_exchange_ich": 0,
+   "best_exchange_gegner": 0
+  },
+  {
+   "fen": "2r1n3/4n3/pr3p2/N3NP1k/2BPb1pp/1Rp5/2K2R2/8 w - - 0 55",
+   "potential": -0.03338293522016447,
+   "material": -3.0,
+   "center": -0.13492274897768766,
+   "exchange": 2.9,
+   "best_exchange_ich": 5,
+   "best_exchange_gegner": 2
+  },
+  {
+   "fen": "1n6/5k2/3P4/1P6/p2N4/6P1/1K6/3r4 w - - 1 80",
+   "potential": -0.22910948975382806,
+   "material": -3.0,
+   "center": -0.06043677771171635,
+   "exchange": -0.8999999999999999,
+   "best_exchange_ich": 0,
+   "best_exchange_gegner": 3
+  },
+  {
+   "fen": "rn1qkb1r/p1pppp2/bp3n1p/6p1/4PP2/2P4N/PP1P2PP/RNBQKB1R b KQkq - 0 6",
+   "potential": 0.018049692266503346,
+   "material": 0.0,
+   "center": -0.11107937628973732,
+   "exchange": 0.39999999999999997,
+   "best_exchange_ich": 1,
+   "best_exchange_gegner": 1
+  },
+  {
+   "fen": "4r3/n1p5/P3k2p/2Qb4/1p2p1n1/1B2b1BP/8/R3K1NR b - - 4 50",
+   "potential": -0.19369040739280563,
+   "material": -9.0,
+   "center": 0.3302822756670917,
+   "exchange": 5.4,
+   "best_exchange_ich": 9,
+   "best_exchange_gegner": 3
+  },
+  {
+   "fen": "r3k1n1/p1ppnp2/bp2r3/q4PP1/1B2B3/1P2P1p1/R2P4/2Q1K1NR b Kq - 0 27",
+   "potential": 0.16485798936930457,
+   "material": 1.0,
+   "center": 0.3400764548007871,
+   "exchange": 1.4,
+   "best_exchange_ich": 5,
+   "best_exchange_gegner": 7
+  },
+  {
+   "fen": "2q5/1rp1k2p/n3b1P1/N1PppQ1n/p3P1p1/P5P1/1P1b1P2/R1BK1B1R w - - 0 34",
+   "potential": 0.1758776072822659,
+   "material": 3.0,
+   "center": -0.06043677771171635,
+   "exchange": -4.440892098500626e-16,
+   "best_exchange_ich": 3,
+   "best_exchange_gegner": 7
+  },
+  {
+   "fen": "2b2rk1/npp1bp2/4q1p1/Q6p/pPppPPnP/P4KP1/3N3R/R3B1N1 w - - 1 25",
+   "potential": 0.046146234694277796,
+   "material": 0.0,
+   "center": 0.1404469027649604,
+   "exchange": 0.5999999999999996,
+   "best_exchange_ich": 3,
+   "best_exchange_gegner": 5
+  },
+  {
+   "fen": "rq2k1n1/pb6/2p1pb2/1p1Bp3/PP1P1PQr/2P5/1B1N1K2/R5NR w - - 0 24",
+   "potential": 0.15524283599098002,
+   "material": 3.0,
+   "center": 0.1686624485566444,
+   "exchange": -0.6000000000000001,
+   "best_exchange_ich": 3,
+   "best_exchange_gegner": 9
+  },
+  {
+   "fen": "rnb1kbr1/pp1p4/2pp2pp/5p2/P1P3nq/5PPP/RP1PP3/2BQKBNR w Kq - 1 10",
+   "potential": 0.1634021725307501,
+   "material": -3.0,
+   "center": -0.28602970418284157,
+   "exchange": 6.0,
+   "best_exchange_ich": 9,
+   "best_exchange_gegner": 1
+  },
+  {
+   "fen": "2r1kb1r/p2pnppp/npp5/1b2p2q/1P2PNP1/N2B1P1P/P1PPQ3/R1B1K2R w Qk - 1 13",
+   "potential": 0.29204204766931713,
+   "material": 0.0,
+   "center": -0.05088570445090659,
+   "exchange": 5.4,
+   "best_exchange_ich": 9,
+   "best_exchange_gegner": 3
+  },
+  {
+   "fen": "r6b/2q5/1k2b2r/2p1pp1p/PP2P2P/2pB1NP1/8/1R2K1N1 w - - 1 39",
+   "potential": -0.44063157160511596,
+   "material": -11.0,
+   "center": -0.4511558310905243,
+   "exchange": 0.39999999999999997,
+   "best_exchange_ich": 1,
+   "best_exchange_gegner": 1
+  },
+  {
+   "fen": "5k1r/2p1pNb1/p6p/Pr1P1p1P/1pPB2P1/1P4Q1/2n1B3/RK1N2R1 w - - 4 42",
+   "potential": 0.4883441789892331,
+   "material": 15.0,
+   "center": 0.16090113433884928,
+   "exchange": 2.6,
+   "best_exchange_ich": 5,
+   "best_exchange_gegner": 3
+  },
+  {
+   "fen": "3k1b2/3n4/2n1rr1p/pp2RppP/3PP3/3R1pPQ/K4P2/5BR1 w - - 4 48",
+   "potential": 0.3465188351768016,
+   "material": 7.0,
+   "center": 0.030218388855858182,
+   "exchange": -0.19999999999999996,
+   "best_exchange_ich": 1,
+   "best_exchange_gegner": 3
+  },
+  {
+   "fen": "1N3k1b/3rp3/6rp/p1pP1Pp1/1pP2B2/R2P1R2/Q3BK1P/1N6 w - - 5 38",
+   "potential": 0.4921995687708766,
+   "material": 17.0,
+   "center": 0.0829809891812274,
+   "exchange": 2.3,
+   "best_exchange_ich": 5,
+   "best_exchange_gegner": 4
+  },
+  {
+   "fen": "1rb2b1r/1p1k3B/4N1p1/p1P5/PN4p1/RP1pq3/3B3P/2nK1R2 w - - 0 34",
+   "potential": -0.11036337004480419,
+   "material": -7.0,
+   "center": -0.195359526689404,
+   "exchange": 5.4,
+   "best_exchange_ich": 9,
+   "best_exchange_gegner": 3
+  },
+  {
+   "fen": "2qk2r1/p2b3p/7n/3P2pP/2R1p3/4PnP1/3BRQ2/7K w - - 20 79",
+   "potential": 0.02930363935962828,
+   "material": -1.0,
+   "center": 0.1693961522541054,
+   "exchange": 1.2999999999999998,
+   "best_exchange_ich": 4,
+   "best_exchange_gegner": 5
+  },
+  {
+   "fen": "8/8/b1pp2k1/r1P1p3/pBN5/6P1/1Kn2N1P/4R3 b - - 3 39",
+   "potential": -0.08831998250292107,
+   "material": -2.0,
+   "center": -0.02809838710850992,
+   "exchange": 0.5999999999999996,
+   "best_exchange_ich": 3,
+   "best_exchange_gegner": 5
+  },
+  {
+   "fen": "8/6k1/1prR4/1P3PPp/8/7n/8/K5N1 b - - 4 78",
+   "potential": 0.04263167095365668,
+   "material": -1.0,
+   "center": -0.3162330821128366,
+   "exchange": 2.0,
+   "best_exchange_ich": 5,
+   "best_exchange_gegner": 5
+  },
+  {
+   "fen": "rnbq3r/1pppkp2/p1n1p1pp/4b3/7P/NQ1P1NPR/PP2PP2/1RB1KB2 w - - 2 16",
+   "potential": -0.06230787136938807,
+   "material": -1.0,
+   "center": -0.002135012673211298,
+   "exchange": 0.0,
+   "best_exchange_ich": 0,
+   "best_exchange_gegner": 0
+  },
+  {
+   "fen": "3r2k1/5N2/8/2bp4/P2P4/2p4B/2RB2nP/3K4 b - - 0 45",
+   "potential": -0.1922452312153652,
+   "material": -4.0,
+   "center": 0.15745194952133565,
+   "exchange": 0.5999999999999996,
+   "best_exchange_ich": 3,
+   "best_exchange_gegner": 5
+  },
+  {
+   "fen": "8/1N1r3k/p1P5/4p1Pp/1qP3P1/4P2P/RB2BN2/2K1QR2 w - - 4 61",
+   "potential": 0.4987467541244637,
+   "material": 20.0,
+   "center": 0.4230574439820143,
+   "exchange": 6.3,
+   "best_exchange_ich": 9,
+   "best_exchange_gegner": 0
+  },
+  {
+   "fen": "6nr/2R5/1rb1npPp/p6P/Pp6/1P6/N2b2k1/3K4 b - - 1 62",
+   "potential": 0.48720583715919563,
+   "material": 14.0,
+   "center": 0.783558108504964,
+   "exchange": 2.6,
+   "best_exchange_ich": 5,
+   "best_exchange_gegner": 3
+  },
+  {
+   "fen": "rq4n1/1b1p4/2p1k1p1/pp4B1/1P1PPnP1/8/P1PN3P/R2K1B1R b - - 3 21",
+   "potential": 0.17641808887634675,
+   "material": 2.0,
+   "center": 0.2494362991590756,
+   "exchange": 0.7,
+   "best_exchange_ich": 1,
+   "best_exchange_gegner": 0
+  },
+  {
+   "fen": "2rnk3/1R1p1N1p/3q3P/2pPp2P/Q4p2/5K2/3P1P2/2B2B2 w - - 1 39",
+   "potential": 0.4365163983944005,
+   "material": 6.0,
+   "center": -0.034458392350554715,
+   "exchange": 4.8,
+   "best_exchange_ich": 9,
+   "best_exchange_gegner": 5
+  },
+  {
+   "fen": "nn4r1/1pp3p1/6kp/1P4R1/5P2/1K1R3B/PPN4P/3b4 b - - 3 47",
+   "potential": -0.09285920299491054,
+   "material": -3.0,
+   "center": -0.803191499549944,
+   "exchange": 2.6,
+   "best_exchange_ich": 5,
+   "best_exchange_gegner": 3
+  },
+  {
+   "fen": "rn2k2r/1n4bp/b2pp1p1/1p1P1p2/2P1P1qP/QP3P2/P2N2B1/R2K2NR b kq - 0 18",
+   "potential": 0.19961047619273636,
+   "material": 2.0,
+   "center": 0.2817746897622819,
+   "exchange": 1.1,
+   "best_exchange_ich": 5,
+   "best_exchange_gegner": 8
+  },
+  {
+   "fen": "rnb2k2/3p1p2/1p4p1/q1b5/P2p4/5P2/2PN1NBr/2K1B2R w - - 0 38",
+   "potential": -0.4317802394742137,
+   "material": -13.0,
+   "center": -0.05745090265786999,
+   "exchange": 2.6,
+   "best_exchange_ich": 5,
+   "best_exchange_gegner": 3
+  },
+  {
+   "fen": "2rn2k1/2p5/2pP1P2/3P3P/2r5/4p3/7K/8 w - - 1 72",
+   "potential": -0.46180444285049993,
+   "material": -12.0,
+   "center": -0.6043677771171633,
+   "exchange": -0.3,
+   "best_exchange_ich": 0,
+   "best_exchange_gegner": 1
+  },
+  {
+   "fen": "1rbqk2r/2p1b2p/p1nN1p1n/3ppP2/6pP/1P1PP2N/P1P2KP1/1RB1QB1R b k - 4 13",
+   "potential": 0.05617338002331575,
+   "material": -1.0,
+   "center": 0.10258435837448121,
+   "exchange": 2.0999999999999996,
+   "best_exchange_ich": 3,
+   "best_exchange_gegner": 0
+  },
+  {
+   "fen": "q3k1n1/2p1b3/5p2/p1rPpbpP/2Pp1P1p/1QN4P/PP2N3/R1B2K1R w - - 2 24",
+   "potential": 0.24388679509978228,
+   "material": 5.0,
+   "center": -0.13492274897768766,
+   "exchange": -0.6,
+   "best_exchange_ich": 0,
+   "best_exchange_gegner": 2
+  },
+  {
+   "fen": "rnb1k1nr/1ppp2pp/1N3p2/2b5/3P1p2/qpP1P3/6PP/R1BQKBNR b KQkq - 1 11",
+   "potential": 0.24685196108708193,
+   "material": 3.0,
+   "center": -0.3724298563298564,
+   "exchange": 1.7000000000000002,
+   "best_exchange_ich": 5,
+   "best_exchange_gegner": 6
+  },
+  {
+   "fen": "6kr/1B1n1p2/6p1/pN5p/p1R1p3/P5PP/1r2bK2/8 b - - 0 46",
+   "potential": 0.42712706658821253,
+   "material": 8.0,
+   "center": -0.4265066287995283,
+   "exchange": 2.6,
+   "best_exchange_ich": 5,
+   "best_exchange_gegner": 3
+  },
+  {
+   "fen": "r1b1nk2/3pRP2/1q6/p1pP3p/P1P2r2/2P4N/1B1KPPP1/5BR1 w - - 4 32",
+   "potential": 0.008431872372857486,
+   "material": -2.0,
+   "center": 0.1349227489776877,
+   "exchange": 2.0,
+   "best_exchange_ich": 5,
+   "best_exchange_gegner": 5
+  },
+  {
+   "fen": "5N2/rN4r1/5k1p/1BP5/2K2Pp1/8/2N5/1R6 w - - 16 70",
+   "potential": 0.3406275856999157,
+   "material": 7.0,
+   "center": 0.5516201877176572,
+   "exchange": -0.8999999999999999,
+   "best_exchange_ich": 0,
+   "best_exchange_gegner": 3
+  },
+  {
+   "fen": "r3kb2/2pqppnr/p1n1b1p1/1p1p4/1P1P1B2/P4P2/1RP1P1P1/1NQ1KBN1 w q - 10 17",
+   "potential": -0.299215468496548,
+   "material": -5.0,
+   "center": -0.22559292647112525,
+   "exchange": -0.3,
+   "best_exchange_ich": 0,
+   "best_exchange_gegner": 1
+  },
+  {
+   "fen": "6k1/8/B7/p2p2P1/6Pp/b5NP/2K5/8 b - - 1 77",
+   "potential": -0.06147090395115114,
+   "material": -3.0,
+   "center": -0.08853516482022628,
+   "exchange": 2.0999999999999996,
+   "best_exchange_ich": 3,
+   "best_exchange_gegner": 0
+  },
+  {
+   "fen": "5NB1/k3K3/6P1/5P2/P3n3/7p/1p6/8 w - - 0 79",
+   "potential": 0.2393564311681481,
+   "material": 4.0,
+   "center": 0.1705051314334891,
+   "exchange": 0.0,
+   "best_exchange_ich": 0,
+   "best_exchange_gegner": 0
+  },
+  {
+   "fen": "3bk3/1r1R4/1p5p/5p2/1BN1pp1p/P1P4B/3RK3/8 w - - 0 45",
+   "potential": 0.41717525543402256,
+   "material": 7.0,
+   "center": 0.618286832335815,
+   "exchange": 2.0,
+   "best_exchange_ich": 5,
+   "best_exchange_gegner": 5
+  },
+  {
+   "fen": "4nr2/1Qp2pk1/8/4qr2/6p1/7N/1P4R1/2bK3B w - - 0 53",
+   "potential": -0.3317938602686585,
+   "material": -7.0,
+   "center": -0.5935775863413666,
+   "exchange": 1.1999999999999997,
+   "best_exchange_ich": 3,
+   "best_exchange_gegner": 3
+  },
+  {
+   "fen": "5kr1/1b1Bp1b1/1pP2ppp/1N5q/Pp3P1P/3P4/4Pn2/2B2KN1 w - - 2 32",
+   "potential": -0.4113061532665563,
+   "material": -11.0,
+   "center": -0.11875355367608445,
+   "exchange": 1.7999999999999996,
+   "best_exchange_ich": 3,
+   "best_exchange_gegner": 1
+  },
+  {
+   "fen": "4q3/2kbp3/1p1pn2b/r2P1ppN/p1p3Q1/N3P1P1/PBP2P1P/R4RK1 w - - 3 25",
+   "potential": 0.2254062046533536,
+   "material": 5.0,
+   "center": 0.1857555295947642,
+   "exchange": -1.2999999999999998,
+   "best_exchange_ich": 2,
+   "best_exchange_gegner": 9
+  },
+  {
+   "fen": "6k1/8/1pB1R2Q/1Pr5/1n5p/3p3P/8/3K4 b - - 7 79",
+   "potential": -0.3915952808489027,
+   "material": -8.0,
+   "center": -0.1285627437356429,
+   "exchange": -0.3,
+   "best_exchange_ich": 0,
+   "best_exchange_gegner": 1
+  },
+  {
+   "fen": "r2qkb1r/p1p3p1/n3p1n1/1p2p2Q/PP2p3/8/2PP2PP/RNB1K1NR b kq - 0 14",
+   "potential": 0.35042124932593277,
+   "material": 1.0,
+   "center": 0.5516351986435203,
+   "exchange": 5.4,
+   "best_exchange_ich": 9,
+   "best_exchange_gegner": 3
+  },
+  {
+   "fen": "rnb1kbnr/ppqppp1p/2p5/6p1/P1P5/4PN2/1P1P1PPP/RNBQKB1R b KQkq - 0 4",
+   "potential": -0.03159408365005555,
+   "material": 0.0,
+   "center": -0.20617973931692696,
+   "exchange": -0.3,
+   "best_exchange_ich": 0,
+   "best_exchange_gegner": 1
+  },
+  {
+   "fen": "rn4nr/1ppbkp2/7p/p1q3p1/3P2PP/NP2b3/PB3P2/RB1K2NR w - - 0 19",
+   "potential": -0.22786215933698614,
+   "material": -9.0,
+   "center": -0.23521193449162806,
+   "exchange": 5.3,
+   "best_exchange_ich": 8,
+   "best_exchange_gegner": 1
+  },
+  {
+   "fen": "2b4r/nkR1b3/3p3p/p2q2PP/P3pn2/1P4PR/3r4/4NK2 b - - 12 43",
+   "potential": 0.4937638042188812,
+   "material": 17.0,
+   "center": 0.9845168436109561,
+   "exchange": 2.6,
+   "best_exchange_ich": 5,
+   "best_exchange_gegner": 3
+  },
+  {
+   "fen": "5rk1/8/2b3p1/R1BB1q2/P2r3p/1PQ3b1/8/1NK5 b - - 1 69",
+   "potential": 0.15990998115972688,
+   "material": 2.0,
+   "center": 0.3515723586957526,
+   "exchange": 0.5999999999999996,
+   "best_exchange_ich": 3,
+   "best_exchange_gegner": 5
+  },
+  {
+   "fen": "r1b1kb1r/pp2ppp1/nq3n2/2Pp3p/8/P4N1P/N1PPPPP1/R1BQKB1R w KQkq d6 0 8",
+   "potential": 0.3223933024094727,
+   "material": 1.0,
+   "center": -0.16941116317996846,
+   "exchange": 5.3,
+   "best_exchange_ich": 8,
+   "best_exchange_gegner": 1
+  },
+  {
+   "fen": "2kr4/1b4r1/BR1p3p/3qpNp1/4PPP1/8/3P1K2/4R3 b - - 1 57",
+   "potential": 0.2593656721968296,
+   "material": 6.0,
+   "center": 0.2968198949586385,
+   "exchange": -1.7,
+   "best_exchange_ich": 1,
+   "best_exchange_gegner": 8
+  },
+  {
+   "fen": "1R1k1b2/p7/2p1p1Qn/5pp1/2PpPPp1/6P1/4N3/1K4N1 b - - 0 45",
+   "potential": -0.4496824138417047,
+   "material": -11.0,
+   "center": -0.15109194427929087,
+   "exchange": -0.3,
+   "best_exchange_ich": 0,
+   "best_exchange_gegner": 1
+  },
+  {
+   "fen": "2bqkbnr/1ppnpppp/r2p4/p7/P5PP/5P2/1PPPP3/RNBQKBNR b KQk - 0 5",
+   "potential": 0.005603462575881704,
+   "material": 0.0,
+   "center": 0.08965915492547301,
+   "exchange": 0.0,
+   "best_exchange_ich": 0,
+   "best_exchange_gegner": 0
+  },
+  {
+   "fen": "rn2k3/1pq1ppb1/p2p3n/1r3Ppp/5P1N/P1PPK2P/1P2P3/R1B1QB1R b q - 0 17",
+   "potential": 0.012047054180591954,
+   "material": -1.0,
+   "center": 0.0927901792407858,
+   "exchange": 1.0999999999999999,
+   "best_exchange_ich": 2,
+   "best_exchange_gegner": 1
+  },
+  {
+   "fen": "8/1k6/3Bp1p1/1P1P1p2/5K2/2r5/1r6/8 w - - 10 68",
+   "potential": -0.3687547444269157,
+   "material": -8.0,
+   "center": 0.040027578915416605,
+   "exchange": 0.39999999999999997,
+   "best_exchange_ich": 1,
+   "best_exchange_gegner": 1
+  },
+  {
+   "fen": "2Rqk3/r6p/2bR3P/1p3R2/Ppn1PP2/8/8/3K1B2 w - - 2 53",
+   "potential": 0.05028892842814615,
+   "material": -1.0,
+   "center": 0.5073526053075441,
+   "exchange": 1.2999999999999998,
+   "best_exchange_ich": 4,
+   "best_exchange_gegner": 5
+  },
+  {
+   "fen": "2b3r1/2B4n/2k1p3/rpP4n/7P/4QPN1/8/4K2R b - - 1 46",
+   "potential": -0.11481027646779386,
+   "material": -2.0,
+   "center": -0.4703109014459738,
+   "exchange": 0.5999999999999996,
+   "best_exchange_ich": 3,
+   "best_exchange_gegner": 5
+  },
+  {
+   "fen": "r7/4p2Q/4P1p1/1p6/3P3P/4k3/8/6K1 b - - 4 74",
+   "potential": -0.19357777920683755,
+   "material": -4.0,
+   "center": 0.33240227741443984,
+   "exchange": 0.39999999999999997,
+   "best_exchange_ich": 1,
+   "best_exchange_gegner": 1
+  },
+  {
+   "fen": "8/4n2k/p6p/NB1pn1p1/3KP2P/1R6/1r1P2RP/3r4 w - - 0 52",
+   "potential": 0.1831809057334702,
+   "material": 0.0,
+   "center": 0.4737150534858984,
+   "exchange": 2.6,
+   "best_exchange_ich": 5,
+   "best_exchange_gegner": 3
+  },
+  {
+   "fen": "1nbqk2r/rpp4p/4p3/p1b1npp1/2P3P1/PP6/N2PPPBP/R1B1K1NR b KQ - 2 12",
+   "potential": 0.4050003414199568,
+   "material": 8.0,
+   "center": 0.3162480930386997,
+   "exchange": 0.7,
+   "best_exchange_ich": 1,
+   "best_exchange_gegner": 0
+  },
+  {
+   "fen": "3r2k1/6N1/6pP/1p1n3p/pP1p3P/4P3/2N4R/R1K2B2 b - - 0 49",
+   "potential": -0.3866022184383577,
+   "material": -10.0,
+   "center": -0.02597838536116165,
+   "exchange": 1.7999999999999996,
+   "best_exchange_ich": 3,
+   "best_exchange_gegner": 1
+  },
+  {
+   "fen": "rnbqkbnr/ppp3pp/3p4/4pp2/1PP2PP1/7P/P2PP2R/RNBQKBN1 b Qkq - 0 6",
+   "potential": 0.05625268957007121,
+   "material": 0.0,
+   "center": 0.20386955553052313,
+   "exchange": 0.7,
+   "best_exchange_ich": 1,
+   "best_exchange_gegner": 0
+  },
+  {
+   "fen": "2b4Q/k3r3/p5R1/PP5P/4Pn2/1P6/8/2K5 w - - 3 60",
+   "potential": 0.39577862691704147,
+   "material": 7.0,
+   "center": 0.10470436012182949,
+   "exchange": 1.4999999999999996,
+   "best_exchange_ich": 3,
+   "best_exchange_gegner": 2
+  },
+  {
+   "fen": "rnbqkbnr/ppppp2p/8/5pp1/5P2/2N5/PPPPP1PP/R1BQKBNR w KQkq - 0 3",
+   "potential": 0.04189935288794937,
+   "material": 0.0,
+   "center": 0.2719654997027235,
+   "exchange": 0.39999999999999997,
+   "best_exchange_ich": 1,
+   "best_exchange_gegner": 1
+  },
+  {
+   "fen": "r1bq1b1r/pp1pkp1p/n5pn/2p1p3/2P4P/N2P4/PP2PPP1/R1BQKBNR w KQ - 4 7",
+   "potential": 0.00404221075851713,
+   "material": 0.0,
+   "center": 0.06467678120641282,
+   "exchange": 0.0,
+   "best_exchange_ich": 0,
+   "best_exchange_gegner": 0
+  },
+  {
+   "fen": "3Rn3/8/1P3k2/p1p4p/P1P4P/4pK2/8/3n4 b - - 3 80",
+   "potential": -0.0038062473695132304,
+   "material": 1.0,
+   "center": -0.16090113433884937,
+   "exchange": -0.8999999999999999,
+   "best_exchange_ich": 0,
+   "best_exchange_gegner": 3
+  },
+  {
+   "fen": "rnb1k2r/pp1p2bp/2p1ppp1/3qN3/4PnP1/2PP1P2/PP2NQ1P/R1BK1B1R w kq - 8 16",
+   "potential": 0.261756846035748,
+   "material": 0.0,
+   "center": -0.05065760950388398,
+   "exchange": 4.699999999999999,
+   "best_exchange_ich": 8,
+   "best_exchange_gegner": 3
+  },
+  {
+   "fen": "n5k1/8/N1Qp2pB/pb6/6P1/P1p1P2N/P1n2K1P/3R4 b - - 12 61",
+   "potential": -0.42706676141054967,
+   "material": -15.0,
+   "center": -0.5699243956924718,
+   "exchange": 5.4,
+   "best_exchange_ich": 9,
+   "best_exchange_gegner": 3
+  },
+  {
+   "fen": "3N4/1P6/6pp/3r1P1P/2P5/BB1p3n/1P6/2K2k2 b - - 2 63",
+   "potential": -0.13871278153313096,
+   "material": -3.0,
+   "center": 0.1208735554234327,
+   "exchange": 0.5999999999999996,
+   "best_exchange_ich": 3,
+   "best_exchange_gegner": 5
+  },
+  {
+   "fen": "1rq2bnr/5k2/ppppb1pp/P3pp2/NQPPPPP1/7B/P2K3P/R1B3NR w - - 0 20",
+   "potential": 0.19366993104642086,
+   "material": 3.0,
+   "center": -0.1306677345571281,
+   "exchange": 0.39999999999999997,
+   "best_exchange_ich": 1,
+   "best_exchange_gegner": 1
+  },
+  {
+   "fen": "3k2nr/3p3Q/1Pn2q1p/p1b1p1N1/p1BP1p2/2P2K2/RB3PPP/1b3R2 b - - 1 22",
+   "potential": 0.20130340779618222,
+   "material": -2.0,
+   "center": 0.014049193554254949,
+   "exchange": 5.4,
+   "best_exchange_ich": 9,
+   "best_exchange_gegner": 3
+  },
+  {
+   "fen": "rnbqkbnr/p1ppppp1/7p/1p6/1P5P/P7/2PPPPP1/RNBQKBNR b KQkq - 0 3",
+   "potential": 1.3010426069826053e-18,
+   "material": 0.0,
+   "center": 2.0816681711721685e-17,
+   "exchange": 0.0,
+   "best_exchange_ich": 0,
+   "best_exchange_gegner": 0
+  },
+  {
+   "fen": "r4b2/4p2p/p5kP/P1pP1pr1/1pP5/NK3p2/1Q3PB1/7R b - - 3 43",
+   "potential": -0.20275190164795223,
+   "material": -5.0,
+   "center": -0.24174711084686537,
+   "exchange": 1.7999999999999996,
+   "best_exchange_ich": 3,
+   "best_exchange_gegner": 1
+  },
+  {
+   "fen": "r1bq1br1/pp1pkppp/5p2/2p4n/7P/1P1PPnP1/P1P1QK1R/RN3BN1 b - - 2 11",
+   "potential": 0.3439315555916793,
+   "material": 4.0,
+   "center": 0.1511069552051539,
+   "exchange": 2.6,
+   "best_exchange_ich": 5,
+   "best_exchange_gegner": 3
+  },
+  {
+   "fen": "6k1/r4b1r/p2b4/6p1/1P3B1p/5P1P/1p5K/6NR b - - 2 66",
+   "potential": 0.35857594727657754,
+   "material": 6.0,
+   "center": 0.014049193554254956,
+   "exchange": 1.1999999999999997,
+   "best_exchange_ich": 3,
+   "best_exchange_gegner": 3
+  },
+  {
+   "fen": "2r1k3/2n5/8/P1p2pp1/2K2P1P/3pP3/5R2/N5Q1 w - - 2 57",
+   "potential": 0.41818898738307986,
+   "material": 9.0,
+   "center": 0.27196549970272355,
+   "exchange": 0.39999999999999997,
+   "best_exchange_ich": 1,
+   "best_exchange_gegner": 1
+  },
+  {
+   "fen": "4k3/2r5/p5pq/P2rp3/R2pp1pP/nPQ2P2/3N2R1/4KB2 w - - 0 51",
+   "potential": 0.10704183607767188,
+   "material": 1.0,
+   "center": -0.06042176678585331,
+   "exchange": 0.8000000000000003,
+   "best_exchange_ich": 5,
+   "best_exchange_gegner": 9
+  },
+  {
+   "fen": "6q1/r1pQ2b1/pp2pnkr/1P4pp/2P2BPP/3N1b1N/P3PK1R/R4B2 w - - 1 26",
+   "potential": 0.15412996811856966,
+   "material": 3.0,
+   "center": 0.1489719425319426,
+   "exchange": -0.6000000000000001,
+   "best_exchange_ich": 3,
+   "best_exchange_gegner": 9
+  },
+  {
+   "fen": "2r1k3/p2b2p1/2p5/4PP1p/p1Ppp3/PP2P2P/R1B3K1/1R2B3 w - - 7 48",
+   "potential": 0.3977098635398942,
+   "material": 8.0,
+   "center": 0.28813469500432676,
+   "exchange": 0.39999999999999997,
+   "best_exchange_ich": 1,
+   "best_exchange_gegner": 1
+  },
+  {
+   "fen": "1r2bR1r/3n2kp/3p2q1/p5N1/PR1P2p1/1BP5/3K4/Br6 w - - 14 52",
+   "potential": -0.46420478336369286,
+   "material": -12.0,
+   "center": 0.3260422721723952,
+   "exchange": -1.5,
+   "best_exchange_ich": 0,
+   "best_exchange_gegner": 5
+  },
+  {
+   "fen": "rn2qb2/pb2n3/BpPkp3/5pNp/3P1PQP/1Pr5/P1PN2PR/R1B3K1 b - - 2 22",
+   "potential": 0.1423253103826312,
+   "material": -3.0,
+   "center": -0.05811598291291428,
+   "exchange": 5.4,
+   "best_exchange_ich": 9,
+   "best_exchange_gegner": 3
+  },
+  {
+   "fen": "2bN4/2nkn3/4p3/R1P2RN1/1q2pP2/r7/2P5/4K3 w - - 0 56",
+   "potential": -0.38339867602145344,
+   "material": -6.0,
+   "center": -0.30006388681123364,
+   "exchange": -1.5,
+   "best_exchange_ich": 0,
+   "best_exchange_gegner": 5
+  },
+  {
+   "fen": "r1b2rk1/2q2p1p/n5p1/p2ppPbP/PQ6/1PpP2PR/4BP2/R2K2N1 w - - 1 25",
+   "potential": -0.30847156025163214,
+   "material": -3.0,
+   "center": -0.06043677771171634,
+   "exchange": -2.6999999999999997,
+   "best_exchange_ich": 0,
+   "best_exchange_gegner": 9
+  },
+  {
+   "fen": "1nq3nr/rpp3Bp/p1k5/7b/R1P3PP/1P1p3B/3N1P1N/4KR2 w - - 3 41",
+   "potential": -0.12495117007684747,
+   "material": -6.0,
+   "center": 0.45753084725843207,
+   "exchange": 3.5,
+   "best_exchange_ich": 5,
+   "best_exchange_gegner": 0
+  },
+  {
+   "fen": "1k6/1q6/1PP5/3n4/p1P3P1/4b3/1R4KR/5B2 b - - 2 74",
+   "potential": -0.15844640173945174,
+   "material": -1.0,
+   "center": 0.07448597126597131,
+   "exchange": -1.7,
+   "best_exchange_ich": 1,
+   "best_exchange_gegner": 8
+  },
+  {
+   "fen": "5r2/1PB1nr2/k7/5p1p/2K1pP1P/3P1pR1/8/6b1 b - - 1 68",
+   "potential": 0.3696851518340703,
+   "material": 8.0,
+   "center": -0.20728871849631067,
+   "exchange": -0.19999999999999996,
+   "best_exchange_ich": 1,
+   "best_exchange_gegner": 3
+  },
+  {
+   "fen": "4RN2/8/8/p2k3p/rr1PppnP/6bK/8/8 w - - 4 73",
+   "potential": -0.3970844499553045,
+   "material": -10.0,
+   "center": -0.46096502115008275,
+   "exchange": 1.7999999999999996,
+   "best_exchange_ich": 3,
+   "best_exchange_gegner": 1
+  },
+  {
+   "fen": "4k2r/4ppb1/2r1P2n/1pBpP3/Ppp4Q/R1P1N1PP/4K3/5BR1 b - - 1 32",
+   "potential": -0.42032127003144026,
+   "material": -12.0,
+   "center": -0.28688056656347666,
+   "exchange": 2.5,
+   "best_exchange_ich": 4,
+   "best_exchange_gegner": 1
+  },
+  {
+   "fen": "r2q1bnr/pppkppp1/7p/P2p4/3nPPb1/3P3N/1PP3PP/RNBQKB1R w KQ - 1 8",
+   "potential": 0.033950321962845614,
+   "material": 0.0,
+   "center": 0.24404228370740613,
+   "exchange": 0.2999999999999998,
+   "best_exchange_ich": 3,
+   "best_exchange_gegner": 6
+  },
+  {
+   "fen": "3r1bnr/4k1pp/pPp5/P2ppp2/B1pBP2P/N5PK/6R1/RN6 b - - 2 44",
+   "potential": -0.052276032380998136,
+   "material": -3.0,
+   "center": 0.3605156754488129,
+   "exchange": 1.7999999999999996,
+   "best_exchange_ich": 3,
+   "best_exchange_gegner": 1
+  },
+  {
+   "fen": "5r2/p1pk4/b5r1/5Pp1/PR2PPKn/5B1P/3n3R/2q3N1 w - - 1 54",
+   "potential": -0.3755034986727698,
+   "material": -10.0,
+   "center": 0.2979138632121591,
+   "exchange": 1.9,
+   "best_exchange_ich": 4,
+   "best_exchange_gegner": 3
+  },
+  {
+   "fen": "r1b1k1n1/bp2q1pr/2p4p/3ppp1P/PpPP4/B4NP1/n3PPN1/R3QBKR b - - 11 24",
+   "potential": 0.1547826023098429,
+   "material": 1.0,
+   "center": 0.3605156754488129,
+   "exchange": 1.1999999999999997,
+   "best_exchange_ich": 3,
+   "best_exchange_gegner": 3
+  },
+  {
+   "fen": "rnbq2nr/p1p1k2p/8/1Bbp1p1p/1P6/P3Pp1K/1RPP2PP/1NB3NR w - - 8 15",
+   "potential": -0.359590609268884,
+   "material": -9.0,
+   "center": -0.34757546107394166,
+   "exchange": 2.0999999999999996,
+   "best_exchange_ich": 3,
+   "best_exchange_gegner": 0
+  },
+  {
+   "fen": "4r2r/7n/p2p3k/P2Q3p/1P3PpP/6K1/1bP3N1/4RR2 b - - 5 70",
+   "potential": -0.37339303187295125,
+   "material": -7.0,
+   "center": -0.4251924566552256,
+   "exchange": -0.3,
+   "best_exchange_ich": 0,
+   "best_exchange_gegner": 1
+  },
+  {
+   "fen": "r1bqkbn1/pppp1ppr/2n1p2p/8/8/1P1P2PN/P1P1PPBP/RNBQKR2 w Qq - 0 7",
+   "potential": -0.0030307488170238125,
+   "material": 0.0,
+   "center": -0.048492574978946615,
+   "exchange": 0.0,
+   "best_exchange_ich": 0,
+   "best_exchange_gegner": 0
+  },
+  {
+   "fen": "6k1/1r1pQ3/2p5/p1P4p/p1P4P/5Pb1/1B1K4/5Bn1 b - - 1 42",
+   "potential": -0.09872322600664163,
+   "material": -3.0,
+   "center": -0.7005921302495998,
+   "exchange": 2.0999999999999996,
+   "best_exchange_ich": 3,
+   "best_exchange_gegner": 0
+  },
+  {
+   "fen": "4nb2/2p4k/r1P1p3/1PP1P3/6p1/4qNP1/7r/5K2 w - - 3 70",
+   "potential": -0.48877027953151697,
+   "material": -20.0,
+   "center": -0.5115926088022407,
+   "exchange": 2.6,
+   "best_exchange_ich": 5,
+   "best_exchange_gegner": 3
+  },
+  {
+   "fen": "rn1b2n1/2pkr3/p3q3/P1PNPpBp/1p1P3P/1b2P1P1/4K2R/3Q1B1R w - - 5 39",
+   "potential": -0.049924362004603755,
+   "material": -1.0,
+   "center": -0.10146036826923446,
+   "exchange": 0.2999999999999998,
+   "best_exchange_ich": 3,
+   "best_exchange_gegner": 6
+  },
+  {
+   "fen": "N2k1b1R/8/p5p1/1R2P1pN/2B3P1/4p3/KP3p2/8 b - - 3 64",
+   "potential": -0.45898108901588536,
+   "material": -14.0,
+   "center": -0.5073526053075441,
+   "exchange": 1.9,
+   "best_exchange_ich": 4,
+   "best_exchange_gegner": 3
+  },
+  {
+   "fen": "r6r/p3k1bp/1Pn4P/p1p2b1n/2PppNp1/K2PP1q1/Q7/RN2B3 w - - 5 37",
+   "potential": -0.3544209774726734,
+   "material": -10.0,
+   "center": -0.3788198834236274,
+   "exchange": 3.2999999999999994,
+   "best_exchange_ich": 6,
+   "best_exchange_gegner": 3
+  },
+  {
+   "fen": "rnbqkbnr/ppp1p1pp/3p4/5p2/8/5NP1/PPPPPP1P/RNBQKB1R w KQkq - 0 3",
+   "potential": -0.002154574368700702,
+   "material": 0.0,
+   "center": -0.034473403276417736,
+   "exchange": 0.0,
+   "best_exchange_ich": 0,
+   "best_exchange_gegner": 0
+  },
+  {
+   "fen": "6n1/4pqk1/1p5b/2p1N3/P1P2p2/1p1p4/1Q1P1PrR/R1K2B2 b - - 4 51",
+   "potential": -0.08755751914567471,
+   "material": -3.0,
+   "center": -0.11550956182348943,
+   "exchange": 1.7000000000000002,
+   "best_exchange_ich": 5,
+   "best_exchange_gegner": 6
+  },
+  {
+   "fen": "1rk2B2/nb6/1p5p/4p3/4P3/n6P/5RPK/1Nr2B1R w - - 8 48",
+   "potential": 0.06020935792057667,
+   "material": 0.0,
+   "center": -0.23195293171316997,
+   "exchange": 1.1999999999999997,
+   "best_exchange_ich": 3,
+   "best_exchange_gegner": 3
+  },
+  {
+   "fen": "5qr1/3B2k1/P2N2pR/2p2p2/5pn1/p2PN1P1/P1P5/4K3 w - - 1 51",
+   "potential": -0.21724739740501642,
+   "material": -3.0,
+   "center": 0.07660597301331956,
+   "exchange": -0.8,
+   "best_exchange_ich": 1,
+   "best_exchange_gegner": 5
+  },
+  {
+   "fen": "rnbqk1nr/ppppppbp/8/6p1/3P1P1P/8/PPP1P1P1/RNBQKBNR b KQkq - 0 3",
+   "potential": -0.029170657326345828,
+   "material": 0.0,
+   "center": -0.16726113958089397,
+   "exchange": -0.3,
+   "best_exchange_ich": 0,
+   "best_exchange_gegner": 1
+  },
+  {
+   "fen": "1rbqkbnr/pp2ppp1/2np3p/2p5/3P1P2/2P3P1/PP2P2P/RNBQKBNR w KQk - 1 6",
+   "potential": 0.00061213589002415,
+   "material": 0.0,
+   "center": 0.009794179133695381,
+   "exchange": 0.0,
+   "best_exchange_ich": 0,
+   "best_exchange_gegner": 0
+  },
+  {
+   "fen": "rn4n1/5N1r/2p2kpp/p1Pqp2P/Pp1pP1Pb/8/R2QB3/7K w - - 2 40",
+   "potential": -0.31160191186179476,
+   "material": -10.0,
+   "center": -0.5418109976580987,
+   "exchange": 4.699999999999999,
+   "best_exchange_ich": 8,
+   "best_exchange_gegner": 3
+  },
+  {
+   "fen": "r4b1N/p1n1k3/3p4/1p1P2pQ/PP2P1B1/3n2K1/8/1R5R w - - 0 40",
+   "potential": 0.44194636026246564,
+   "material": 11.0,
+   "center": -0.25367630265377206,
+   "exchange": 0.39999999999999997,
+   "best_exchange_ich": 1,
+   "best_exchange_gegner": 1
+  },
+  {
+   "fen": "5rk1/1p3b2/1npp2p1/2P2pPp/r2p1R1P/B2PPP1R/8/4K1bB w - - 1 39",
+   "potential": -0.17157603915650055,
+   "material": -4.0,
+   "center": -0.06128764009235138,
+   "exchange": 1.1999999999999997,
+   "best_exchange_ich": 3,
+   "best_exchange_gegner": 3
+  },
+  {
+   "fen": "5b1r/k3p3/B1Q2R1n/B6P/3Np1p1/R2b3P/1P6/1nK5 b - - 1 47",
+   "potential": -0.4163248393864597,
+   "material": -11.0,
+   "center": -0.4737150534858985,
+   "exchange": 1.9,
+   "best_exchange_ich": 4,
+   "best_exchange_gegner": 3
+  },
+  {
+   "fen": "2r2br1/2pq1kpp/1p1p3n/1p2p3/PP2p2P/5PR1/3P3Q/RNB1K2B b - - 2 24",
+   "potential": 0.04852211763830377,
+   "material": 0.0,
+   "center": 0.3788048724977644,
+   "exchange": 0.39999999999999997,
+   "best_exchange_ich": 1,
+   "best_exchange_gegner": 1
+  },
+  {
+   "fen": "rnbqkbnr/pp3ppp/2p1p3/3p4/6PP/2N5/PPPPPP2/R1BQKBNR w KQkq - 0 4",
+   "potential": -0.01786924290909639,
+   "material": 0.0,
+   "center": -0.28602970418284157,
+   "exchange": 0.0,
+   "best_exchange_ich": 0,
+   "best_exchange_gegner": 0
+  },
+  {
+   "fen": "2b3r1/k3b3/4qp1Q/2Pp2P1/pr1Pp1P1/1P3B2/3BP2P/3K2NR w - - 0 40",
+   "potential": 0.1950652815729978,
+   "material": 1.0,
+   "center": -0.6043677771171634,
+   "exchange": 2.9,
+   "best_exchange_ich": 5,
+   "best_exchange_gegner": 2
+  },
+  {
+   "fen": "2b1k3/4b3/5np1/4B2p/1P4BP/P7/8/Q6K w - - 0 80",
+   "potential": 0.3895529669175932,
+   "material": 7.0,
+   "center": 0.1447319390372461,
+   "exchange": 1.1999999999999997,
+   "best_exchange_ich": 3,
+   "best_exchange_gegner": 3
+  },
+  {
+   "fen": "8/8/k3K3/2P4P/3P1R2/1p3r2/8/6B1 w - - 0 75",
+   "potential": 0.37673421614953456,
+   "material": 5.0,
+   "center": 0.8474440710341941,
+   "exchange": 2.0,
+   "best_exchange_ich": 5,
+   "best_exchange_gegner": 5
+  },
+  {
+   "fen": "1r6/5Q2/2kp3p/2rNp2P/2n1P1p1/1P4P1/6K1/2B2n2 w - - 3 52",
+   "potential": -0.003966821881075833,
+   "material": -1.0,
+   "center": -0.2634704817874675,
+   "exchange": 1.1999999999999997,
+   "best_exchange_ich": 3,
+   "best_exchange_gegner": 3
+  },
+  {
+   "fen": "rnb3nr/2p2pkp/p3p2b/1Q1q2p1/2p3P1/N1P1PP1P/PP1PN3/R1B2RK1 w - - 3 15",
+   "potential": -0.23264513465061765,
+   "material": -2.0,
+   "center": -0.03233839060320644,
+   "exchange": -1.9999999999999998,
+   "best_exchange_ich": 1,
+   "best_exchange_gegner": 9
+  },
+  {
+   "fen": "rnbqk3/ppppn3/5pp1/4Q1p1/P1P4r/1P2K2N/4PPPP/RN3B1R b q - 0 12",
+   "potential": 0.298415645031019,
+   "material": 0.0,
+   "center": -0.49431443432125366,
+   "exchange": 6.0,
+   "best_exchange_ich": 9,
+   "best_exchange_gegner": 1
+  },
+  {
+   "fen": "rn2kbr1/p3pn1p/B1p2pN1/3p1b2/2PP2pQ/P5P1/1P3P1P/RNB1K2R w KQ - 0 18",
+   "potential": 0.39521931440646774,
+   "material": 9.0,
+   "center": -0.21920289937735435,
+   "exchange": -0.19999999999999996,
+   "best_exchange_ich": 1,
+   "best_exchange_gegner": 3
+  },
+  {
+   "fen": "8/2nk4/2n3N1/p1p1R3/P1P5/NK2B3/8/7B b - - 12 65",
+   "potential": -0.4306169951506529,
+   "material": -11.0,
+   "center": -0.4848234047638962,
+   "exchange": 1.0999999999999999,
+   "best_exchange_ich": 2,
+   "best_exchange_gegner": 1
+  },
+  {
+   "fen": "8/8/2r1Pnpp/2p3kP/P1Pp2P1/1N3Pp1/8/3K4 w - - 1 72",
+   "potential": -0.2554478512759797,
+   "material": -4.0,
+   "center": -0.21152872199100722,
+   "exchange": -0.3,
+   "best_exchange_ich": 0,
+   "best_exchange_gegner": 1
+  },
+  {
+   "fen": "8/3n3p/3pk1BR/2B5/2P1br2/4Q1P1/P2P4/4K2R b - - 0 53",
+   "potential": -0.47879365837422955,
+   "material": -16.0,
+   "center": 0.07191767068081878,
+   "exchange": 0.5999999999999996,
+   "best_exchange_ich": 3,
+   "best_exchange_gegner": 5
+  },
+  {
+   "fen": "rn1qkb1r/1p1bpppp/3p1n2/p1p5/6P1/2PP4/PP1BPP1P/RN1QKBNR w KQkq - 1 6",
+   "potential": -0.03568705805757862,
+   "material": 0.0,
+   "center": -0.27196549970272355,
+   "exchange": -0.3,
+   "best_exchange_ich": 0,
+   "best_exchange_gegner": 1
+  },
+  {
+   "fen": "2kBb2b/4p3/4P3/R2p4/1P1Pp2P/8/PK6/R4nq1 w - - 4 56",
+   "potential": -0.21003540565823883,
+   "material": -3.0,
+   "center": -0.38222403546355194,
+   "exchange": -0.19999999999999996,
+   "best_exchange_ich": 1,
+   "best_exchange_gegner": 3
+  },
+  {
+   "fen": "k1r5/7r/pnb1B2p/1pn2ppP/2QPp3/b1P3PN/N4PKR/R7 w - - 0 44",
+   "potential": 0.2597073450774241,
+   "material": 5.0,
+   "center": 0.20430284344246435,
+   "exchange": -0.6000000000000001,
+   "best_exchange_ich": 3,
+   "best_exchange_gegner": 9
+  },
+  {
+   "fen": "4k3/8/8/3q4/8/3R4/3R4/4K3 w - - 0 1",
+   "potential": 0.35283461563455826,
+   "material": 1.0,
+   "center": -0.27196549970272355,
+   "exchange": 6.3,
+   "best_exchange_ich": 9,
+   "best_exchange_gegner": 0
+  },
+  {
+   "fen": "4k3/8/8/8/1b6/8/3Q4/4K2r w - - 0 1",
+   "potential": 0.08434966194413125,
+   "material": 1.0,
+   "center": 0.362620666270298,
+   "exchange": 0.2999999999999998,
+   "best_exchange_ich": 3,
+   "best_exchange_gegner": 6
+  },
+  {
+   "fen": "3qk3/8/8/3r4/8/3R4/3Q4/3RK3 w - - 0 1",
+   "potential": 0.38999982528606714,
+   "material": 5.0,
+   "center": -0.1370427507250359,
+   "exchange": 3.5,
+   "best_exchange_ich": 5,
+   "best_exchange_gegner": 0
+  },
+  {
+   "fen": "4k3/8/8/8/8/5n2/8/2B1K2R b K - 0 1",
+   "potential": -0.2666629377811907,
+   "material": -5.0,
+   "center": 0.2417471108468654,
+   "exchange": 0.0,
+   "best_exchange_ich": 0,
+   "best_exchange_gegner": 0
+  },
+  {
+   "fen": "rnb1kbnr/pppp1ppp/8/4p3/5PPq/8/PPPPP2P/RNBQKBNR w KQkq - 1 3",
+   "potential": 0.0,
+   "material": 0.0,
+   "center": -0.048522596830672685,
+   "exchange": 0.39999999999999997,
+   "best_exchange_ich": 1,
+   "best_exchange_gegner": 1
+  },
+  {
+   "fen": "4k3/1P6/8/8/8/8/8/4K3 w - - 0 1",
+   "potential": 0.062176500885798104,
+   "material": 1.0,
+   "center": 0.0,
+   "exchange": 0.0,
+   "best_exchange_ich": 0,
+   "best_exchange_gegner": 0
+  },
+  {
+   "fen": "4k3/8/8/3pP3/8/8/8/4K3 w - d6 0 2",
+   "potential": -0.007554022392438563,
+   "material": 0.0,
+   "center": -0.1208735554234327,
+   "exchange": 0.0,
+   "best_exchange_ich": 0,
+   "best_exchange_gegner": 0
+  },
+  {
+   "fen": "7k/5Q2/6K1/8/8/8/8/8 b - - 0 1",
+   "potential": 0.0,
+   "material": -9.0,
+   "center": -0.3605006645229499,
+   "exchange": 0.0,
+   "best_exchange_ich": 0,
+   "best_exchange_gegner": 0
+  },
+  {
+   "fen": "4k3/8/8/8/8/8/8/R3K2R w KQ - 0 1",
+   "potential": 0.42414181997875644,
+   "material": 10.0,
+   "center": 0.0,
+   "exchange": 0.0,
+   "best_exchange_ich": 0,
+   "best_exchange_gegner": 0
+  },
+  {
+   "fen": "r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1",
+   "potential": 0.09960927463786047,
+   "material": 0.0,
+   "center": 0.11534940163615992,
+   "exchange": 1.4999999999999996,
+   "best_exchange_ich": 3,
+   "best_exchange_gegner": 2
+  },
+  {
+   "fen": "8/2p5/3p4/KP5r/1R3p1k/8/4P1P1/8 w - - 0 1",
+   "potential": 0.04115495614631228,
+   "material": 0.0,
+   "center": -0.040027578915416605,
+   "exchange": 0.7,
+   "best_exchange_ich": 1,
+   "best_exchange_gegner": 0
+  }
+ ]
+}

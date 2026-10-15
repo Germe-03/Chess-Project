@@ -161,6 +161,8 @@
       <dl class="kv">
         <dt>Engine</dt><dd id="infoEngine">—</dd>
         <dt>Bewertung</dt><dd id="infoEval">—</dd>
+        <dt>Vorausschau</dt><dd id="infoTiefe">—</dd>
+        <dt>Erwartet</dt><dd id="infoPv">—</dd>
       </dl>
 
       <div class="moves" id="moves"></div>
@@ -254,7 +256,7 @@ async function ladeVersionen(){
     const data = await res.json();
     const sel = $("#version");
     sel.innerHTML = data.versions.map(v =>
-      `<option value="${v.name}"${v.name === data.active ? " selected" : ""}>${v.name} · ${v.episodes} Episoden${v.name === data.active ? " (aktiv)" : ""}</option>`
+      `<option value="${v.name}"${v.name === data.active ? " selected" : ""}>${versionsText(v, v.name === data.active)}</option>`
     ).join("");
     spiel.version = sel.value;
     window._versionen = data.versions;
@@ -303,6 +305,12 @@ async function sendeZug(uci){
     spiel.to   = d.engine_uci ? d.engine_uci.slice(2,4) : null;
     if(d.engine) $("#infoEngine").textContent = d.engine === "rl" ? `RL-Modell ${d.version}` : "Material-Heuristik";
     $("#infoEval").textContent = bewertung(d.evaluation);
+    if(d.engine_san){
+      const t = d.depth || 1;
+      $("#infoTiefe").textContent = t === 1 ? "1 Halbzug" : `${t} Halbzüge`;
+      // Erst ab zwei Zügen sagt die Folge mehr als der Zug selbst.
+      $("#infoPv").textContent = (d.pv || []).length > 1 ? d.pv.join(" ") : "—";
+    }
     if(d.finished){ spiel.laeuft = false; setStatus(d.status, "over"); }
     else setStatus(d.status, "");
     zugListe();
@@ -310,6 +318,13 @@ async function sendeZug(uci){
     setStatus("Keine Verbindung zum Server.", "error");
   }
   spiel.busy = false; render();
+}
+
+function versionsText(v, aktiv){
+  // Eine Version ist Netz plus Suchtiefe; beides gehört in die Auswahl.
+  const t = v.search_depth || 1;
+  const training = v.episodes ? `${v.episodes} Episoden` : `Netz von ${v.parent}`;
+  return `${v.name} · ${t === 1 ? "1 Halbzug" : t + " Halbzüge"} voraus · ${training}${aktiv ? " (aktiv)" : ""}`;
 }
 
 function bewertung(v){

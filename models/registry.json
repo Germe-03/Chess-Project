@@ -1,5 +1,5 @@
 {
-  "active": "v3",
+  "active": "v5",
   "versions": [
     {
       "name": "v1",
@@ -7,10 +7,13 @@
       "trained": "2026-09-28",
       "episodes": 1000,
       "parent": null,
+      "search_depth": 1,
       "notes": "Erster Lauf mit Reward Shaping. Wegen eines Fehlers in der Speicherlogik blieb nur der Stand von Episode 1000 erhalten.",
       "results": {
-        "punkte_vs_stockfish_1320": 0.22,
-        "punkte_vs_material": 1.0
+        "punkte_vs_stockfish_1320_grundstellung": 0.22,
+        "punkte_vs_material_grundstellung": 1.0,
+        "punkte_vs_stockfish_1320_eröffnungen": 0.125,
+        "taktik_gelöst": 0.62
       }
     },
     {
@@ -19,11 +22,15 @@
       "trained": "2026-09-29",
       "episodes": 5000,
       "parent": "v1",
+      "search_depth": 1,
       "notes": "Warmstart auf v1, epsilon 0.3 bis 0.05, Zufallseröffnung mit SEE-Filter, korrigierte Speicherlogik.",
       "results": {
-        "punkte_vs_stockfish_1320": 0.28,
-        "punkte_vs_material": 1.0,
-        "punkte_vs_v1": 0.76
+        "punkte_vs_stockfish_1320_grundstellung": 0.28,
+        "punkte_vs_material_grundstellung": 1.0,
+        "punkte_vs_v1_grundstellung": 0.76,
+        "punkte_vs_stockfish_1320_eröffnungen": 0.21,
+        "punkte_vs_v1_eröffnungen": 0.685,
+        "taktik_gelöst": 0.633
       }
     },
     {
@@ -32,12 +39,62 @@
       "trained": "2026-09-29",
       "episodes": 3000,
       "parent": "v2",
-      "notes": "Netz von 128 auf 512 Neuronen verbreitert (Net2Net, funktionserhaltend), Abbruchlimit von 160 auf 400 Halbzüge. Gewinnt 100 Prozent gegen v2.",
+      "search_depth": 1,
+      "notes": "Netz von 128 auf 512 Neuronen verbreitert (Net2Net, funktionserhaltend), Abbruchlimit von 160 auf 400 Halbzüge. Gegen v2 mit Zufallseröffnungen 54 Punkteprozent; die zuerst gemessenen 100 Prozent wiederholten aus der Grundstellung nur zwei Partien.",
       "results": {
-        "punkte_vs_stockfish_1320": 0.29,
-        "punkte_vs_material": 1.0,
-        "punkte_vs_v2": 1.0
+        "punkte_vs_stockfish_1320_grundstellung": 0.29,
+        "punkte_vs_material_grundstellung": 1.0,
+        "punkte_vs_v2_grundstellung": 1.0,
+        "punkte_vs_stockfish_1320_eröffnungen": 0.19,
+        "punkte_vs_v2_eröffnungen": 0.538,
+        "taktik_gelöst": 0.64
+      }
+    },
+    {
+      "name": "v4",
+      "file": "full_v3.npz",
+      "trained": "2026-10-14",
+      "episodes": 0,
+      "parent": "v3",
+      "search_depth": 2,
+      "notes": "Netz von v3 unverändert, rechnet aber 2 Halbzüge voraus (Alpha-Beta mit Ruhesuche für Schlagabtausche). Zeigt, was die Suche allein bringt, ohne neues Training.",
+      "results": {
+        "punkte_vs_stockfish_1320_eröffnungen": 0.212,
+        "punkte_vs_v3_eröffnungen": 0.988,
+        "taktik_gelöst": 0.713
+      }
+    },
+    {
+      "name": "v5",
+      "file": "full_v5.npz",
+      "trained": "2026-10-15",
+      "episodes": 200,
+      "parent": "v3",
+      "search_depth": 2,
+      "notes": "Weitertrainiert von v3 mit TD-Leaf: 200 Partien mit 4 Halbzügen Vorausschau (Lernrate 5e-4, epsilon 0.1 bis 0.05), 5.1 Stunden auf 12 Kernen in 3 Sitzungen. Spielt mit 2 Halbzügen Vorausschau.",
+      "results": {
+        "punkte_vs_stockfish_1320_eröffnungen": 0.388,
+        "punkte_vs_v4_eröffnungen": 0.552,
+        "taktik_gelöst": 0.733,
+        "punkte_vs_stockfish_1320_eröffnungen_mit_tiefe_1": 0.188,
+        "taktik_gelöst_mit_tiefe_1": 0.64
+      },
+      "lernkurve_punkte_vs_stockfish_1320": {
+        "0": 0.212,
+        "25": 0.282,
+        "50": 0.348,
+        "75": 0.358,
+        "100": 0.372,
+        "125": 0.325,
+        "150": 0.39,
+        "175": 0.415,
+        "200": 0.388
       }
     }
-  ]
+  ],
+  "messprotokoll": {
+    "_eröffnungen": "200 Partien, je 100 Zufallseröffnungen (0 bis 8 Halbzüge ohne Materialverlust) mit beiden Farben, Abbruch nach 400 Halbzügen, Punkte = Siege + halbe Remis. Gemessen am 2026-10-14 mit python -m Code.rl.evaluate --opponent ...",
+    "_grundstellung": "Erste Messungen: 25 Partien x 2 Seeds aus der Grundstellung, Abbruch nach 160 Halbzügen. Zwischen zwei eigenen Versionen nicht aussagekräftig, weil zwei deterministische Engines dort immer dieselbe Partie spielen.",
+    "_taktik": "Anteil der 150 Stellungen aus tests/fixtures/taktikstellungen.json, in denen der laut Stockfish klar beste Zug gefunden wird. python -m Code.rl.evaluate --task full --model ... --depth ... --tactics tests/fixtures/taktikstellungen.json"
+  }
 }

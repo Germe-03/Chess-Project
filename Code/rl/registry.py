@@ -14,9 +14,21 @@ Umgeschaltet wird auf zwei Ebenen:
 Nur die Vollpartien-Modelle sind versioniert. Die Endspielmodelle (kqk, krk)
 sind Spezialisten für eine feste Aufgabe und ändern sich nicht mehr.
 
+Eine Version ist Netz UND Suchtiefe
+-----------------------------------
+Zu jeder Version gehört das Feld "search_depth": wie viele Halbzüge die Engine
+mit diesem Netz vorausrechnet. Erst beides zusammen legt fest, wie eine Version
+spielt. v1 bis v3 rechnen fest einen Halbzug voraus; wer sie auswählt, bekommt
+exakt dieselben Züge wie vor dem Einbau der Suche (abgesichert durch
+tests/test_search.py). Einträge ohne das Feld gelten als Tiefe 1.
+
+Deshalb gibt es auch keinen freien Tiefe-Regler in der Oberfläche: Eine
+Version soll einen festen, nachvollziehbaren Stand des Projekts zeigen.
+
 Aufruf:
     python -m Code.rl.registry                  Versionen anzeigen
     python -m Code.rl.registry --activate v1    aktive Version umschalten
+    python -m Code.rl.registry --register v5 --file full_v5.npz --depth 2 ...
 """
 from __future__ import annotations
 
@@ -68,6 +80,12 @@ def set_active(name: str) -> None:
     save_registry(data)
 
 
+def search_depth(name: str | None = None) -> int:
+    """Vorausschau einer Version in Halbzügen; ohne Namen die der aktiven."""
+    entry = find(name or active_name() or "")
+    return int(entry.get("search_depth", 1)) if entry else 1
+
+
 def load_model(name: str | None = None) -> ValueNet | None:
     """
     Modell einer Version laden. Ohne Namen die aktive Version.
@@ -78,19 +96,29 @@ def load_model(name: str | None = None) -> ValueNet | None:
     name = name or active_name()
     if name is None:
         return None
-    if name in _cache:
-        return _cache[name]
     entry = find(name)
     if entry is None:
         return None
+    # Zwischengespeichert wird pro Datei, nicht pro Version: Zwei Versionen
+    # können dasselbe Netz mit unterschiedlicher Suchtiefe verwenden.
+    if entry["file"] in _cache:
+        return _cache[entry["file"]]
     path = MODELS_DIR / entry["file"]
     if not path.exists():
         return None
-    _cache[name] = ValueNet.load(path)
-    return _cache[name]
+    _cache[entry["file"]] = ValueNet.load(path)
+    return _cache[entry["file"]]
 
 
-def register(name: str, file: str, episodes: int, parent: str | None = None, notes: str = "") -> dict:
+def register(
+    name: str,
+    file: str,
+    episodes: int,
+    parent: str | None = None,
+    notes: str = "",
+    depth: int = 1,
+    activate: bool = True,
+) -> dict:
     """Neue Version eintragen. Bestehende Einträge werden nicht überschrieben."""
     if find(name) is not None:
         raise ValueError(f"Version {name} gibt es bereits.")
@@ -101,11 +129,13 @@ def register(name: str, file: str, episodes: int, parent: str | None = None, not
         "trained": date.today().isoformat(),
         "episodes": episodes,
         "parent": parent,
+        "search_depth": depth,
         "notes": notes,
         "results": {},
     }
     data.setdefault("versions", []).append(entry)
-    data["active"] = name
+    if activate:
+        data["active"] = name
     save_registry(data)
     return entry
 
@@ -118,26 +148,31 @@ def main() -> None:
     parser.add_argument("--episodes", type=int, default=0, help="Trainierte Episoden für --register")
     parser.add_argument("--parent", default=None, help="Version, auf der aufgesetzt wurde")
     parser.add_argument("--notes", default="", help="Kurzbeschreibung des Laufs")
+    parser.add_argument("--depth", type=int, default=1, help="Vorausschau in Halbzügen für --register")
+    parser.add_argument("--keep-active", action="store_true",
+                        help="Neue Version nur eintragen, die aktive bleibt unverändert")
     args = parser.parse_args()
 
     if args.register:
         if not args.file:
             parser.error("--register braucht --file")
-        register(args.register, args.file, args.episodes, args.parent, args.notes)
-        print(f"Version {args.register} eingetragen und aktiviert.\n")
+        register(args.register, args.file, args.episodes, args.parent, args.notes,
+                 depth=args.depth, activate=not args.keep_active)
+        print(f"Version {args.register} eingetragen"
+              + (".\n" if args.keep_active else " und aktiviert.\n"))
     if args.activate:
         set_active(args.activate)
         print(f"Aktive Version ist jetzt {args.activate}.\n")
 
     active = active_name()
-    print(f"{'':2} {'Version':<8} {'Datum':<12} {'Episoden':>9} {'Eltern':<8} Beschreibung")
+    print(f"{'':2} {'Version':<8} {'Datum':<12} {'Episoden':>9} {'Tiefe':>6} {'Eltern':<8} Beschreibung")
     for entry in versions():
         marker = "->" if entry["name"] == active else "  "
         print(
             f"{marker:2} {entry['name']:<8} {entry['trained']:<12} {entry['episodes']:>9} "
-            f"{str(entry['parent'] or '-'):<8} {entry['notes']}"
+            f"{entry.get('search_depth', 1):>6} {str(entry['parent'] or '-'):<8} {entry['notes']}"
         )
-    print("\n-> = aktive Version")
+    print("\n-> = aktive Version, Tiefe = vorausgerechnete Halbzüge")
 
 
 if __name__ == "__main__":

@@ -29,19 +29,33 @@ FEATURE_SIZE = PIECE_FEATURES + EXTRA_FEATURES
 
 
 def board_to_features(board: chess.Board) -> np.ndarray:
-    """Stellung -> Merkmalsvektor aus Sicht der Zugpartei."""
-    view = board if board.turn == chess.WHITE else board.mirror()
-    x = np.zeros(FEATURE_SIZE, dtype=np.float32)
+    """
+    Stellung -> Merkmalsvektor aus Sicht der Zugpartei.
 
-    for square, piece in view.piece_map().items():
-        plane = (piece.piece_type - 1) + (0 if piece.color == chess.WHITE else 6)
-        x[plane * 64 + square] = 1.0
+    Gerechnet wird direkt auf den Bitmasken von python-chess: Jede der zwölf
+    Ebenen ist eine 64-Bit-Zahl, Bit i steht für Feld i (a1 = 0, h8 = 63). Das
+    Spiegeln für Schwarz ist dann ein Byte-Tausch (flip_vertical), und das
+    Auspacken in 768 Nullen und Einsen erledigt NumPy in einem Schritt. Das
+    Ergebnis ist identisch mit dem früheren Weg über board.mirror() und
+    piece_map(), aber schneller — wichtig, weil beim Vorausrechnen jede
+    bewertete Stellung hier durch muss.
+    """
+    me = board.turn
+    own, opp = board.occupied_co[me], board.occupied_co[not me]
+    pieces = (board.pawns, board.knights, board.bishops, board.rooks, board.queens, board.kings)
+    planes = [mask & own for mask in pieces] + [mask & opp for mask in pieces]
+    if me == chess.BLACK:
+        planes = [chess.flip_vertical(plane) for plane in planes]
 
-    # Nach dem Spiegeln ist Weiss immer "ich".
-    x[PIECE_FEATURES + 0] = float(view.has_kingside_castling_rights(chess.WHITE))
-    x[PIECE_FEATURES + 1] = float(view.has_queenside_castling_rights(chess.WHITE))
-    x[PIECE_FEATURES + 2] = float(view.has_kingside_castling_rights(chess.BLACK))
-    x[PIECE_FEATURES + 3] = float(view.has_queenside_castling_rights(chess.BLACK))
-    x[PIECE_FEATURES + 4] = float(view.ep_square is not None)
-    x[PIECE_FEATURES + 5] = min(view.halfmove_clock / 100.0, 1.0)
+    x = np.empty(FEATURE_SIZE, dtype=np.float32)
+    bits = np.array(planes, dtype="<u8").view(np.uint8)
+    x[:PIECE_FEATURES] = np.unpackbits(bits, bitorder="little")
+
+    # "ich" ist die Zugpartei, genau wie nach dem Spiegeln Weiss.
+    x[PIECE_FEATURES + 0] = float(board.has_kingside_castling_rights(me))
+    x[PIECE_FEATURES + 1] = float(board.has_queenside_castling_rights(me))
+    x[PIECE_FEATURES + 2] = float(board.has_kingside_castling_rights(not me))
+    x[PIECE_FEATURES + 3] = float(board.has_queenside_castling_rights(not me))
+    x[PIECE_FEATURES + 4] = float(board.ep_square is not None)
+    x[PIECE_FEATURES + 5] = min(board.halfmove_clock / 100.0, 1.0)
     return x

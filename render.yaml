@@ -9,3 +9,8 @@ services:
     branch: main
     buildCommand: pip install -r requirements.txt
     startCommand: uvicorn Code.main:app --host 0.0.0.0 --port $PORT
+    envVars:
+      # Obergrenze der Vorausschau in Halbzügen. Auf der Free-Instanz (0.1 CPU)
+      # dauert ein Zug mit Tiefe 2 rund 1 bis 3 Sekunden, mit Tiefe 3 zu lange.
+      - key: MAX_SEARCH_DEPTH
+        value: "2"

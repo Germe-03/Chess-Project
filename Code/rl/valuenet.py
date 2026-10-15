@@ -137,12 +137,22 @@ class ValueNet:
         breiter._reset_adam()
         return breiter
 
-    def save(self, path: str | Path) -> None:
+    def save(self, path: str | Path, optimizer: bool = False) -> None:
+        """
+        Gewichte speichern. Mit optimizer=True zusätzlich der Zustand von Adam
+        (gleitende Mittel und Schrittzahl) — nötig, damit ein unterbrochenes
+        Training genau dort weiterlernt, wo es aufgehört hat. Die Modelldateien
+        in models/ brauchen das nicht und bleiben deshalb klein.
+        """
         path = Path(path)
         path.parent.mkdir(parents=True, exist_ok=True)
-        np.savez_compressed(
-            path, W1=self.W1, b1=self.b1, W2=self.W2, b2=self.b2, shaped=np.array(self.shaped)
-        )
+        arrays = dict(W1=self.W1, b1=self.b1, W2=self.W2, b2=self.b2, shaped=np.array(self.shaped))
+        if optimizer:
+            for index, (m, v) in enumerate(self._moments):
+                arrays[f"adam_m{index}"] = m
+                arrays[f"adam_v{index}"] = v
+            arrays["adam_steps"] = np.array(self._step_count)
+        np.savez_compressed(path, **arrays)
 
     @classmethod
     def load(cls, path: str | Path) -> "ValueNet":
@@ -159,4 +169,10 @@ class ValueNet:
         net.W2 = data["W2"].astype(np.float32)
         net.b2 = data["b2"].astype(np.float32)
         net._reset_adam()
+        if "adam_steps" in data.files:
+            net._moments = [
+                (data[f"adam_m{index}"].astype(np.float32), data[f"adam_v{index}"].astype(np.float32))
+                for index in range(len(net._moments))
+            ]
+            net._step_count = int(data["adam_steps"])
         return net
