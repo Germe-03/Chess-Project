@@ -27,6 +27,9 @@ Konfiguration über Umgebungsvariablen:
                       Suche dort zu lange dauern würde.
     OPENBLAS_NUM_THREADS, OMP_NUM_THREADS, MKL_NUM_THREADS
                       Rechenthreads von NumPy, hier standardmässig 1 (siehe unten).
+    AZURE_ML_KEY, AZURE_ML_URL, AZURE_ML_DEPLOYMENT
+                      Lagebewertung über das Azure-ML-Modell (POST /lage),
+                      siehe Code/azure_lage.py. Ohne Schlüssel abgeschaltet.
 """
 import os
 
@@ -51,6 +54,7 @@ from fastapi.middleware.gzip import GZipMiddleware
 from fastapi.responses import FileResponse
 from pydantic import BaseModel, Field
 
+from . import azure_lage
 from .rl.engine import material_evaluation, material_move, value_move
 from .rl.features import board_to_features
 from .rl.registry import active_name, load_model, search_depth
@@ -321,6 +325,33 @@ def best_move(req: FenRequest) -> MoveResponse:
     """Optimalen Zug zu einer als FEN gegebenen Stellung berechnen."""
     board = board_from_fen(req.fen)
     return analyse(board, recognition="fen", version=req.version)
+
+
+class LageRequest(BaseModel):
+    fen: str = Field(..., description="Stellung in FEN-Notation", examples=[START_FEN])
+
+
+class LageResponse(BaseModel):
+    fen: str = Field(..., description="Bewertete Stellung (FEN)")
+    lage: str = Field(..., description="'weiss_besser', 'ausgeglichen' oder 'schwarz_besser'")
+    modell: str = Field(..., description="Herkunft der Bewertung")
+
+
+@app.post("/lage", response_model=LageResponse, tags=["schach"])
+def lage(req: LageRequest) -> LageResponse:
+    """
+    Wer steht besser? Zweite Meinung vom AutoML-Modell in Azure ML
+    (Projektaufgabe 2). 503, wenn kein Schlüssel hinterlegt ist; 502, wenn der
+    Endpoint nicht erreichbar ist, etwa weil er gelöscht wurde.
+    """
+    board = board_from_fen(req.fen)
+    try:
+        klasse = azure_lage.bewerte(board)
+    except azure_lage.NichtKonfiguriert:
+        raise HTTPException(status_code=503, detail="Azure-Bewertung ist nicht eingerichtet.")
+    except azure_lage.AzureFehler:
+        raise HTTPException(status_code=502, detail="Azure-Endpoint ist gerade nicht erreichbar.")
+    return LageResponse(fen=board.fen(), lage=klasse, modell="Azure ML AutoML (VotingEnsemble, runde2)")
 
 
 async def recognize_board(image: UploadFile, side: str, flipped: bool) -> tuple[chess.Board, float]:

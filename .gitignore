@@ -4,6 +4,7 @@ __pycache__/
 *.py[cod]
 *.egg-info/
 .pytest_cache/
+.ipynb_checkpoints/
 
 # Trainingsprotokolle (jederzeit reproduzierbar; die Modelle in models/ gehören ins Repo)
 logs/
@@ -22,3 +23,6 @@ tools/
 # OS
 .DS_Store
 Thumbs.db
+
+# Schlüssel des Azure-ML-Endpoints (Projektaufgabe 2), nie ins Repo
+azure_ml/endpoint_key.txt

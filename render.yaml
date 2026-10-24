@@ -14,3 +14,8 @@ services:
       # dauert ein Zug mit Tiefe 2 rund 1 bis 3 Sekunden, mit Tiefe 3 zu lange.
       - key: MAX_SEARCH_DEPTH
         value: "2"
+      # Lagebewertung über das Azure-ML-Modell (POST /lage, Projektaufgabe 2).
+      # Der Schlüssel ist geheim: Er wird nur im Render-Dashboard unter
+      # Environment gesetzt, nie hier. Ohne ihn ist die Funktion abgeschaltet.
+      - key: AZURE_ML_KEY
+        sync: false

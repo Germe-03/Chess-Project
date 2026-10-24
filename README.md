@@ -43,6 +43,7 @@ gross. Damit bleibt die 512-MB-Instanz auf render.com ausreichend.
 |---|---|---|
 | `MAX_SEARCH_DEPTH` | `2` | Obergrenze der Vorausschau in Halbzügen. Auf der Free-Instanz (0.1 CPU) dauert ein Zug mit Tiefe 2 etwa 1 bis 3 Sekunden, mit Tiefe 3 eher 15 bis 30 — zu lang für eine Web-Anfrage. Lokal lässt sich die Grenze anheben. |
 | `OPENBLAS_NUM_THREADS` (und `OMP_`/`MKL_`) | `1` | Rechenthreads von NumPy. Wird in `Code/main.py` gesetzt, bevor NumPy geladen wird. |
+| `AZURE_ML_KEY` | – (geheim) | Schlüssel des Azure-ML-Endpoints für `/lage`. Nur im Render-Dashboard setzen, nie ins Repo. Ohne ihn ist die Funktion aus. |
 
 **Warum ein einziger Rechenthread:** Nach der Aktivierung von v5 dauerte ein Zug
 im Mittelspiel auf render.com rund 15 Sekunden — lokal sind es 0.09. Auch ein
@@ -54,6 +55,14 @@ wie der Server Kerne hat, nicht so viele, wie dem Container zugeteilt sind. Die
 Threads warten aktiv, verbrauchen dabei das Kontingent, und der Container
 drosselt daraufhin den ganzen Prozess. Für die kleinen Matrizen hier bringt
 Mehrfädigkeit ohnehin nichts.
+
+Nach dem Fix, gemessen auf render.com mit v5 (Antwortzeit inklusive rund 0.3 s
+Übertragung):
+
+| Zug von v5 | vorher | nachher |
+|---|---|---|
+| Grundstellung | 3.5 s | 0.6 s |
+| Mittelspiel | 15 s | 1.2 s |
 
 Die Grenze steht als Umgebungsvariable und nicht im Code, weil sie zur
 Umgebung gehört und nicht zum Modell: Derselbe Stand läuft lokal tiefer als auf
@@ -132,6 +141,7 @@ aufgefallen, wenn jemand einen Lichess-Screenshot einfügt.
 | `POST /spielen/zug`          | `{fen, move, version?}`        | Stellung nach beiden Zügen, Status          |
 | `POST /recognize`            | Bild, `side`, `flipped`        | erkannte Stellung, Sicherheit, Hinweis      |
 | `POST /best-move-from-image` | Bild, `side`, `flipped`        | erkannte Stellung **und** bester Zug        |
+| `POST /lage`                 | `{fen}`                        | `{lage, modell}`: wer besser steht, laut Azure ML |
 | `GET /test/bericht.json`     | –                              | Prüfbericht des letzten Releases            |
 
 Das Feld `engine` sagt, wer den Zug gewählt hat: `rl` oder `material`. Die Skala
@@ -145,6 +155,29 @@ empfohlenen Zug — etwa `["Nc7+", "Kd7"]`. Ab Tiefe 2 ist `evaluation`
 der Suchwert, also die Bewertung **nach** dem Vorausrechnen; bei Tiefe 1 bleibt
 es wie bisher die Netzbewertung der Stellung selbst. `/spielen/zug` liefert
 `depth` und `pv` ebenfalls.
+
+### Zweite Meinung aus Azure ML (`POST /lage`)
+
+Das AutoML-Modell aus Projektaufgabe 2 (Azure ML, Endpoint `schach-lage-dgerm`,
+Bereitstellung `runde2`) sagt zu einer Stellung, wer besser steht:
+`weiss_besser`, `ausgeglichen` oder `schwarz_besser`. Auf 1 373 Stellungen aus
+Partien, die es nie gesehen hat, liegt es zu 88 % richtig. Die Analyse-Seite
+zeigt das als Zeile «Azure ML» unter dem empfohlenen Zug.
+
+Der Dienst ruft Azure selbst auf (`Code/azure_lage.py`), mit denselben
+24 Merkmalen wie beim Training (`azure_ml/merkmale.py`). Der Schlüssel bleibt
+auf dem Server:
+
+| Wo | Schlüssel |
+|---|---|
+| lokal | Datei `azure_ml/endpoint_key.txt` (in `.gitignore`) oder Umgebungsvariable `AZURE_ML_KEY` |
+| render.com | Dashboard → Service → **Environment** → `AZURE_ML_KEY` |
+
+Ohne Schlüssel antwortet `/lage` mit 503 und die Zeile verschwindet. Ist der
+Endpoint in Azure gelöscht, kommt 502 und die Seite zeigt «gerade nicht
+verfügbar». Der Rest des Dienstes läuft in beiden Fällen normal weiter. Der
+Endpoint kostet rund 0.14 $ pro Stunde, solange er läuft. Training, Daten und
+Anleitung stehen in `azure_ml/ANLEITUNG.md`.
 
 ## Oberflächen
 

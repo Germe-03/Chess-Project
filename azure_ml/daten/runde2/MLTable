@@ -1,0 +1,13 @@
+$schema: https://azuremlschemas.azureedge.net/latest/MLTable.schema.json
+type: mltable
+paths:
+  - file: ./runde2_training.csv
+transformations:
+  - read_delimited:
+      delimiter: ','
+      encoding: utf8
+      header: all_files_same_headers
+      infer_column_types: false
+  - convert_column_types:
+      - columns: [weiss_am_zug, w_bauern, w_springer, w_laeufer, w_tuerme, w_damen, s_bauern, s_springer, s_laeufer, s_tuerme, s_damen, materialbilanz, bilanz_nach_bestem_schlag, schlaggewinn_weiss, schlaggewinn_schwarz, legale_zuege, mobilitaet_weiss, mobilitaet_schwarz, im_schach, koenigsdruck_auf_weiss, koenigsdruck_auf_schwarz, freibauern_weiss, freibauern_schwarz, figurenmaterial]
+        column_type: int

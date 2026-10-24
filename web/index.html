@@ -608,6 +608,7 @@ function renderResult(r,isDemo,reason){
       <dt>Zug (UCI)</dt><dd>${esc(r.move||"—")}</dd>
       ${r.version ? `<dt>Modell</dt><dd>${esc(r.version)} · rechnet ${r.depth === 1 ? "1 Halbzug" : r.depth + " Halbzüge"} voraus</dd>` : ""}
       ${r.pv && r.pv.length > 1 ? `<dt>Erwartete Folge</dt><dd>${esc(r.pv.join(" "))}</dd>` : ""}
+      ${isDemo ? "" : `<dt id="azureLageDt">Azure ML</dt><dd id="azureLage" class="muted" data-fen="${esc(fen)}">Zweite Meinung wird abgefragt …</dd>`}
       <dt>Erkannte FEN</dt><dd style="word-break:break-all">${esc(fen)}</dd>
     </dl>
 
@@ -626,6 +627,33 @@ function renderResult(r,isDemo,reason){
     if(!isValidFen(v)){ alert("Die FEN ist unvollständig. Bitte 8 Reihen und die Zugfarbe angeben."); return; }
     computeFromFen(v);
   });
+  if(!isDemo) ladeLage(fen);
+}
+
+/* Zweite Meinung: AutoML-Modell aus Azure ML (Projektaufgabe 2), über POST /lage.
+   Ist der Dienst ohne Azure-Schlüssel eingerichtet (503), verschwindet die Zeile. */
+const LAGE_TEXT = {
+  weiss_besser: "Weiss steht besser",
+  ausgeglichen: "Ungefähr ausgeglichen",
+  schwarz_besser: "Schwarz steht besser",
+};
+async function ladeLage(fen){
+  const ziel=$("#azureLage"), titel=$("#azureLageDt");
+  if(!ziel) return;
+  const nochAktuell = () => ziel.isConnected && ziel.dataset.fen === fen;
+  try{
+    const res=await fetch((apiBase()||"")+"/lage",{
+      method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({fen})});
+    if(!nochAktuell()) return;
+    if(res.status===503){ ziel.remove(); if(titel) titel.remove(); return; }
+    if(!res.ok) throw new Error("HTTP "+res.status);
+    const data=await res.json();
+    ziel.classList.remove("muted");
+    ziel.innerHTML=`<strong>${esc(LAGE_TEXT[data.lage]||data.lage)}</strong>
+      <span class="muted">· AutoML-Modell, 88 % richtig auf ungesehenen Partien</span>`;
+  }catch(err){
+    if(nochAktuell()) ziel.textContent="Gerade nicht verfügbar (Azure-Endpoint ausgeschaltet).";
+  }
 }
 
 function boardHtml(fen,from,to){

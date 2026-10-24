@@ -1,0 +1,3 @@
+# Für die Projektaufgabe 2 (Azure ML): Datensatz erzeugen und Notebook ausführen
+chess==1.11.1
+ipykernel
