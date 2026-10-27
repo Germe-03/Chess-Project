@@ -47,6 +47,7 @@ from pathlib import Path
 from typing import NamedTuple
 
 import chess
+import chess.engine
 from fastapi import FastAPI, File, Form, HTTPException, UploadFile
 from PIL import Image
 from fastapi.middleware.cors import CORSMiddleware
@@ -54,7 +55,7 @@ from fastapi.middleware.gzip import GZipMiddleware
 from fastapi.responses import FileResponse
 from pydantic import BaseModel, Field
 
-from . import azure_lage
+from . import azure_lage, stockfish_analyse
 from .rl.engine import material_evaluation, material_move, value_move
 from .rl.features import board_to_features
 from .rl.registry import active_name, load_model, search_depth
@@ -354,6 +355,44 @@ def lage(req: LageRequest) -> LageResponse:
     return LageResponse(fen=board.fen(), lage=klasse, modell="Azure ML AutoML (VotingEnsemble, runde2)")
 
 
+class StockfishRequest(BaseModel):
+    fen: str = Field(..., description="Stellung in FEN-Notation", examples=[START_FEN])
+
+
+class StockfishResponse(BaseModel):
+    fen: str = Field(..., description="Bewertete Stellung (FEN)")
+    cp: int | None = Field(None, description="Centipawns aus Sicht von Weiss; leer, wenn Matt in Sicht ist")
+    mate: int | None = Field(None, description="Matt in n Zügen, positiv für Weiss, negativ für Schwarz")
+    depth: int = Field(0, description="Erreichte Suchtiefe")
+    best_san: str = Field("", description="Bester Zug laut Stockfish")
+    pv: list[str] = Field(default_factory=list, description="Hauptvariante in SAN")
+
+
+@app.post("/stockfish", response_model=StockfishResponse, tags=["schach"])
+def stockfish(req: StockfishRequest) -> StockfishResponse:
+    """
+    Stockfish-Bewertung für die Analyseleiste auf /cheat. 503, wenn Stockfish
+    auf diesem Server fehlt (so auf render.com), 422 bei beendeter Partie.
+    """
+    board = board_from_fen(req.fen)
+    if board.is_game_over():
+        raise HTTPException(status_code=422, detail=f"Partie beendet: {board.result()}")
+    try:
+        bewertung = stockfish_analyse.bewerte(board)
+    except stockfish_analyse.NichtVerfuegbar:
+        raise HTTPException(status_code=503, detail="Stockfish ist auf diesem Server nicht installiert.")
+    except chess.engine.EngineError:
+        raise HTTPException(status_code=502, detail="Stockfish hat nicht geantwortet.")
+    pv = line_san(board, bewertung.pv)
+    return StockfishResponse(
+        fen=board.fen(), cp=bewertung.cp, mate=bewertung.matt, depth=bewertung.tiefe,
+        best_san=pv[0] if pv else "", pv=pv,
+    )
+
+
+app.add_event_handler("shutdown", stockfish_analyse.beenden)
+
+
 async def recognize_board(image: UploadFile, side: str, flipped: bool) -> tuple[chess.Board, float]:
     """Screenshot -> Stellung und Sicherheit. Gemeinsame Grundlage beider Endpunkte."""
     data = await image.read()
@@ -397,7 +436,9 @@ def describe_position(board: chess.Board) -> tuple[str, bool]:
         return "Remis — zu wenig Material zum Mattsetzen", True
     if board.can_claim_fifty_moves():
         return "Remis nach der 50-Züge-Regel", True
-    if board.can_claim_threefold_repetition():
+    # Nicht can_claim_threefold_repetition(): Das ist schon wahr, wenn erst der
+    # nächste Zug die Stellung zum dritten Mal herbeiführen würde.
+    if board.is_repetition(3):
         return "Remis durch dreifache Stellungswiederholung", True
     am_zug = "Weiss" if board.turn == chess.WHITE else "Schwarz"
     if board.is_check():
@@ -476,6 +517,85 @@ def play_move(req: PlayRequest) -> PlayResponse:
         version=choice.label,
         depth=choice.depth,
         pv=pv,
+    )
+
+
+# --------------------------------------------------------------------------- #
+# Engine-Test mit Uhr (/cheat): Die Engine spielt eine Farbe, die Züge der
+# Gegenseite gibt man von Hand ein — etwa aus einer zweiten Instanz der Engine
+# im anderen Tab. Anders als bei /spielen kommt die ganze Zugfolge mit, nicht
+# nur die FEN: Erst damit erkennt python-chess die dreifache Wiederholung.
+# --------------------------------------------------------------------------- #
+class PartieZugRequest(BaseModel):
+    moves: list[str] = Field(default_factory=list, description="Bisherige Züge ab Grundstellung, UCI")
+    move: str = Field(..., description="Neuer Zug in UCI-Notation", examples=["e2e4"])
+
+
+class PartieEngineRequest(BaseModel):
+    moves: list[str] = Field(default_factory=list, description="Bisherige Züge ab Grundstellung, UCI")
+    version: str | None = Field(None, description="Modellversion; leer heisst die aktive")
+
+
+class PartieResponse(BaseModel):
+    fen: str = Field(..., description="Stellung nach dem Zug")
+    uci: str = Field(..., description="Ausgeführter Zug, UCI (mit Umwandlungsfigur)")
+    san: str = Field(..., description="Ausgeführter Zug, lesbar")
+    status: str = Field(..., description="Klartext für die Anzeige")
+    finished: bool = Field(False, description="Ist die Partie zu Ende?")
+    result: str = Field("*", description="Ergebnis: '1-0', '0-1', '1/2-1/2' oder '*'")
+    evaluation: float | None = Field(None, description="Nur Engine-Zug: Bewertung aus Sicht von Weiss")
+    engine: str = Field("", description="Nur Engine-Zug: 'rl' oder 'material'")
+    version: str = Field("", description="Nur Engine-Zug: welches Modell geantwortet hat")
+    depth: int = Field(0, description="Nur Engine-Zug: Halbzüge Vorausschau")
+    pv: list[str] = Field(default_factory=list, description="Nur Engine-Zug: erwartete Zugfolge in SAN")
+
+
+def board_from_moves(moves: list[str]) -> chess.Board:
+    """Partie aus der Zugfolge nachspielen; ein ungültiger Zug ergibt 400."""
+    board = chess.Board()
+    for uci in moves:
+        try:
+            move = chess.Move.from_uci(uci)
+        except ValueError:
+            raise HTTPException(status_code=400, detail=f"Ungültige Zugnotation in der Zugfolge: {uci}")
+        if move not in board.legal_moves:
+            raise HTTPException(status_code=400, detail=f"Zug {uci} ist in der Zugfolge nicht erlaubt.")
+        board.push(move)
+    return board
+
+
+def partie_antwort(board: chess.Board, move: chess.Move, **engine_felder) -> PartieResponse:
+    """Zug ausführen und die neue Lage beschreiben."""
+    san = board.san(move)
+    board.push(move)
+    status, finished = describe_position(board)
+    return PartieResponse(
+        fen=board.fen(), uci=move.uci(), san=san, status=status, finished=finished,
+        result=board.result(claim_draw=True) if finished else "*", **engine_felder,
+    )
+
+
+@app.post("/partie/zug", response_model=PartieResponse, tags=["engine-test"])
+def partie_zug(req: PartieZugRequest) -> PartieResponse:
+    """Einen von Hand eingegebenen Zug ausführen, ohne dass die Engine antwortet."""
+    board = board_from_moves(req.moves)
+    if describe_position(board)[1]:
+        raise HTTPException(status_code=422, detail="Die Partie ist bereits beendet.")
+    return partie_antwort(board, parse_move(board, req.move))
+
+
+@app.post("/partie/engine", response_model=PartieResponse, tags=["engine-test"])
+def partie_engine(req: PartieEngineRequest) -> PartieResponse:
+    """Die Engine zieht in der Stellung nach der gegebenen Zugfolge."""
+    board = board_from_moves(req.moves)
+    if describe_position(board)[1]:
+        raise HTTPException(status_code=422, detail="Die Partie ist bereits beendet.")
+    choice = choose_move(board, req.version)
+    if choice.move is None:
+        raise HTTPException(status_code=422, detail="Die Engine findet keinen Zug.")
+    return partie_antwort(
+        board, choice.move, evaluation=choice.evaluation, engine=choice.engine,
+        version=choice.label, depth=choice.depth, pv=line_san(board, choice.pv),
     )
 
 
@@ -601,6 +721,14 @@ def spielen():
     if page.exists():
         return FileResponse(page, headers={"Cache-Control": "no-cache"})
     return {"message": "Spielseite nicht gefunden."}
+
+
+@app.get("/cheat", include_in_schema=False)
+def engine_test():
+    page = WEB_DIR / "cheat.html"
+    if page.exists():
+        return FileResponse(page, headers={"Cache-Control": "no-cache"})
+    return {"message": "Seite für den Engine-Test nicht gefunden."}
 
 
 @app.get("/test", include_in_schema=False)

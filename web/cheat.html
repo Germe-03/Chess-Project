@@ -1,0 +1,664 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="icon" href="/favicon.ico" sizes="any">
+<link rel="apple-touch-icon" href="/favicon.png">
+<title>Engine-Test — Schach-Assistent</title>
+<style>
+  :root{
+    --bg:#f4f5f7; --surface:#ffffff; --surface-2:#eef0f3; --border:#d8dce2;
+    --text:#1c2430; --muted:#5b6675; --primary:#2f6df6; --primary-ink:#ffffff;
+    --primary-weak:#e7f0ff; --good:#1f9d57; --warn:#b4690e; --bad:#c23b3b;
+    --focus:#1552d6; --shadow:0 1px 2px rgba(16,24,40,.06),0 4px 16px rgba(16,24,40,.08);
+    --sq-light:#efe4cf; --sq-dark:#b48a63; --sq-from:#f6e27a; --sq-to:#8fd18f;
+    --marker:rgba(20,30,45,.42); --radius:14px;
+  }
+  :root[data-theme="dark"]{
+    --bg:#12161d; --surface:#1b212b; --surface-2:#222a36; --border:#333d4c;
+    --text:#e8ecf2; --muted:#9aa6b6; --primary:#5b8bff; --primary-ink:#0b1220;
+    --primary-weak:#1c2942; --good:#4cc281; --warn:#e0a34a; --bad:#e97070;
+    --focus:#7aa2ff; --shadow:0 1px 2px rgba(0,0,0,.4);
+    --sq-light:#c9ba9c; --sq-dark:#6d5136; --sq-from:#b9a032; --sq-to:#4f9d55;
+    --marker:rgba(236,243,255,.5);
+  }
+  @media (prefers-color-scheme:dark){
+    :root:not([data-theme="light"]){
+      --bg:#12161d; --surface:#1b212b; --surface-2:#222a36; --border:#333d4c;
+      --text:#e8ecf2; --muted:#9aa6b6; --primary:#5b8bff; --primary-ink:#0b1220;
+      --primary-weak:#1c2942; --good:#4cc281; --warn:#e0a34a; --bad:#e97070;
+      --focus:#7aa2ff; --shadow:0 1px 2px rgba(0,0,0,.4);
+      --sq-light:#c9ba9c; --sq-dark:#6d5136; --sq-from:#b9a032; --sq-to:#4f9d55;
+      --marker:rgba(236,243,255,.5);
+    }
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--text);
+    font:15px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;}
+  .wrap{max-width:1000px;margin:0 auto;padding:20px 16px 56px;}
+  a{color:var(--primary)}
+  h1,h2{line-height:1.2;margin:0}
+  .muted{color:var(--muted)}
+  :focus-visible{outline:3px solid var(--focus);outline-offset:2px;border-radius:8px}
+
+  header{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:18px}
+  .brand{margin-right:auto}
+  .brand h1{font-size:20px;font-weight:700;letter-spacing:-.01em}
+  .brand p{margin:2px 0 0;font-size:13px;color:var(--muted)}
+  .icon-btn{background:var(--surface);border:1px solid var(--border);color:var(--text);
+    height:38px;padding:0 12px;border-radius:10px;cursor:pointer;font:inherit;font-size:14px}
+  .icon-btn:hover{background:var(--surface-2)}
+  a.icon-btn{text-decoration:none;line-height:36px}
+
+  .grid{display:grid;grid-template-columns:minmax(0,1fr) 300px;gap:18px;align-items:start}
+  @media (max-width:820px){.grid{grid-template-columns:1fr}}
+  .card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);
+    padding:18px;box-shadow:var(--shadow)}
+  .card h2{font-size:15px;font-weight:700;margin-bottom:4px}
+  .card .hint{font-size:13px;color:var(--muted);margin:0 0 14px}
+
+  label.field{display:block;font-size:13px;color:var(--muted);margin:14px 0 6px}
+  select{width:100%;height:40px;padding:0 10px;border:1px solid var(--border);border-radius:10px;
+    background:var(--surface);color:var(--text);font:inherit}
+  .seg{display:inline-flex;align-items:center;gap:7px;border:1px solid var(--border);
+    background:var(--surface);padding:9px 14px;border-radius:10px;cursor:pointer;margin-right:8px;font-size:14px}
+  .seg.on{border-color:var(--primary);background:var(--primary-weak)}
+  .seg input{accent-color:var(--primary)}
+  .fix{font-size:13px;margin:14px 0 0;padding:9px 12px;border-radius:10px;background:var(--surface-2)}
+  .btn-primary{background:var(--primary);color:var(--primary-ink);border:none;height:44px;
+    padding:0 20px;border-radius:11px;font-weight:600;cursor:pointer;width:100%;margin-top:16px;font:inherit;font-weight:600}
+  .btn-primary:hover{filter:brightness(1.05)}
+  .btn-ghost{background:transparent;border:1px solid var(--border);color:var(--text);height:40px;
+    padding:0 14px;border-radius:10px;cursor:pointer;margin-top:10px;width:100%;font:inherit;font-size:14px}
+  .btn-ghost:hover{background:var(--surface-2)}
+  .btn-ghost:disabled{opacity:.45;cursor:not-allowed}
+  .btn-ghost.wichtig{border-color:var(--primary);background:var(--primary-weak);font-weight:600}
+
+  /* Brett, Uhren und Leisten haben dieselbe Breite und stehen bündig untereinander. */
+  .spalte{width:min(76vw,440px);margin-left:20px}
+  .uhr{display:flex;justify-content:space-between;align-items:center;gap:10px;
+    padding:6px 12px;border-radius:10px;background:var(--surface-2);border:1px solid var(--border)}
+  .uhr.oben{margin-bottom:8px} .uhr.unten{margin-top:8px}
+  .uhr .name{font-size:13px;color:var(--muted)}
+  .uhr .name strong{color:var(--text);font-weight:600}
+  .uhr .zeit{font-size:24px;font-weight:700;font-variant-numeric:tabular-nums;letter-spacing:.02em}
+  .uhr.aktiv{border-color:var(--primary);background:var(--primary-weak)}
+  .uhr.knapp .zeit{color:var(--bad)}
+  .uhr.angehalten .zeit{opacity:.55}
+
+  .board-wrap{display:flex;gap:10px;align-items:center}
+  .ranks{display:grid;grid-template-rows:repeat(8,1fr);font-size:11px;color:var(--muted);
+    height:min(76vw,440px);align-items:center}
+  .board{width:min(76vw,440px);height:min(76vw,440px);display:grid;
+    grid-template-columns:repeat(8,1fr);grid-template-rows:repeat(8,1fr);
+    border:1px solid var(--border);border-radius:8px;overflow:hidden}
+  .files{display:grid;grid-template-columns:repeat(8,1fr);font-size:11px;color:var(--muted);
+    text-align:center;margin-top:2px}
+  .sq{display:flex;align-items:center;justify-content:center;font-size:min(9vw,38px);
+    line-height:1;position:relative;user-select:none;cursor:pointer}
+  .sq.light{background:var(--sq-light)} .sq.dark{background:var(--sq-dark)}
+  .sq.from::after,.sq.to::after{content:"";position:absolute;inset:0;opacity:.7}
+  .sq.from::after{background:var(--sq-from)}
+  .sq.to::after{background:var(--sq-to)}
+  .sq .pc{position:relative;z-index:1;filter:drop-shadow(0 1px 1px rgba(0,0,0,.35))}
+  .pc.white{color:#fff} .pc.black{color:#111}
+  .sq.sel{box-shadow:inset 0 0 0 4px var(--focus)}
+  .sq.target::before,.sq.capture::before{content:"";position:absolute;z-index:0;pointer-events:none}
+  .sq.target::before{width:30%;height:30%;border-radius:50%;background:var(--marker)}
+  .sq.capture::before{inset:6%;border-radius:50%;border:4px solid var(--marker)}
+  .board.locked .sq{cursor:default}
+
+  .promo{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:10px;padding:10px 12px;
+    border-radius:10px;border:1px solid var(--primary);background:var(--primary-weak);font-size:14px}
+  .promo button{height:40px;min-width:44px;font-size:24px;line-height:1;border-radius:9px;cursor:pointer;
+    border:1px solid var(--border);background:var(--surface);color:var(--text)}
+  .promo button.text{font-size:14px;padding:0 12px}
+
+  .status{margin-top:14px;padding:12px 14px;border-radius:11px;background:var(--surface-2);
+    border:1px solid var(--border);font-size:14px;display:flex;gap:10px;align-items:center}
+  .status.over{background:color-mix(in srgb,var(--good) 14%,transparent);
+    border-color:color-mix(in srgb,var(--good) 45%,transparent)}
+  .status.error{background:color-mix(in srgb,var(--bad) 12%,transparent);
+    border-color:color-mix(in srgb,var(--bad) 45%,transparent)}
+  .spinner{width:16px;height:16px;border:2px solid var(--border);border-top-color:var(--primary);
+    border-radius:50%;animation:spin .8s linear infinite;flex:0 0 auto}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  @media (prefers-reduced-motion:reduce){.spinner{animation-duration:2s}}
+
+  /* Bewertungsleisten unter dem Brett: links Weiss, rechts Schwarz */
+  .leiste{margin-top:14px}
+  .leiste .kopf{display:flex;justify-content:space-between;align-items:baseline;gap:10px;font-size:13px;margin-bottom:5px}
+  .leiste .kopf strong{font-weight:700}
+  .leiste .kopf span{color:var(--muted);text-align:right;font-variant-numeric:tabular-nums}
+  .sfbar{height:16px;border-radius:99px;background:#2b2b2b;overflow:hidden;border:1px solid var(--border);position:relative}
+  .sfbar > div{height:100%;width:50%;background:#f2f2f2;transition:width .3s}
+  .sfbar::after{content:"";position:absolute;left:50%;top:0;bottom:0;width:1px;background:#d4453a;opacity:.7}
+  .sfbar.aus{opacity:.35}
+  @media (prefers-reduced-motion:reduce){.sfbar > div{transition:none}}
+  .azbar{display:grid;grid-template-columns:repeat(3,1fr);gap:3px}
+  .azbar span{text-align:center;font-size:12px;padding:3px 4px;border-radius:7px;
+    background:var(--surface-2);color:var(--muted);border:1px solid var(--border)}
+  .azbar span.on{background:var(--primary);color:var(--primary-ink);border-color:var(--primary);font-weight:600}
+  .azbar.aus{opacity:.45}
+
+  dl.kv{display:grid;grid-template-columns:auto 1fr;gap:4px 12px;margin:16px 0 0;font-size:13px}
+  dl.kv dt{color:var(--muted)} dl.kv dd{margin:0}
+  .moves{margin-top:14px;max-height:230px;overflow:auto;font-size:13px;
+    font-variant-numeric:tabular-nums;border-top:1px solid var(--border);padding-top:10px}
+  .moves div{display:grid;grid-template-columns:34px 1fr 1fr;gap:6px;padding:2px 0}
+  .moves .nr{color:var(--muted)}
+  .moves .engine{font-weight:700}
+  .hand{color:var(--warn);font-weight:700}
+  .legende{font-size:12px;color:var(--muted);margin-top:6px}
+  .vinfo{font-size:12px;color:var(--muted);margin-top:6px;min-height:2.4em}
+  footer{margin-top:26px;font-size:12px;color:var(--muted);text-align:center}
+  [hidden]{display:none!important}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="brand">
+      <h1>⏱ Engine-Test mit Uhr</h1>
+      <p>AI Operations · deine Engine spielt eine Farbe, die Gegenzüge gibst du von Hand ein</p>
+    </div>
+    <a class="icon-btn" href="/">← Analyse</a>
+    <a class="icon-btn" href="/spielen">Spielen</a>
+    <button class="icon-btn" id="themeToggle" aria-label="Farbschema wechseln">◐ Ansicht</button>
+  </header>
+
+  <div class="grid">
+    <section class="card">
+      <div class="spalte uhr oben" id="uhrOben">
+        <span class="name" id="nameOben"></span><span class="zeit" id="zeitOben">10:00</span>
+      </div>
+      <div class="board-wrap">
+        <div class="ranks" id="ranks"></div>
+        <div class="board" id="board" aria-label="Schachbrett"></div>
+      </div>
+      <div class="spalte files" id="files"></div>
+      <div class="spalte uhr unten" id="uhrUnten">
+        <span class="name" id="nameUnten"></span><span class="zeit" id="zeitUnten">10:00</span>
+      </div>
+
+      <div class="spalte promo" id="promo" hidden>
+        <span>Umwandeln in:</span>
+        <button data-figur="q" aria-label="Dame" id="promoDame"></button>
+        <button data-figur="r" aria-label="Turm"></button>
+        <button data-figur="b" aria-label="Läufer"></button>
+        <button data-figur="n" aria-label="Springer"></button>
+        <button class="text" data-figur="" >Abbrechen</button>
+      </div>
+
+      <div class="status" id="status" role="status" aria-live="polite">
+        <span id="statusText">Wähle Version und Farbe der Engine, dann «Partie starten».</span>
+      </div>
+
+      <div class="spalte leiste">
+        <div class="kopf"><strong>Stockfish</strong><span id="sfText">—</span></div>
+        <div class="sfbar" id="sfBar" role="img" aria-label="Stockfish-Bewertung"><div id="sfFill"></div></div>
+      </div>
+      <div class="spalte leiste">
+        <div class="kopf"><strong>Azure ML</strong><span id="azText">—</span></div>
+        <div class="azbar" id="azBar">
+          <span data-lage="weiss_besser">Weiss besser</span>
+          <span data-lage="ausgeglichen">ausgeglichen</span>
+          <span data-lage="schwarz_besser">Schwarz besser</span>
+        </div>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>Einstellungen</h2>
+      <p class="hint">Die Farbe gilt ab der nächsten Partie, die Version ab dem nächsten Engine-Zug.</p>
+
+      <label class="field" for="version">Modellversion der Engine</label>
+      <select id="version"></select>
+      <div class="vinfo" id="versionInfo"></div>
+
+      <label class="field">Die Engine spielt</label>
+      <div>
+        <label class="seg on"><input type="radio" name="farbe" value="w" checked> Weiss</label>
+        <label class="seg"><input type="radio" name="farbe" value="b"> Schwarz</label>
+      </div>
+      <p class="fix">Bedenkzeit: 10 Minuten je Seite, ohne Zusatzzeit</p>
+
+      <button class="btn-primary" id="start">Partie starten</button>
+      <button class="btn-ghost wichtig" id="engineZug" hidden>Engine ziehen lassen</button>
+      <button class="btn-ghost" id="undo" disabled>Letzten Zug zurücknehmen</button>
+      <button class="btn-ghost" id="uhrKnopf" disabled>Uhr anhalten</button>
+
+      <dl class="kv">
+        <dt>Engine</dt><dd id="infoEngine">—</dd>
+        <dt>Bewertung</dt><dd id="infoEval">—</dd>
+        <dt>Vorausschau</dt><dd id="infoTiefe">—</dd>
+        <dt>Erwartet</dt><dd id="infoPv">—</dd>
+      </dl>
+
+      <div class="moves" id="moves"></div>
+      <div class="legende"><strong>Fett</strong>: Zug der Engine · <span class="hand">✋</span>: von dir für die Engine gezogen</div>
+    </section>
+  </div>
+
+  <footer>Schach-Assistent · FHNW AI Operations</footer>
+</div>
+
+<script>
+"use strict";
+const PIECES = {K:"♔",Q:"♕",R:"♖",B:"♗",N:"♘",P:"♙",k:"♚",q:"♛",r:"♜",b:"♝",n:"♞",p:"♟"};
+const NAMES = {k:"König",q:"Dame",r:"Turm",b:"Läufer",n:"Springer",p:"Bauer"};
+const START = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
+const FILES = ["a","b","c","d","e","f","g","h"];
+const FARBE = {w:"Weiss", b:"Schwarz"};
+const BEDENKZEIT = 10 * 60 * 1000;   // je Seite, ohne Zusatzzeit
+const $ = s => document.querySelector(s);
+
+/* Der Server hält keine Partie — der ganze Zustand steckt hier im Browser. */
+const partie = {
+  fen: START, engine: "w", laeuft: false, busy: false,
+  pausiert: false,   // Engine ist am Zug, wartet aber (nach einer Rücknahme)
+  zuege: [],         // {uci, san, fen, wer: "engine" | "gegner" | "hand", status, finished}
+  sel: null, ziele: new Set(), promo: null,
+  anfrage: 0,        // Zähler: Antworten, die nach einer Rücknahme eintreffen, verwerfen
+  uhr: {w: BEDENKZEIT, b: BEDENKZEIT}, seit: 0, uhrAus: false, ende: "",
+};
+
+(function initTheme(){
+  try{ const t = localStorage.getItem("sa_theme"); if(t) document.documentElement.setAttribute("data-theme", t); }catch{}
+  $("#themeToggle").addEventListener("click", ()=>{
+    const cur = document.documentElement.getAttribute("data-theme");
+    const dunkel = cur ? cur === "dark" : matchMedia("(prefers-color-scheme:dark)").matches;
+    const next = dunkel ? "light" : "dark";
+    document.documentElement.setAttribute("data-theme", next);
+    try{ localStorage.setItem("sa_theme", next); }catch{}
+  });
+})();
+
+const amZug = () => partie.fen.split(/\s+/)[1];
+const gegner = () => partie.engine === "w" ? "b" : "w";
+const letzterZug = () => partie.zuege[partie.zuege.length - 1];
+const zugfolge = () => partie.zuege.map(z => z.uci);
+const zeitUm = () => partie.uhr.w <= 0 || partie.uhr.b <= 0;
+const darfZiehen = () => partie.laeuft && !partie.busy && (amZug() !== partie.engine || partie.pausiert);
+
+async function post(pfad, daten){
+  const res = await fetch(pfad, {
+    method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify(daten)
+  });
+  const body = await res.json().catch(()=>({}));
+  if(!res.ok) throw Object.assign(new Error(body.detail || `Fehler ${res.status}`), {status: res.status});
+  return body;
+}
+
+/* ---------- Uhr ---------- */
+const uhrLaeuft = () => partie.laeuft && !partie.uhrAus;
+function restzeit(farbe){
+  let t = partie.uhr[farbe];
+  if(uhrLaeuft() && farbe === amZug()) t -= performance.now() - partie.seit;
+  return Math.max(0, t);
+}
+/* Verbrauchte Zeit der Zugpartei festschreiben. Muss vor jedem Wechsel der
+   Zugpartei laufen, weil restzeit() die Zugpartei aus der FEN liest. */
+function uhrAbrechnen(){
+  if(uhrLaeuft()) partie.uhr[amZug()] = restzeit(amZug());
+  partie.seit = performance.now();
+}
+function uhrText(ms){
+  // Unter 20 Sekunden mit Zehnteln, wie auf den grossen Schachseiten.
+  if(ms < 20000) return `0:${String(Math.floor(ms/1000)).padStart(2,"0")}.${Math.floor(ms/100) % 10}`;
+  const s = Math.ceil(ms / 1000);
+  return `${Math.floor(s/60)}:${String(s % 60).padStart(2,"0")}`;
+}
+function zeigeUhren(){
+  for(const [farbe, ort] of [[partie.engine, "Unten"], [gegner(), "Oben"]]){
+    const ms = restzeit(farbe);
+    $("#zeit" + ort).textContent = uhrText(ms);
+    const el = $("#uhr" + ort);
+    el.classList.toggle("aktiv", partie.laeuft && farbe === amZug());
+    el.classList.toggle("knapp", ms < 30000);
+    el.classList.toggle("angehalten", partie.laeuft && partie.uhrAus);
+  }
+}
+function zuWenigMaterial(farbe){
+  // Nur König, oder König und eine Leichtfigur: Damit lässt sich nicht mattsetzen.
+  const figuren = Object.values(fenToMap(partie.fen))
+    .filter(p => (p === p.toUpperCase()) === (farbe === "w") && p.toLowerCase() !== "k");
+  return figuren.length === 0 || (figuren.length === 1 && "nb".includes(figuren[0].toLowerCase()));
+}
+function zeitAbgelaufen(){
+  const verlierer = amZug(), sieger = verlierer === "w" ? "b" : "w";
+  partie.uhr[verlierer] = 0;
+  partie.laeuft = false; partie.busy = false; partie.pausiert = false; partie.anfrage++;
+  partie.ende = zuWenigMaterial(sieger)
+    ? `Zeit abgelaufen für ${FARBE[verlierer]} — remis, ${FARBE[sieger]} kann nicht mehr mattsetzen`
+    : `Zeit abgelaufen für ${FARBE[verlierer]} — ${FARBE[sieger]} gewinnt`;
+  setStatus(partie.ende, "over");
+  render();
+}
+setInterval(()=>{
+  if(!partie.laeuft) return;
+  zeigeUhren();
+  if(uhrLaeuft() && restzeit(amZug()) <= 0) zeitAbgelaufen();
+}, 100);
+
+/* ---------- Brett zeichnen ---------- */
+function fenToMap(fen){
+  const map = {}, rows = fen.split(/\s+/)[0].split("/");
+  for(let r=0;r<8;r++){ let f=0;
+    for(const ch of rows[r]){ if(/\d/.test(ch)) f += +ch; else { map[FILES[f]+(8-r)] = ch; f++; } }
+  }
+  return map;
+}
+function reihenfolge(){
+  // Die Farbe der Engine steht unten — du sitzt sozusagen auf ihrem Stuhl.
+  const reihen = partie.engine === "b" ? [1,2,3,4,5,6,7,8] : [8,7,6,5,4,3,2,1];
+  const linien = partie.engine === "b" ? [...FILES].reverse() : FILES;
+  return {reihen, linien};
+}
+function render(){
+  const map = fenToMap(partie.fen);
+  const {reihen, linien} = reihenfolge();
+  const z = letzterZug();
+  const von = z ? z.uci.slice(0,2) : null, nach = z ? z.uci.slice(2,4) : null;
+  $("#ranks").innerHTML = reihen.map(n=>`<span>${n}</span>`).join("");
+  $("#files").innerHTML = linien.map(f=>`<span>${f}</span>`).join("");
+  let html = "";
+  for(const rank of reihen) for(const file of linien){
+    const feld = file + rank;
+    const hell = (FILES.indexOf(file) + rank) % 2 === 1;
+    const p = map[feld];
+    let cls = `sq ${hell ? "light" : "dark"}`;
+    if(feld === von) cls += " from";
+    if(feld === nach) cls += " to";
+    if(feld === partie.sel) cls += " sel";
+    else if(partie.ziele.has(feld)) cls += p ? " capture" : " target";
+    const figur = p ? `<span class="pc ${p === p.toUpperCase() ? "white" : "black"}">${PIECES[p]}</span>` : "";
+    const label = p ? `${feld}, ${p === p.toUpperCase() ? "weisse" : "schwarze"} ${NAMES[p.toLowerCase()]}` : `${feld}, leer`;
+    html += `<div class="${cls}" data-square="${feld}" role="button" tabindex="0" aria-label="${label}">${figur}</div>`;
+  }
+  $("#board").innerHTML = html;
+  $("#board").classList.toggle("locked", !darfZiehen());
+
+  $("#nameUnten").innerHTML = `<strong>Engine</strong> · ${FARBE[partie.engine]}`;
+  $("#nameOben").innerHTML = `<strong>Gegner</strong> · ${FARBE[gegner()]}`;
+  $("#undo").disabled = !partie.zuege.length || zeitUm();
+  $("#engineZug").hidden = !(partie.laeuft && partie.pausiert && !partie.busy && amZug() === partie.engine);
+  $("#uhrKnopf").disabled = !partie.laeuft;
+  $("#uhrKnopf").textContent = partie.uhrAus ? "Uhr weiterlaufen lassen" : "Uhr anhalten";
+  const weiss = amZug() === "w";
+  document.querySelectorAll("#promo [data-figur]").forEach(b=>{
+    if(b.dataset.figur) b.textContent = PIECES[weiss ? b.dataset.figur.toUpperCase() : b.dataset.figur];
+  });
+  $("#promo").hidden = !partie.promo;
+  zeigeUhren();
+  zugListe();
+}
+function setStatus(text, art){
+  $("#statusText").textContent = text;
+  const el = $("#status");
+  el.className = "status" + (art ? " " + art : "");
+  el.querySelectorAll(".spinner").forEach(s=>s.remove());
+  if(art === "busy") el.insertBefore(Object.assign(document.createElement("span"), {className:"spinner"}), el.firstChild);
+}
+function zugListe(){
+  const zelle = z => !z ? "<span></span>"
+    : z.wer === "engine" ? `<span class="engine">${z.san}</span>`
+    : z.wer === "hand" ? `<span class="hand" title="Von dir für die Engine gezogen">✋ ${z.san}</span>`
+    : `<span>${z.san}</span>`;
+  let html = "";
+  for(let i=0;i<partie.zuege.length;i+=2){
+    html += `<div><span class="nr">${i/2+1}.</span>${zelle(partie.zuege[i])}${zelle(partie.zuege[i+1])}</div>`;
+  }
+  $("#moves").innerHTML = html;
+  $("#moves").scrollTop = $("#moves").scrollHeight;
+}
+function gegnerHinweis(status){
+  const schach = status && status.startsWith("Schach") ? status + ". " : "";
+  return `${schach}Gegner (${FARBE[gegner()]}) am Zug: Gib seinen Zug auf dem Brett ein.`;
+}
+const WARTET = "Die Engine wartet: Zieh selbst eine ihrer Figuren oder klick «Engine ziehen lassen».";
+
+/* ---------- Versionen ---------- */
+async function ladeVersionen(){
+  try{
+    const res = await fetch("/versions");
+    const data = await res.json();
+    const sel = $("#version");
+    sel.innerHTML = data.versions.map(v =>
+      `<option value="${v.name}"${v.name === data.active ? " selected" : ""}>${versionsText(v, v.name === data.active)}</option>`
+    ).join("");
+    window._versionen = data.versions;
+    zeigeVersionInfo();
+    sel.addEventListener("change", zeigeVersionInfo);
+  }catch{
+    $("#versionInfo").textContent = "Versionen konnten nicht geladen werden — läuft der Server?";
+  }
+}
+function zeigeVersionInfo(){
+  const v = (window._versionen||[]).find(x => x.name === $("#version").value);
+  $("#versionInfo").textContent = v ? `${v.trained} · ${v.notes}` : "";
+}
+function versionsText(v, aktiv){
+  const t = v.search_depth || 1;
+  const training = v.episodes ? `${v.episodes} Episoden` : `Netz von ${v.parent}`;
+  return `${v.name} · ${t === 1 ? "1 Halbzug" : t + " Halbzüge"} voraus · ${training}${aktiv ? " (aktiv)" : ""}`;
+}
+function bewertung(v){
+  if(v === null || v === undefined || isNaN(+v)) return "—";
+  v = +v;
+  if(Math.abs(v) <= 1){
+    const prozent = Math.round((v + 1) / 2 * 100);
+    return `${v >= 0 ? "+" : ""}${v.toFixed(2)} (Weiss ${prozent} %)`;
+  }
+  return `${(v/100).toFixed(1)} Bauern für ${v >= 0 ? "Weiss" : "Schwarz"}`;
+}
+
+/* ---------- Partieablauf ---------- */
+function zugEintragen(d, wer){
+  uhrAbrechnen();
+  partie.zuege.push({uci: d.uci, san: d.san, fen: d.fen, wer, status: d.status, finished: d.finished});
+  partie.fen = d.fen; partie.sel = null; partie.ziele = new Set(); partie.promo = null;
+  if(d.finished){ partie.laeuft = false; partie.ende = d.status; }
+}
+
+function partieStarten(){
+  if(partie.laeuft && partie.zuege.length && !confirm("Die laufende Partie abbrechen und neu starten?")) return;
+  partie.engine = document.querySelector('input[name="farbe"]:checked').value;
+  Object.assign(partie, {
+    fen: START, zuege: [], laeuft: true, busy: false, pausiert: false, ende: "",
+    sel: null, ziele: new Set(), promo: null,
+    uhr: {w: BEDENKZEIT, b: BEDENKZEIT}, seit: performance.now(), uhrAus: false,
+  });
+  partie.anfrage++;
+  for(const id of ["#infoEngine","#infoEval","#infoTiefe","#infoPv"]) $(id).textContent = "—";
+  render(); bewerteStellung();
+  if(partie.engine === "w") engineZieht();
+  else setStatus("Partie läuft. " + gegnerHinweis(""), "");
+}
+
+async function engineZieht(){
+  if(!partie.laeuft || amZug() !== partie.engine) return;
+  const nr = ++partie.anfrage;
+  partie.busy = true; partie.pausiert = false; render();
+  setStatus("Die Engine überlegt …", "busy");
+  try{
+    const d = await post("/partie/engine", {moves: zugfolge(), version: $("#version").value || null});
+    if(nr !== partie.anfrage) return;   // inzwischen zurückgenommen oder neu gestartet
+    zugEintragen(d, "engine");
+    $("#infoEngine").textContent = d.engine === "rl" ? `RL-Modell ${d.version}` : "Material-Heuristik";
+    $("#infoEval").textContent = bewertung(d.evaluation);
+    $("#infoTiefe").textContent = d.depth === 1 ? "1 Halbzug" : `${d.depth} Halbzüge`;
+    $("#infoPv").textContent = (d.pv || []).length > 1 ? d.pv.join(" ") : "—";
+    partie.busy = false;
+    if(d.finished) setStatus(d.status, "over");
+    else setStatus(`Die Engine spielte ${d.san}. ${gegnerHinweis(d.status)}`, "");
+  }catch(err){
+    if(nr !== partie.anfrage) return;
+    partie.busy = false; partie.pausiert = true;
+    setStatus(`Kein Engine-Zug: ${err.message}. ${WARTET}`, "error");
+  }
+  render(); bewerteStellung();
+}
+
+async function handZug(uci){
+  const wer = amZug() === partie.engine ? "hand" : "gegner";
+  const nr = ++partie.anfrage;
+  partie.busy = true; partie.sel = null; partie.ziele = new Set(); partie.promo = null; render();
+  try{
+    const d = await post("/partie/zug", {moves: zugfolge(), move: uci});
+    if(nr !== partie.anfrage) return;
+    zugEintragen(d, wer);
+    partie.busy = false; partie.pausiert = false;
+    render(); bewerteStellung();
+    if(d.finished) setStatus(d.status, "over");
+    else if(wer === "gegner") engineZieht();
+    else setStatus(`Du hast ${d.san} für die Engine gespielt. ${gegnerHinweis(d.status)}`, "");
+  }catch(err){
+    if(nr !== partie.anfrage) return;
+    partie.busy = false; render();
+    setStatus(err.message || "Der Zug wurde abgelehnt.", "error");
+  }
+}
+
+function zuruecknehmen(){
+  if(!partie.zuege.length || zeitUm()) return;
+  partie.anfrage++;   // eine laufende Engine-Rechnung wird damit verworfen
+  uhrAbrechnen();
+  const weg = partie.zuege.pop();
+  partie.fen = letzterZug() ? letzterZug().fen : START;
+  Object.assign(partie, {busy: false, sel: null, ziele: new Set(), promo: null, ende: ""});
+  if(!partie.laeuft){ partie.laeuft = true; partie.seit = performance.now(); }
+  // Ist danach die Engine am Zug, rechnet sie nicht sofort neu — sonst käme
+  // man nie dazu, selbst einen anderen Zug für sie zu setzen.
+  partie.pausiert = amZug() === partie.engine;
+  setStatus(`${weg.san} zurückgenommen. ${partie.pausiert ? WARTET : gegnerHinweis("")}`, "");
+  render(); bewerteStellung();
+}
+
+/* ---------- Zugeingabe auf dem Brett ---------- */
+async function zeigeZuege(feld){
+  if(partie.sel === feld){ partie.sel = null; partie.ziele = new Set(); render(); return; }
+  const p = fenToMap(partie.fen)[feld];
+  if(!p || (p === p.toUpperCase()) !== (amZug() === "w")){   // nur Figuren der Zugpartei
+    partie.sel = null; partie.ziele = new Set(); render(); return;
+  }
+  partie.sel = feld; partie.ziele = new Set(); partie.promo = null; render();
+  try{
+    const d = await post("/legal-moves", {fen: partie.fen, square: feld});
+    if(partie.sel !== feld) return;
+    partie.ziele = new Set(d.targets || []);
+    render();
+  }catch{ /* ohne Markierung weiterspielen */ }
+}
+
+$("#board").addEventListener("click", e=>{
+  const sq = e.target.closest(".sq");
+  if(!sq || !darfZiehen()) return;
+  const feld = sq.dataset.square;
+  if(partie.sel && partie.ziele.has(feld)){
+    const p = fenToMap(partie.fen)[partie.sel];
+    if(p.toLowerCase() === "p" && (feld[1] === "8" || feld[1] === "1")){
+      partie.promo = partie.sel + feld; render(); $("#promoDame").focus(); return;
+    }
+    handZug(partie.sel + feld); return;
+  }
+  zeigeZuege(feld);
+});
+$("#board").addEventListener("keydown", e=>{
+  if(e.key !== "Enter" && e.key !== " ") return;
+  const sq = e.target.closest(".sq"); if(!sq) return;
+  e.preventDefault(); sq.click();
+});
+$("#promo").addEventListener("click", e=>{
+  const b = e.target.closest("[data-figur]");
+  if(!b || !partie.promo) return;
+  const uci = partie.promo;
+  if(b.dataset.figur) handZug(uci + b.dataset.figur);
+  else { partie.promo = null; partie.sel = null; partie.ziele = new Set(); render(); }
+});
+
+/* ---------- Bewertungsleisten: Stockfish und Azure ML ---------- */
+function stockfishZeigen(prozentWeiss, text, aus){
+  $("#sfFill").style.width = `${prozentWeiss}%`;
+  $("#sfText").textContent = text;
+  $("#sfBar").classList.toggle("aus", !!aus);
+  $("#sfBar").setAttribute("aria-label", `Stockfish: ${text}`);
+}
+function azureZeigen(lage, text){
+  document.querySelectorAll("#azBar span").forEach(s => s.classList.toggle("on", s.dataset.lage === lage));
+  $("#azBar").classList.toggle("aus", !lage);
+  $("#azText").textContent = text;
+}
+// Centipawns -> Gewinnchance für Weiss, dieselbe Kurve wie auf lichess.org
+const gewinnchance = cp => 50 + 50 * (2 / (1 + Math.exp(-0.00368208 * cp)) - 1);
+
+function bewerteStellung(){
+  const z = letzterZug();
+  if(z && z.finished){
+    const prozent = /Weiss gewinnt/.test(z.status) ? 100 : /Schwarz gewinnt/.test(z.status) ? 0 : 50;
+    stockfishZeigen(prozent, z.status);
+    azureZeigen(null, "Partie beendet");
+    return;
+  }
+  const fen = partie.fen;
+  $("#sfText").textContent = "rechnet …";
+  $("#azText").textContent = "fragt an …";
+  ladeStockfish(fen);
+  ladeAzure(fen);
+}
+async function ladeStockfish(fen){
+  try{
+    const d = await post("/stockfish", {fen});
+    if(fen !== partie.fen) return;
+    const besterZug = d.best_san ? ` · bester Zug ${d.best_san}` : "";
+    if(d.mate !== null && d.mate !== undefined){
+      stockfishZeigen(d.mate > 0 ? 100 : 0, `Matt in ${Math.abs(d.mate)} für ${d.mate > 0 ? "Weiss" : "Schwarz"}${besterZug}`);
+    }else{
+      const bauern = d.cp / 100;
+      stockfishZeigen(gewinnchance(d.cp), `${bauern >= 0 ? "+" : ""}${bauern.toFixed(2)} · Tiefe ${d.depth}${besterZug}`);
+    }
+  }catch(err){
+    if(fen !== partie.fen) return;
+    stockfishZeigen(50, err.status === 503 ? "auf diesem Server nicht installiert" : "hat nicht geantwortet", true);
+  }
+}
+const LAGE_TEXT = {
+  weiss_besser: "Weiss steht besser",
+  ausgeglichen: "ungefähr ausgeglichen",
+  schwarz_besser: "Schwarz steht besser",
+};
+async function ladeAzure(fen){
+  try{
+    const d = await post("/lage", {fen});
+    if(fen !== partie.fen) return;
+    azureZeigen(d.lage, LAGE_TEXT[d.lage] || d.lage);
+  }catch(err){
+    if(fen !== partie.fen) return;
+    azureZeigen(null, err.status === 503 ? "nicht eingerichtet (kein Schlüssel)" : "Endpoint gerade nicht erreichbar");
+  }
+}
+
+/* ---------- Knöpfe ---------- */
+$("#start").addEventListener("click", partieStarten);
+$("#engineZug").addEventListener("click", engineZieht);
+$("#undo").addEventListener("click", zuruecknehmen);
+$("#uhrKnopf").addEventListener("click", ()=>{
+  if(!partie.laeuft) return;
+  if(partie.uhrAus){ partie.uhrAus = false; partie.seit = performance.now(); }
+  else { uhrAbrechnen(); partie.uhrAus = true; }
+  render();
+});
+document.querySelectorAll('input[name="farbe"]').forEach(r=>r.addEventListener("change", ()=>{
+  document.querySelectorAll(".seg").forEach(s=>s.classList.toggle("on", s.querySelector("input").checked));
+  // Vor dem Start gleich richtig herum zeigen; während einer Partie erst beim Neustart.
+  if(!partie.laeuft && !partie.zuege.length){ partie.engine = r.value; render(); }
+}));
+
+render();
+ladeVersionen();
+bewerteStellung();
+</script>
+</body>
+</html>
