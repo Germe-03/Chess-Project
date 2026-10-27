@@ -25,10 +25,15 @@ tests/test_search.py). Einträge ohne das Feld gelten als Tiefe 1.
 Deshalb gibt es auch keinen freien Tiefe-Regler in der Oberfläche: Eine
 Version soll einen festen, nachvollziehbaren Stand des Projekts zeigen.
 
+Aus demselben Grund gehören die Korrekturen der Suche ab v6 zur Version
+(Felder "cap" und "repetition_draw", siehe search.SearchOptions). Fehlen sie,
+rechnet die Suche wie bei v1 bis v5.
+
 Aufruf:
     python -m Code.rl.registry                  Versionen anzeigen
     python -m Code.rl.registry --activate v1    aktive Version umschalten
     python -m Code.rl.registry --register v5 --file full_v5.npz --depth 2 ...
+    python -m Code.rl.registry --register v6 --file full_v5.npz --depth 2 --cap 0.9 --repetition-draw ...
 """
 from __future__ import annotations
 
@@ -37,6 +42,7 @@ import json
 from datetime import date
 from pathlib import Path
 
+from .search import SearchOptions
 from .valuenet import ValueNet
 
 MODELS_DIR = Path(__file__).resolve().parents[2] / "models"
@@ -86,6 +92,12 @@ def search_depth(name: str | None = None) -> int:
     return int(entry.get("search_depth", 1)) if entry else 1
 
 
+def search_options(name: str | None = None) -> SearchOptions:
+    """Korrekturen der Suche, die zu einer Version gehören; ohne Namen die der aktiven."""
+    entry = find(name or active_name() or "") or {}
+    return SearchOptions(cap=entry.get("cap"), repetition_draw=bool(entry.get("repetition_draw", False)))
+
+
 def load_model(name: str | None = None) -> ValueNet | None:
     """
     Modell einer Version laden. Ohne Namen die aktive Version.
@@ -118,6 +130,7 @@ def register(
     notes: str = "",
     depth: int = 1,
     activate: bool = True,
+    options: SearchOptions = SearchOptions(),
 ) -> dict:
     """Neue Version eintragen. Bestehende Einträge werden nicht überschrieben."""
     if find(name) is not None:
@@ -130,9 +143,13 @@ def register(
         "episodes": episodes,
         "parent": parent,
         "search_depth": depth,
-        "notes": notes,
-        "results": {},
     }
+    # Nur eintragen, was eingeschaltet ist: Einträge ohne die Felder rechnen wie v1 bis v5.
+    if options.cap is not None:
+        entry["cap"] = options.cap
+    if options.repetition_draw:
+        entry["repetition_draw"] = True
+    entry.update({"notes": notes, "results": {}})
     data.setdefault("versions", []).append(entry)
     if activate:
         data["active"] = name
@@ -151,13 +168,18 @@ def main() -> None:
     parser.add_argument("--depth", type=int, default=1, help="Vorausschau in Halbzügen für --register")
     parser.add_argument("--keep-active", action="store_true",
                         help="Neue Version nur eintragen, die aktive bleibt unverändert")
+    parser.add_argument("--cap", type=float, default=None,
+                        help="Gesamtbewertung unter diesen Wert stauchen, damit Matt immer gewinnt (ab v6: 0.9)")
+    parser.add_argument("--repetition-draw", action="store_true",
+                        help="Stellungswiederholung in der Suche als Remis werten (ab v6)")
     args = parser.parse_args()
 
     if args.register:
         if not args.file:
             parser.error("--register braucht --file")
         register(args.register, args.file, args.episodes, args.parent, args.notes,
-                 depth=args.depth, activate=not args.keep_active)
+                 depth=args.depth, activate=not args.keep_active,
+                 options=SearchOptions(cap=args.cap, repetition_draw=args.repetition_draw))
         print(f"Version {args.register} eingetragen"
               + (".\n" if args.keep_active else " und aktiviert.\n"))
     if args.activate:
@@ -173,6 +195,9 @@ def main() -> None:
             f"{entry.get('search_depth', 1):>6} {str(entry['parent'] or '-'):<8} {entry['notes']}"
         )
     print("\n-> = aktive Version, Tiefe = vorausgerechnete Halbzüge")
+    korrigiert = [v["name"] for v in versions() if "cap" in v or v.get("repetition_draw")]
+    if korrigiert:
+        print(f"Mit korrigierter Suche (Deckel, Wiederholung = Remis): {', '.join(korrigiert)}")
 
 
 if __name__ == "__main__":

@@ -58,6 +58,30 @@ Sie endet in der Stellung, deren Bewertung den Suchwert bestimmt hat:
 
 Genau diese Blattstellung trainiert TD-Leaf (tdleaf.py), und die Oberfläche
 zeigt die Variante als "die Engine rechnet mit ..." an.
+
+Korrekturen ab v6 (SearchOptions)
+---------------------------------
+Eine Diagnose von v5 gegen sehr schwache Gegner deckte zwei Fehler auf, die
+nichts mit dem Training zu tun haben:
+
+1. Deckel. V liegt in [-1, 1], Φ in [-0.5, 0.5]; die Gesamtbewertung einer
+   laufenden Stellung kann also bis 1.5 steigen — über den Wert eines Matts
+   (1.0). Bei grossem Vorsprung war "weiter haushoch vorne" damit mehr wert als
+   das Matt selbst: In den nicht gewonnenen Partien stand 871-mal ein Matt in
+   1 auf dem Brett, gespielt wurde es 7-mal. Mit 'cap' wird die Gesamtbewertung
+   zu cap · tanh(x / cap) gestaucht. Das ist streng monoton, die Reihenfolge
+   laufender Stellungen bleibt also gleich; nur ein Matt gewinnt jetzt immer.
+
+2. Wiederholung. Die Suche kannte keine Stellungswiederholung und lief auch
+   mit einer Dame mehr in die dreifache Wiederholung. Mit 'repetition_draw'
+   gilt ein Zug, der eine schon dagewesene Stellung wiederholt, als Remis
+   (exakt 0) — wie in üblichen Schachprogrammen schon bei der ersten
+   Wiederholung. Wer vorne steht, meidet sie; wer hinten steht, sucht sie.
+   Das wirkt nur, wenn das Brett seine Zugfolge kennt (/partie, Training,
+   Prüfstand), nicht bei einer nackten FEN.
+
+Beides ist je Version im Manifest eingeschaltet (registry.py). Ohne Optionen
+rechnet die Suche bitgenau wie bei v1 bis v5.
 """
 from __future__ import annotations
 
@@ -80,6 +104,28 @@ INF = float("inf")
 _PROMOTION_RANKS = {chess.WHITE: chess.BB_RANK_7, chess.BLACK: chess.BB_RANK_2}
 
 
+@dataclass(frozen=True)
+class SearchOptions:
+    """Korrekturen ab v6, siehe oben. Unveränderlich, damit sie sich an Prozesse schicken lassen."""
+    cap: float | None = None           # Gesamtbewertung unter diesen Wert stauchen
+    repetition_draw: bool = False      # Wiederholung gilt als Remis
+
+    def squash(self, totals: np.ndarray) -> np.ndarray:
+        """Gesamtbewertung laufender Stellungen, gestaucht auf (-cap, cap)."""
+        if self.cap is None:
+            return totals
+        return (self.cap * np.tanh(totals.astype(np.float64) / self.cap)).astype(np.float32)
+
+    def unsquash(self, value: float) -> float:
+        """Umkehrung von squash() für die Lernziele. Werte am Deckel werden knapp darunter gehalten."""
+        if self.cap is None:
+            return value
+        return self.cap * float(np.arctanh(np.clip(value / self.cap, -0.999, 0.999)))
+
+
+CLASSIC = SearchOptions()
+
+
 @dataclass
 class SearchResult:
     move: chess.Move | None                     # bester Zug, None ohne legale Züge
@@ -94,6 +140,7 @@ def search(
     depth: int,
     gamma: float = 0.99,
     quiescence_plies: int = QUIESCENCE_PLIES,
+    options: SearchOptions = CLASSIC,
 ) -> SearchResult:
     """
     Besten Zug mit 'depth' Halbzügen Vorausschau bestimmen.
@@ -106,16 +153,17 @@ def search(
         raise ValueError("Die Suchtiefe muss mindestens 1 sein.")
     if not any(board.legal_moves):
         return SearchResult(None, 0.0)
-    searcher = _Searcher(net, gamma, quiescence_plies)
+    searcher = _Searcher(net, gamma, quiescence_plies, options)
     value, line = searcher.negamax(board, depth, -INF, INF)
     return SearchResult(line[0], value, line, searcher.leaves)
 
 
 class _Searcher:
-    def __init__(self, net: ValueNet, gamma: float, quiescence_plies: int):
+    def __init__(self, net: ValueNet, gamma: float, quiescence_plies: int, options: SearchOptions = CLASSIC):
         self.net = net
         self.gamma = gamma
         self.quiescence_plies = quiescence_plies
+        self.options = options
         self.leaves = 0
         self.killers: dict[int, chess.Move] = {}   # Halbzug ab Wurzel -> letzter Widerlegungszug
 
@@ -127,6 +175,20 @@ class _Searcher:
         """
         outcomes, open_indices, totals = evaluate_children(board, self.net, moves)
         self.leaves += len(moves)
+        if self.options.repetition_draw and open_indices:
+            keep = []
+            for position, index in enumerate(open_indices):
+                if not board.is_irreversible(moves[index]):   # Schlag- und Bauernzüge wiederholen nie
+                    board.push(moves[index])
+                    repeated = board.is_repetition(2)
+                    board.pop()
+                    if repeated:
+                        outcomes[index] = 0.0
+                        continue
+                keep.append(position)
+            open_indices = [open_indices[position] for position in keep]
+            totals = totals[keep]
+        totals = self.options.squash(totals)
         scores = np.zeros(len(moves), dtype=np.float32)
         child_totals: list[float | None] = [None] * len(moves)
         for index, outcome in enumerate(outcomes):

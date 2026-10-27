@@ -44,6 +44,7 @@ from contextlib import ExitStack
 import chess
 import numpy as np
 
+from .search import CLASSIC
 from .valuenet import ValueNet
 
 _THREAD_VARIABLES = ("OPENBLAS_NUM_THREADS", "OMP_NUM_THREADS", "MKL_NUM_THREADS")
@@ -167,7 +168,7 @@ def episode_task(shared, params: dict):
 
         X, targets, result, plies = play_episode_tdleaf(
             net, rng, params["gamma"], params["epsilon"], params["max_plies"],
-            params["td_lambda"], params["depth"],
+            params["td_lambda"], params["depth"], options=params.get("options", CLASSIC),
         )
     else:
         from .train import play_episode
@@ -185,7 +186,7 @@ def eval_game_task(shared, params: dict) -> str:
 
     net = _as_net(shared)
     rng = np.random.default_rng(params["seed"])
-    agent = make_policy("rl", rng, net, params["gamma"], params["depth"])
+    agent = make_policy("rl", rng, net, params["gamma"], params["depth"], params.get("options", CLASSIC))
     color = chess.WHITE if params["game"] % 2 == 0 else chess.BLACK
     start = None
     if params.get("opening") is not None:
@@ -200,8 +201,9 @@ def _opponent(spec: tuple, gamma: float):
     """
     Gegner aus einer Beschreibung, damit er sich an andere Prozesse schicken
     lässt: ("material",), ("stockfish", Pfad, Tiefe, Elo) oder
-    ("modell", Datei, Tiefe). Engines bleiben je Prozess offen und werden erst
-    beim Prozessende geschlossen.
+    ("modell", Datei, Tiefe), optional mit SearchOptions als viertem Eintrag.
+    Engines bleiben je Prozess offen und werden erst beim Prozessende
+    geschlossen.
     """
     if spec in _state["opponents"]:
         return _state["opponents"][spec]
@@ -226,8 +228,9 @@ def _opponent(spec: tuple, gamma: float):
     elif kind == "modell":
         from .evaluate import make_policy
 
-        _, path, depth = spec
-        policy = make_policy("rl", None, ValueNet.load(path), gamma, depth)
+        path, depth = spec[1], spec[2]
+        options = spec[3] if len(spec) > 3 else CLASSIC
+        policy = make_policy("rl", None, ValueNet.load(path), gamma, depth, options)
     else:
         raise ValueError(f"Unbekannter Gegner: {spec}")
     _state["opponents"][spec] = policy

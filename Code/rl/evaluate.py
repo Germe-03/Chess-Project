@@ -37,6 +37,13 @@ Aufruf:
         --opponent stockfish --games 200 --workers 12
     python -m Code.rl.evaluate --task full --model models/full_v3.npz --depth 2 \\
         --opponent models/full_v3.npz --opponent-depth 1 --games 200 --workers 12
+    python -m Code.rl.evaluate --task full --model models/full_v5.npz --depth 2 \\
+        --cap 0.9 --repetition-draw --opponent models/full_v5.npz --opponent-depth 2 \\
+        --games 200 --workers 12            (v6 gegen v5)
+
+Mit --cap und --repetition-draw rechnet das Modell mit den Korrekturen ab v6
+(search.SearchOptions), mit --opponent-cap und --opponent-repetition-draw der
+Gegner, wenn er ein Modell ist.
 """
 from __future__ import annotations
 
@@ -47,23 +54,27 @@ import numpy as np
 
 from .engine import material_evaluation, material_move, random_move, terminal_value, value_move
 from .positions import sample_start
-from .search import search
+from .search import CLASSIC, SearchOptions, search
 from .stockfish import find_stockfish, stockfish_policy
 from .valuenet import ValueNet
 
 
-def make_policy(name: str, rng, net: ValueNet | None = None, gamma: float = 0.99, depth: int = 1):
+def make_policy(
+    name: str, rng, net: ValueNet | None = None, gamma: float = 0.99, depth: int = 1,
+    options: SearchOptions = CLASSIC,
+):
     """
     Name -> Funktion, die zu einer Stellung einen Zug liefert.
 
-    'depth' gilt für die Strategie 'rl': Tiefe 1 ist die bisherige Zugwahl
-    (value_move), ab Tiefe 2 rechnet die Alpha-Beta-Suche.
+    'depth' und 'options' gelten für die Strategie 'rl': Tiefe 1 ist die
+    bisherige Zugwahl (value_move), ab Tiefe 2 rechnet die Alpha-Beta-Suche,
+    auf Wunsch mit den Korrekturen ab v6.
     """
     if name == "rl":
         if net is None:
             raise ValueError("Für die Strategie 'rl' wird ein Modell benötigt.")
         if depth > 1:
-            return lambda board: search(board, net, depth, gamma).move
+            return lambda board: search(board, net, depth, gamma, options=options).move
         return lambda board: value_move(board, net, gamma)
     if name == "material":
         return material_move
@@ -249,7 +260,7 @@ def print_results(task: str, results: dict, games: int, seeds: int) -> None:
 
 def duel(
     model: str, depth: int, opponent: tuple, games: int, max_plies: int, workers: int,
-    gamma: float = 0.99, openings: bool = True,
+    gamma: float = 0.99, openings: bool = True, options: SearchOptions = CLASSIC,
 ) -> dict:
     """
     Modell gegen einen Gegner, siehe Duell-Modus oben. Punkte zählen ein
@@ -262,7 +273,7 @@ def duel(
         shared = runner.share(net, 0)
         jobs = [
             (shared, {"game": game, "seed": 1000 + game, "gamma": gamma, "depth": depth,
-                      "opponent": opponent, "max_plies": max_plies,
+                      "opponent": opponent, "max_plies": max_plies, "options": options,
                       "opening": 5000 + game // 2 if openings else None})
             for game in range(games)
         ]
@@ -271,7 +282,9 @@ def duel(
     return stats
 
 
-def tactics(model: str, depth: int, path: str, gamma: float = 0.99) -> tuple[int, int]:
+def tactics(
+    model: str, depth: int, path: str, gamma: float = 0.99, options: SearchOptions = CLASSIC,
+) -> tuple[int, int]:
     """
     Taktik-Test: In jeder Stellung der Datei gibt es laut Stockfish genau einen
     klar besten Zug (mindestens drei Bauern besser als der zweitbeste). Gezählt
@@ -282,10 +295,16 @@ def tactics(model: str, depth: int, path: str, gamma: float = 0.99) -> tuple[int
     from pathlib import Path
 
     net = ValueNet.load(model)
-    policy = make_policy("rl", None, net, gamma, depth)
+    policy = make_policy("rl", None, net, gamma, depth, options)
     cases = json.loads(Path(path).read_text(encoding="utf-8"))["fälle"]
     solved = sum(policy(chess.Board(case["fen"])).uci() == case["zug"] for case in cases)
     return solved, len(cases)
+
+
+def _options_label(options: SearchOptions) -> str:
+    parts = ([f"Deckel {options.cap}"] if options.cap is not None else []) + \
+            (["Wiederholung = Remis"] if options.repetition_draw else [])
+    return f" ({', '.join(parts)})" if parts else ""
 
 
 def main() -> None:
@@ -312,16 +331,26 @@ def main() -> None:
                         help="Vorausschau des Gegners, wenn er ein Modell ist")
     parser.add_argument("--from-start", action="store_true",
                         help="Duell ohne Zufallseröffnungen, alle Partien aus der Grundstellung")
+    parser.add_argument("--cap", type=float, default=None,
+                        help="Korrektur ab v6: Gesamtbewertung unter diesen Wert stauchen (0.9)")
+    parser.add_argument("--repetition-draw", action="store_true",
+                        help="Korrektur ab v6: Stellungswiederholung in der Suche als Remis werten")
+    parser.add_argument("--opponent-cap", type=float, default=None,
+                        help="Wie --cap, für den Gegner, wenn er ein Modell ist")
+    parser.add_argument("--opponent-repetition-draw", action="store_true",
+                        help="Wie --repetition-draw, für den Gegner, wenn er ein Modell ist")
     parser.add_argument("--workers", type=int, default=1, help="Partien, die gleichzeitig laufen")
     parser.add_argument("--tactics", default=None,
                         help="Taktik-Test: Anteil der Stellungen aus dieser Datei, in denen das Modell "
                              "den klar besten Zug findet (z. B. tests/fixtures/taktikstellungen.json)")
     args = parser.parse_args()
+    options = SearchOptions(cap=args.cap, repetition_draw=args.repetition_draw)
+    opponent_options = SearchOptions(cap=args.opponent_cap, repetition_draw=args.opponent_repetition_draw)
 
     if args.tactics is not None:
         if not args.model:
             parser.error("Der Taktik-Test braucht --model")
-        solved, total = tactics(args.model, args.depth, args.tactics, args.gamma)
+        solved, total = tactics(args.model, args.depth, args.tactics, args.gamma, options)
         print(f"\n{args.model}, Tiefe {args.depth}: {solved} von {total} Taktikstellungen gelöst "
               f"({solved / total:.1%})")
         return
@@ -338,11 +367,12 @@ def main() -> None:
         elif args.opponent == "material":
             spec, label = ("material",), "Material-Heuristik"
         else:
-            spec = ("modell", args.opponent, args.opponent_depth)
-            label = f"{args.opponent}, Tiefe {args.opponent_depth}"
+            spec = ("modell", args.opponent, args.opponent_depth, opponent_options)
+            label = f"{args.opponent}, Tiefe {args.opponent_depth}{_options_label(opponent_options)}"
         stats = duel(args.model, args.depth, spec, args.games, args.max_plies, args.workers,
-                     args.gamma, openings=not args.from_start)
-        print(f"\n{args.model}, Tiefe {args.depth}  gegen  {label}  ({args.games} Partien)")
+                     args.gamma, openings=not args.from_start, options=options)
+        print(f"\n{args.model}, Tiefe {args.depth}{_options_label(options)}  gegen  {label}  "
+              f"({args.games} Partien)")
         print(f"  Sieg {stats['win_rate']:6.1%}   Remis {stats['draw_rate']:6.1%}   "
               f"Niederlage {stats['loss_rate']:6.1%}   Punkte {stats['points']:6.1%}")
         return

@@ -58,9 +58,9 @@ from pydantic import BaseModel, Field
 from . import azure_lage, stockfish_analyse
 from .rl.engine import material_evaluation, material_move, value_move
 from .rl.features import board_to_features
-from .rl.registry import active_name, load_model, search_depth
+from .rl.registry import active_name, load_model, search_depth, search_options
 from .rl.registry import versions as registry_versions
-from .rl.search import search
+from .rl.search import CLASSIC, SearchOptions, search
 from .rl.valuenet import ValueNet
 from .vision.finder import find_board
 from .vision.recognizer import TileClassifier, tiles_to_fen
@@ -209,29 +209,32 @@ RL_AGENTS = {
 RECOGNIZER = TileClassifier.load() if TileClassifier.available() else None
 
 
-def select_agent(board: chess.Board, version: str | None = None) -> tuple[ValueNet | None, str, int]:
+def select_agent(
+    board: chess.Board, version: str | None = None
+) -> tuple[ValueNet | None, str, int, SearchOptions]:
     """
-    Zuständiges Modell für die Stellung, ein Name für die Antwort und die
-    Suchtiefe in Halbzügen.
+    Zuständiges Modell für die Stellung, ein Name für die Antwort, die
+    Suchtiefe in Halbzügen und die Korrekturen der Suche (ab v6).
 
     Bei genau drei Figuren übernimmt der passende Endspiel-Spezialist. Die sind
     bewusst nicht versioniert — sie lösen eine feste Aufgabe, ändern sich nicht
     mehr und rechnen wie beim Training einen Halbzug voraus. Für alles andere
     kommt das Vollpartien-Modell aus der Registry, entweder die angefragte
-    Version oder die aktive, mit der Tiefe, die zu dieser Version gehört.
+    Version oder die aktive, mit der Tiefe und den Korrekturen, die zu dieser
+    Version gehören.
     """
     pieces = board.piece_map()
     if len(pieces) == 3:
         for piece in pieces.values():
             agent = RL_AGENTS.get(piece.piece_type)
             if agent is not None:
-                return agent, f"endspiel-{chess.piece_name(piece.piece_type)}", 1
+                return agent, f"endspiel-{chess.piece_name(piece.piece_type)}", 1, CLASSIC
 
     model = load_model(version)
     if model is not None:
         name = version or active_name() or "?"
-        return model, name, max(1, min(search_depth(name), MAX_SEARCH_DEPTH))
-    return None, "heuristik", 1
+        return model, name, max(1, min(search_depth(name), MAX_SEARCH_DEPTH)), search_options(name)
+    return None, "heuristik", 1, CLASSIC
 
 
 class Choice(NamedTuple):
@@ -256,7 +259,7 @@ def choose_move(board: chess.Board, version: str | None = None) -> Choice:
     Suchwert gemeldet — also das, was die Engine nach dem Vorausrechnen
     erwartet, nicht der Blick auf die Stellung allein.
     """
-    agent, label, depth = select_agent(board, version)
+    agent, label, depth, options = select_agent(board, version)
     if agent is None:
         move = material_move(board)
         return Choice(move, material_evaluation(board), "material", "heuristik", 1, [move] if move else [])
@@ -266,7 +269,7 @@ def choose_move(board: chess.Board, version: str | None = None) -> Choice:
         value = float(agent.value(board_to_features(board)[None, :])[0])
         pv = [move] if move else []
     else:
-        result = search(board, agent, depth, GAMMA)
+        result = search(board, agent, depth, GAMMA, options=options)
         move, value, pv = result.move, result.value, result.pv
     evaluation = value if board.turn == chess.WHITE else -value
     return Choice(move, evaluation, "rl", label, depth, pv)

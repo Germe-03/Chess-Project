@@ -60,6 +60,10 @@ Alpha-Beta-Suche wie später im Einsatz, und gelernt wird mit TD-Leaf(λ)
 (tdleaf.py). Ohne die Option bleibt alles beim Verfahren oben — damit lassen
 sich v1 bis v3 jederzeit nachvollziehen.
 
+Mit --cap 0.9 und --repetition-draw rechnet die Suche im Training mit den
+Korrekturen ab v6 (search.SearchOptions, tdleaf.py). Das Netz lernt dann unter
+derselben Bewertung, mit der es später spielt.
+
 Mit --workers N laufen N Partien gleichzeitig auf N Prozessorkernen
 (parallel.py). Das ist für das Training mit Suche praktisch Pflicht: Eine
 Partie dauert dann etwa eine Minute statt Sekundenbruchteile.
@@ -85,6 +89,7 @@ from .evaluate import endgame_trial, make_policy, summarize
 from .features import FEATURE_SIZE, board_to_features
 from .parallel import Runner, episode_task, eval_game_task
 from .positions import OPENING_PLIES, sample_start
+from .search import CLASSIC, SearchOptions
 from .shaping import potential
 from .stockfish import find_stockfish
 from .valuenet import ValueNet
@@ -152,6 +157,7 @@ def run_eval(
     runner: Runner | None = None,
     depth: int = 1,
     token: int = 0,
+    options: SearchOptions = CLASSIC,
 ) -> tuple[float, dict]:
     """
     Zwischenstand für die Lernkurve und die Auswahl des besten Modells.
@@ -176,7 +182,8 @@ def run_eval(
         shared = runner.share(net, token)
         jobs = [
             (shared, {"game": game, "seed": 99 + game, "gamma": gamma, "depth": depth,
-                      "opponent": opponent, "max_plies": max_plies, "opening": 5000 + game // 2})
+                      "opponent": opponent, "max_plies": max_plies, "opening": 5000 + game // 2,
+                      "options": options})
             for game in range(games)
         ]
         stats = summarize(runner.map(eval_game_task, jobs))
@@ -303,6 +310,10 @@ def main() -> None:
     parser.add_argument("--run-dir", default=None,
                         help="Lauf-Mappe: Stand nach jeder Partie sichern; derselbe Befehl setzt "
                              "einen unterbrochenen Lauf fort")
+    parser.add_argument("--cap", type=float, default=None,
+                        help="Korrektur ab v6: Gesamtbewertung in der Suche unter diesen Wert stauchen (0.9)")
+    parser.add_argument("--repetition-draw", action="store_true",
+                        help="Korrektur ab v6: Stellungswiederholung in der Suche als Remis werten")
     parser.add_argument("--snapshot-every", type=int, default=0,
                         help="Alle N Episoden einen Zwischenstand in <run-dir>/snapshots ablegen")
     parser.add_argument("--stop", action="store_true",
@@ -331,7 +342,9 @@ def main() -> None:
             print(f"Der Lauf in {run.path} ist bereits abgeschlossen ({state['episodes_done']} Episoden).")
             return
         session_args = {name: getattr(args, name) for name in _SESSION_ARGS}
-        args = argparse.Namespace(**state["config"], **session_args)
+        # Läufe von vor v6 kennen die Korrekturen der Suche nicht und rechnen ohne.
+        config = {"cap": None, "repetition_draw": False, **state["config"]}
+        args = argparse.Namespace(**config, **session_args)
         net = ValueNet.load(run.checkpoint)
     else:
         if args.search_depth > 1 and args.task != "full":
@@ -357,6 +370,9 @@ def main() -> None:
     if run is not None:
         run.clear_stop()
     state["sessions"] += 1
+    options = SearchOptions(cap=args.cap, repetition_draw=args.repetition_draw)
+    if options != CLASSIC and args.search_depth < 2:
+        parser.error("--cap und --repetition-draw wirken nur in der Suche, also ab --search-depth 2")
 
     eps_episodes = args.eps_episodes or max(1, int(0.7 * args.episodes))
     curriculum_episodes = args.curriculum_episodes if args.curriculum_episodes is not None else int(0.5 * args.episodes)
@@ -393,6 +409,12 @@ def main() -> None:
             "Suchtiefe",
             f"{args.search_depth} Halbzüge + Ruhesuche, Lernverfahren TD-Leaf(lambda)"
             if args.search_depth > 1 else "1 Halbzug, Lernverfahren TD(lambda)",
+        ),
+        (
+            "Korrekturen",
+            ", ".join(([f"Deckel {options.cap}"] if options.cap is not None else [])
+                      + (["Wiederholung = Remis"] if options.repetition_draw else []))
+            or "keine (Suche wie bis v5)",
         ),
         ("Prozesse", args.workers),
         (
@@ -459,7 +481,7 @@ def main() -> None:
         params = {
             "seed": [args.seed, game], "task": args.task, "gamma": args.gamma, "epsilon": epsilon,
             "max_plies": args.max_plies, "difficulty": difficulty, "td_lambda": args.td_lambda,
-            "depth": args.search_depth,
+            "depth": args.search_depth, "options": options,
         }
         return runner.share(net, updates), params
 
@@ -525,7 +547,7 @@ def main() -> None:
                 if args.eval_every > 0 and episode % args.eval_every == 0:
                     score, stats = run_eval(
                         net, args.task, args.gamma, args.eval_games, args.max_plies, eval_opponent,
-                        runner, eval_depth, updates,
+                        runner, eval_depth, updates, options,
                     )
                     eval_writer.writerow([
                         episode,
@@ -559,7 +581,7 @@ def main() -> None:
                     net.save(best_path)
                     best_score, _ = run_eval(
                         net, args.task, args.gamma, args.eval_games, args.max_plies, eval_opponent,
-                        runner, eval_depth, updates,
+                        runner, eval_depth, updates, options,
                     )
     except KeyboardInterrupt:
         stopped = True

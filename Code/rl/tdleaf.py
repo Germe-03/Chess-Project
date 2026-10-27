@@ -42,6 +42,16 @@ Ablauf einer Episode
 Mit Tiefe 1 und ohne Ruhesuche wäre Blatt_t die Stellung nach dem gewählten
 Zug. Für Tiefe 1 bleibt das Training aber bewusst beim bisherigen Verfahren in
 train.py — so lassen sich v1 bis v3 jederzeit genau nachvollziehen.
+
+Mit den Korrekturen ab v6 (search.SearchOptions)
+------------------------------------------------
+Mit Deckel bewertet die Suche ein Blatt mit cap · tanh(V + Φ). Das Lernziel
+für V wird deshalb zuerst zurückgestaucht:
+
+    V(Blatt_t) soll  unsquash(G_t / (-gamma)^k) - Φ(Blatt_t)  werden
+
+Mit der Wiederholungsregel ist ein Blatt, das eine schon dagewesene Stellung
+wiederholt, ein exaktes Remis — es fällt wie Matt und Patt aus dem Batch.
 """
 from __future__ import annotations
 
@@ -51,7 +61,7 @@ import numpy as np
 from .engine import terminal_value
 from .features import FEATURE_SIZE, board_to_features
 from .positions import sample_start
-from .search import QUIESCENCE_PLIES, leaf_of, search
+from .search import CLASSIC, QUIESCENCE_PLIES, SearchOptions, leaf_of, search
 from .shaping import potential_open
 from .valuenet import ValueNet
 
@@ -66,6 +76,7 @@ def play_episode_tdleaf(
     depth: int,
     quiescence_plies: int = QUIESCENCE_PLIES,
     start: chess.Board | None = None,
+    options: SearchOptions = CLASSIC,
 ):
     """
     Eine Self-Play-Partie mit Suche. Rückgabe wie train.play_episode:
@@ -80,11 +91,12 @@ def play_episode_tdleaf(
     result, plies = "truncated", 0
 
     while plies < max_plies:
-        found = search(board, net, depth, gamma, quiescence_plies)
+        found = search(board, net, depth, gamma, quiescence_plies, options)
         if found.move is None:
             break
         leaf = leaf_of(board, found.pv)
-        if terminal_value(leaf) is None:
+        exact = terminal_value(leaf) is not None or (options.repetition_draw and leaf.is_repetition(2))
+        if not exact:
             phi = potential_open(leaf) if net.shaped else 0.0
             leaves.append((plies, board_to_features(leaf), phi, (-gamma) ** len(found.pv)))
         search_values.append(found.value)
@@ -110,7 +122,7 @@ def play_episode_tdleaf(
     # Partie eigentlich weiter, also wird mit einer letzten Suche gebootstrappt.
     following = search_values[1:]
     if outcomes[-1] is None:
-        following.append(search(board, net, depth, gamma, quiescence_plies).value)
+        following.append(search(board, net, depth, gamma, quiescence_plies, options).value)
 
     targets = np.array(
         [
@@ -128,7 +140,7 @@ def play_episode_tdleaf(
 
     X = np.stack([features for _, features, _, _ in leaves])
     leaf_targets = np.array(
-        [returns[t] / factor - phi for t, _, phi, factor in leaves], dtype=np.float32
+        [options.unsquash(returns[t] / factor) - phi for t, _, phi, factor in leaves], dtype=np.float32
     )
     # V liegt wegen tanh in [-1, 1]. Durch das Zurückrechnen über (-gamma)^k
     # kann ein Ziel knapp darüber liegen; das Netz könnte es nie erreichen.

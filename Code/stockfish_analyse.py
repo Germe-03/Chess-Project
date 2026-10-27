@@ -76,5 +76,10 @@ def beenden() -> None:
     global _engine
     with _schloss:
         if _engine is not None:
-            _engine.quit()
+            try:
+                _engine.quit()
+            except chess.engine.EngineError:
+                # Ctrl-C trifft unter Windows auch den Stockfish-Prozess; dann
+                # ist er schon beendet, und es gibt nichts mehr zu schliessen.
+                pass
             _engine = None

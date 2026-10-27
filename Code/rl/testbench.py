@@ -60,7 +60,7 @@ import numpy as np
 
 from .parallel import Runner
 from .positions import sample_start
-from .registry import MODELS_DIR, search_depth
+from .registry import MODELS_DIR, search_depth, search_options
 from .registry import versions as registry_versions
 from .shaping import loses_material
 from .stockfish import find_stockfish
@@ -473,9 +473,19 @@ def _play_and_analyse(white: str, black: str, opening: int) -> dict:
 # Bericht
 # --------------------------------------------------------------------------- #
 def fingerprint(version: dict) -> str:
-    """Kennung einer Version: Netzdatei und Suchtiefe. Ändert sich eines, wird neu geprüft."""
+    """
+    Kennung einer Version: Netzdatei, Suchtiefe und Korrekturen der Suche.
+    Ändert sich eines, wird neu geprüft. Die Korrekturen hängen nur an, wenn
+    sie eingeschaltet sind — so bleiben die Kennungen von v1 bis v5 gleich.
+    """
     digest = hashlib.sha256((MODELS_DIR / version["file"]).read_bytes()).hexdigest()[:16]
-    return f"{digest}:{search_depth(version['name'])}"
+    key = f"{digest}:{search_depth(version['name'])}"
+    options = search_options(version["name"])
+    if options.cap is not None:
+        key += f":cap{options.cap}"
+    if options.repetition_draw:
+        key += ":wdh"
+    return key
 
 
 def game_plan(names: list[str]) -> list[tuple[str, str, int]]:

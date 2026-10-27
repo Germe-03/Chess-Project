@@ -1,5 +1,5 @@
 {
-  "active": "v5",
+  "active": "v6",
   "versions": [
     {
       "name": "v1",
@@ -89,6 +89,22 @@
         "150": 0.39,
         "175": 0.415,
         "200": 0.388
+      }
+    },
+    {
+      "name": "v6",
+      "file": "full_v5.npz",
+      "trained": "2026-10-27",
+      "episodes": 0,
+      "parent": "v5",
+      "search_depth": 2,
+      "cap": 0.9,
+      "repetition_draw": true,
+      "notes": "Netz von v5 unverändert, Suche korrigiert: Gesamtbewertung unter 0.9 gestaucht, damit ein Matt immer gewinnt (v5 spielte ein vorhandenes Matt in 1 fast nie), und Stellungswiederholung gilt als Remis. Zeigt, was die Korrekturen allein bringen, ohne neues Training.",
+      "results": {
+        "punkte_vs_stockfish_1320_eröffnungen": 0.48,
+        "punkte_vs_v5_eröffnungen": 0.55,
+        "taktik_gelöst": 0.727
       }
     }
   ],

@@ -101,7 +101,7 @@ pip install -r requirements-dev.txt
 python -m pytest tests/ -q
 ```
 
-49 Tests, rund 10 Sekunden, ohne Netzzugriff. Geprüft wird bewusst **nicht**
+78 Tests, rund 10 Sekunden, ohne Netzzugriff. Geprüft wird bewusst **nicht**
 die Spielstärke — die schwankt und lässt sich nicht sinnvoll festnageln.
 Geprüft werden die Rechenregeln, bei denen ein Fehler **still** passiert:
 
@@ -118,6 +118,9 @@ Geprüft werden die Rechenregeln, bei denen ein Fehler **still** passiert:
 - Matt in zwei wird mit drei Halbzügen gefunden, die Springergabel mit zwei
 - ein Training lässt sich anhalten und fortsetzen, ohne dass Optimierer oder
   Protokoll etwas verlieren
+- ab v6: ein vorhandenes Matt gewinnt immer (an der Diagnosestellung, in der v5
+  es übersah), eine Wiederholung gilt als exaktes Remis, und v1 bis v5 rechnen
+  weiterhin ohne diese Korrekturen (`tests/test_korrekturen.py`)
 
 Der Test zu v1 bis v3 ist der wichtigste der neuen. Vor jeder Änderung an der
 Zugwahl wurden zwei Referenzen aufgenommen (`tests/fixtures/`): die Antworten
@@ -186,6 +189,7 @@ Anleitung stehen in `azure_ml/ANLEITUNG.md`.
 | `/` | Stellung von Hand setzen und den besten Zug berechnen lassen. Eine Figur antippen zeigt ihre regelkonformen Züge — inklusive Fesselung und der Regel, dass der König nicht ins Schach ziehen darf. |
 | `/spielen` | Eine ganze Partie gegen die gewählte Modellversion spielen, mit Farbwahl, Zugliste und Zurücknehmen. |
 | `/test` | Prüfstand: Teststellungen, Turnier aller Versionen und jede Partie mit Stockfish-Bewertung jedes Zuges (siehe [Prüfstand](#prüfstand-test)). |
+| `/cheat` | Engine-Test: Die Engine spielt eine Farbe, die Gegenzüge gibt man von Hand ein (Ziehen oder Klicken). Ihren Zug kann man zurücknehmen und selbst einen anderen setzen. Unter dem Brett die Bewertung von Stockfish (nur lokal) und von Azure ML. Die ganze Zugfolge geht an den Server, deshalb greift hier auch die Wiederholungsregel ab v6. |
 
 Der Versionswähler zeigt zu jeder Version, wie viele Halbzüge sie vorausrechnet.
 Ab Tiefe 2 erscheint im Ergebnis zusätzlich die **erwartete Folge**, also womit
@@ -226,6 +230,11 @@ Erst beides zusammen legt fest, wie eine Version spielt.
 | v3 | `full_v3.npz` | 1 Halbzug | breiteres Netz, längere Partien |
 | v4 | `full_v3.npz` | **2 Halbzüge** + Ruhesuche | was die Suche **allein** bringt, ohne neues Training |
 | v5 | `full_v5.npz` | **2 Halbzüge** + Ruhesuche | was **Lernen mit Suche** (TD-Leaf) bringt: Netz von v3, 200 Partien mit 4 Halbzügen weitertrainiert |
+| v6 | `full_v5.npz` | 2 Halbzüge + Ruhesuche, **korrigierte Suche** | was zwei Fehlerkorrekturen allein bringen: Matt gewinnt immer, Wiederholung gilt als Remis (siehe [v6](#matt-und-wiederholung-v6)) |
+
+Ab v6 gehören auch die **Korrekturen der Suche** zur Version (Felder `cap` und
+`repetition_draw` im Manifest). Fehlen sie, rechnet die Suche bitgenau wie bei
+v1 bis v5. v6 verwendet absichtlich dieselbe Netzdatei wie v5 — wie v4 und v3.
 
 v1 bis v3 rechnen fest einen Halbzug voraus und spielen damit **genau wie vor
 dem Einbau der Suche** — abgesichert durch einen Test gegen eine vorher
@@ -245,11 +254,10 @@ python -m Code.rl.registry --register v5 --file full_v5.npz --episodes 3000 \
 `--keep-active` trägt nur ein, ohne umzuschalten — aktiviert wird erst, wenn
 die Messung zeigt, dass die neue Version besser spielt.
 
-**Aktiv ist seit dem 15. Oktober 2026 v5.** Es schlägt v4 direkt und holt gegen
-Stockfish fast doppelt so viele Punkte (siehe
-[Lernen mit Vorausrechnen](#lernen-mit-vorausrechnen-v5)). Auf render.com spielt
-damit standardmässig v5 mit zwei Halbzügen Vorausschau; v1 bis v4 bleiben über
-den Versionswähler erreichbar.
+**Aktiv ist seit dem 27. Oktober 2026 v6.** Es schlägt v5 direkt (55
+Punkteprozent) und holt gegen Stockfish 48 statt 39 Punkteprozent (siehe
+[Matt und Wiederholung](#matt-und-wiederholung-v6)). Davor war vom 15. Oktober
+an v5 aktiv. v1 bis v5 bleiben über den Versionswähler erreichbar.
 
 Die Endspielmodelle sind bewusst **nicht** versioniert. Sie lösen eine feste
 Aufgabe und ändern sich nicht mehr; bei genau drei Figuren antworten immer sie,
@@ -946,6 +954,46 @@ Partien endeten 176 mit Matt und 24 remis, im Mittel nach 116 Halbzügen. Mit
 sinkendem ε wurden die Partien länger (anfangs rund 65, gegen Ende rund 130
 Halbzüge), weil weniger zufällige Patzer sofort bestraft werden.
 
+### v7: dasselbe Rezept, mit korrigierter Suche
+
+v7 setzt auf dem Netz von v5 auf und trainiert mit **denselben Einstellungen
+wie v5** — nur rechnet die Suche im Training jetzt mit den Korrekturen von v6
+(siehe [Matt und Wiederholung](#matt-und-wiederholung-v6)). So bleibt der
+Vergleich sauber: Was v7 besser kann als v6, kommt aus dem Training unter der
+korrigierten Bewertung.
+
+```bash
+python -m Code.rl.train --task full --resume models/full_v5.npz \
+    --search-depth 4 --cap 0.9 --repetition-draw --workers 12 --episodes 200 \
+    --max-plies 400 --eps-start 0.1 --eps-end 0.05 --lr 5e-4 \
+    --eval-every 0 --snapshot-every 25 --log-every 1 \
+    --run-dir runs/v7 --out models/full_v7.npz
+```
+
+Warum das Training die Korrekturen braucht und nicht erst die fertige Engine:
+
+- **Deckel.** Mit ihm bewertet die Suche ein Blatt mit `0.9 · tanh(V + Φ)`.
+  TD-Leaf rechnet das Lernziel deshalb zuerst zurück (`tdleaf.py`), damit `V`
+  in derselben Skala lernt, in der es gespielt wird.
+- **Wiederholung.** Endet eine Hauptvariante in einer Wiederholung, ist ihr
+  Wert ein exaktes Remis; das Blatt fällt wie Matt und Patt aus dem Lernbatch.
+- Weil die Engine im Self-Play jetzt Matt setzt, statt mit grossem Vorsprung
+  zu pendeln, enden mehr Partien mit einem echten Ausgang — das stärkste
+  Lernsignal, das es gibt.
+
+Erwartete Dauer wie bei v5 rund fünf Stunden auf 12 Kernen; Anhalten und
+Fortsetzen wie oben (`--run-dir runs/v7 --stop`, dann derselbe Befehl).
+Danach die Zwischenstände messen, eintragen und erst aktivieren, wenn v7 gegen
+v6 vorne liegt:
+
+```bash
+python -m Code.rl.evaluate --task full --model models/full_v7.npz --depth 2 \
+    --cap 0.9 --repetition-draw --opponent models/full_v5.npz --opponent-depth 2 \
+    --opponent-cap 0.9 --opponent-repetition-draw --games 200 --max-plies 400 --workers 12
+python -m Code.rl.registry --register v7 --file full_v7.npz --episodes 200 \
+    --parent v6 --depth 2 --cap 0.9 --repetition-draw --keep-active --notes "..."
+```
+
 ## Resultate
 
 Je 200 Partien × 3 Seeds. Die getestete Strategie führt die starke Seite gegen
@@ -1189,11 +1237,69 @@ gegen Stockfish nichts Messbares brachten, spricht deutlich für die tiefe Suche
 im Training. Ein sauberer Vergleich bräuchte zusätzlich Variante A (3 000
 Partien mit 2 Halbzügen, rund 2 Stunden).
 
+### Matt und Wiederholung: v6
+
+Anlass war eine verlorene Partie gegen einen sehr schwachen Gegner (rund 200
+Elo). Die Diagnose: v5 mit 2 Halbzügen gegen drei schwache Gegner, je 24
+Partien aus Zufallseröffnungen, alle Nicht-Siege danach von Stockfish Zug für
+Zug geprüft.
+
+| v5 gegen | Sieg | Remis | Niederlage |
+|---|---|---|---|
+| Zufallsspieler | 21 | 3 | 0 |
+| «Anfänger»: Matt in 1, sonst schlagen, sonst zufällig | 18 | 6 | 0 |
+| Stockfish Stufe 0, Tiefe 1 | 4 | 13 | 7 |
+
+Alle 22 Remis waren **dreifache Wiederholungen**, 13 davon mit Matt in Reichweite
+und bis zu 37 Bauerneinheiten Vorsprung. Und in den nicht gewonnenen Partien
+stand **871-mal ein Matt in 1** auf dem Brett — gespielt hat v5 es 7-mal.
+
+Zwei Fehler in der Suche, keiner im Training:
+
+1. **Haushoch vorne war mehr wert als Matt.** `V` liegt in [-1, 1], Φ in
+   [-0.5, 0.5]; zusammen kann eine laufende Stellung bis 1.5 wert sein, ein
+   Matt ist 1.0. In der Diagnosestellung
+   `1q2QQ2/2k4p/4p2r/p1p1N1p1/2P2p2/NP1P3P/PB3PP1/1R3RK1 w` bewertet v5 die
+   Folgestellungen mit bis zu 1.25 und spielt `Sb5` statt `Db8#`. Korrektur:
+   Die Gesamtbewertung wird zu `0.9 · tanh(x / 0.9)` gestaucht. Das ist streng
+   monoton, die Reihenfolge der laufenden Stellungen bleibt gleich; nur ein Matt
+   in Reichweite gewinnt jetzt immer.
+2. **Keine Wiederholungsregel.** Die Suche wusste nicht, dass eine wiederholte
+   Stellung Richtung Remis führt. Korrektur: Ein Zug in eine schon dagewesene
+   Stellung gilt in der Suche als Remis, wie in üblichen Schachprogrammen schon
+   bei der ersten Wiederholung. Wer vorne steht, meidet sie; wer hinten steht,
+   sucht sie. Das wirkt dort, wo der Server die Zugfolge kennt (`/cheat`,
+   Training, Prüfstand), nicht bei einer nackten FEN.
+
+Dieselben Partien mit beiden Korrekturen: gegen Zufall und «Anfänger» je **24
+von 24** gewonnen, gegen Stockfish Stufe 0 9 Siege, 11 Remis, 4 Niederlagen
+statt 4/13/7.
+
+| Messung (200 Partien, Protokoll wie oben) | v5 | **v6** |
+|---|---|---|
+| gegen Stockfish (Elo 1320) | 38.8 Punkteprozent | **48.0 Punkteprozent** |
+| direkt gegeneinander | 45.0 Punkteprozent | **55.0 Punkteprozent** |
+| Taktik-Test | 73.3 % gelöst | 72.7 % gelöst |
+
+Gegen Stockfish 41 Prozent Siege statt 27.5 — ohne eine einzige neue
+Trainingspartie. Der Taktik-Test bleibt gleich, wie erwartet: Er misst einzelne
+Stellungen ohne Vorgeschichte und kaum Matt-in-1-Fälle mit grossem Vorsprung.
+
+Was die Diagnose ausserdem zeigt: Die übrigen Patzer sind Taktik — 86-mal eine
+Drohung mit einem ruhigen Zug übersehen (Gabel, Fesselung, Spiess), 54-mal eine
+Figur hängen gelassen. Mit 3 statt 2 Halbzügen holte v5 samt Wiederholungsregel
+gegen Stockfish Stufe 0 73 statt 48 Punkteprozent, rechnet aber rund 14-mal so
+lange. Für render.com (0.1 CPU) ist das zu viel.
+
 ## Grenzen und nächste Schritte
 
-- Gegen Stockfish (Elo 1320) holt auch v5 erst 39 Punkteprozent und verliert
-  die Hälfte der Partien. Für ein Netz mit 397 000 Parametern und zwei Halbzügen
+- Gegen Stockfish (Elo 1320) holt v6 48 Punkteprozent und verliert noch 45
+  Prozent der Partien. Für ein Netz mit 397 000 Parametern und zwei Halbzügen
   Vorausschau ist das zu erwarten und wird hier bewusst so ausgewiesen.
+- Die meisten verbliebenen Fehler sind Drohungen, die erst nach drei oder mehr
+  Halbzügen sichtbar werden. Mehr Tiefe hilft messbar (siehe
+  [v6](#matt-und-wiederholung-v6)), braucht aber eine schnellere Suche
+  (Transpositionstabelle, iterative Vertiefung) oder mehr Rechenleistung.
 - Die Stärke von v5 hängt an der Suche: Mit nur einem Halbzug spielt das Netz
   nicht besser als v3 (siehe [v5](#lernen-mit-vorausrechnen-v5)). Auf render.com
   ist die Tiefe auf 2 begrenzt; trainiert wurde mit 4.
