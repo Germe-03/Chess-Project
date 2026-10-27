@@ -521,7 +521,7 @@ def play_move(req: PlayRequest) -> PlayResponse:
 
 
 # --------------------------------------------------------------------------- #
-# Engine-Test mit Uhr (/cheat): Die Engine spielt eine Farbe, die Züge der
+# Engine-Test (/cheat): Die Engine spielt eine Farbe, die Züge der
 # Gegenseite gibt man von Hand ein — etwa aus einer zweiten Instanz der Engine
 # im anderen Tab. Anders als bei /spielen kommt die ganze Zugfolge mit, nicht
 # nur die FEN: Erst damit erkennt python-chess die dreifache Wiederholung.

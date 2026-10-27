@@ -66,7 +66,6 @@
     background:var(--surface);padding:9px 14px;border-radius:10px;cursor:pointer;margin-right:8px;font-size:14px}
   .seg.on{border-color:var(--primary);background:var(--primary-weak)}
   .seg input{accent-color:var(--primary)}
-  .fix{font-size:13px;margin:14px 0 0;padding:9px 12px;border-radius:10px;background:var(--surface-2)}
   .btn-primary{background:var(--primary);color:var(--primary-ink);border:none;height:44px;
     padding:0 20px;border-radius:11px;font-weight:600;cursor:pointer;width:100%;margin-top:16px;font:inherit;font-weight:600}
   .btn-primary:hover{filter:brightness(1.05)}
@@ -76,17 +75,14 @@
   .btn-ghost:disabled{opacity:.45;cursor:not-allowed}
   .btn-ghost.wichtig{border-color:var(--primary);background:var(--primary-weak);font-weight:600}
 
-  /* Brett, Uhren und Leisten haben dieselbe Breite und stehen bündig untereinander. */
+  /* Brett, Spielerzeilen und Leisten haben dieselbe Breite und stehen bündig untereinander. */
   .spalte{width:min(76vw,440px);margin-left:20px}
-  .uhr{display:flex;justify-content:space-between;align-items:center;gap:10px;
-    padding:6px 12px;border-radius:10px;background:var(--surface-2);border:1px solid var(--border)}
-  .uhr.oben{margin-bottom:8px} .uhr.unten{margin-top:8px}
-  .uhr .name{font-size:13px;color:var(--muted)}
-  .uhr .name strong{color:var(--text);font-weight:600}
-  .uhr .zeit{font-size:24px;font-weight:700;font-variant-numeric:tabular-nums;letter-spacing:.02em}
-  .uhr.aktiv{border-color:var(--primary);background:var(--primary-weak)}
-  .uhr.knapp .zeit{color:var(--bad)}
-  .uhr.angehalten .zeit{opacity:.55}
+  .spieler{display:flex;align-items:center;gap:6px;font-size:13px;color:var(--muted);
+    padding:7px 12px;border-radius:10px;background:var(--surface-2);border:1px solid var(--border)}
+  .spieler.oben{margin-bottom:8px} .spieler.unten{margin-top:8px}
+  .spieler strong{color:var(--text);font-weight:600}
+  .spieler.aktiv{border-color:var(--primary);background:var(--primary-weak)}
+  .spieler .amzug{margin-left:auto;color:var(--primary);font-weight:600}
 
   .board-wrap{display:flex;gap:10px;align-items:center}
   .ranks{display:grid;grid-template-rows:repeat(8,1fr);font-size:11px;color:var(--muted);
@@ -165,7 +161,7 @@
 <div class="wrap">
   <header>
     <div class="brand">
-      <h1>⏱ Engine-Test mit Uhr</h1>
+      <h1>♞ Engine-Test</h1>
       <p>AI Operations · deine Engine spielt eine Farbe, die Gegenzüge gibst du von Hand ein</p>
     </div>
     <a class="icon-btn" href="/">← Analyse</a>
@@ -175,17 +171,13 @@
 
   <div class="grid">
     <section class="card">
-      <div class="spalte uhr oben" id="uhrOben">
-        <span class="name" id="nameOben"></span><span class="zeit" id="zeitOben">10:00</span>
-      </div>
+      <div class="spalte spieler oben" id="spielerOben"></div>
       <div class="board-wrap">
         <div class="ranks" id="ranks"></div>
         <div class="board" id="board" aria-label="Schachbrett"></div>
       </div>
       <div class="spalte files" id="files"></div>
-      <div class="spalte uhr unten" id="uhrUnten">
-        <span class="name" id="nameUnten"></span><span class="zeit" id="zeitUnten">10:00</span>
-      </div>
+      <div class="spalte spieler unten" id="spielerUnten"></div>
 
       <div class="spalte promo" id="promo" hidden>
         <span>Umwandeln in:</span>
@@ -227,12 +219,10 @@
         <label class="seg on"><input type="radio" name="farbe" value="w" checked> Weiss</label>
         <label class="seg"><input type="radio" name="farbe" value="b"> Schwarz</label>
       </div>
-      <p class="fix">Bedenkzeit: 10 Minuten je Seite, ohne Zusatzzeit</p>
 
       <button class="btn-primary" id="start">Partie starten</button>
       <button class="btn-ghost wichtig" id="engineZug" hidden>Engine ziehen lassen</button>
       <button class="btn-ghost" id="undo" disabled>Letzten Zug zurücknehmen</button>
-      <button class="btn-ghost" id="uhrKnopf" disabled>Uhr anhalten</button>
 
       <dl class="kv">
         <dt>Engine</dt><dd id="infoEngine">—</dd>
@@ -256,7 +246,6 @@ const NAMES = {k:"König",q:"Dame",r:"Turm",b:"Läufer",n:"Springer",p:"Bauer"};
 const START = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
 const FILES = ["a","b","c","d","e","f","g","h"];
 const FARBE = {w:"Weiss", b:"Schwarz"};
-const BEDENKZEIT = 10 * 60 * 1000;   // je Seite, ohne Zusatzzeit
 const $ = s => document.querySelector(s);
 
 /* Der Server hält keine Partie — der ganze Zustand steckt hier im Browser. */
@@ -265,8 +254,7 @@ const partie = {
   pausiert: false,   // Engine ist am Zug, wartet aber (nach einer Rücknahme)
   zuege: [],         // {uci, san, fen, wer: "engine" | "gegner" | "hand", status, finished}
   sel: null, ziele: new Set(), promo: null, gehoben: null,
-  anfrage: 0,       // Zähler: Antworten, die nach einer Rücknahme eintreffen, verwerfen
-  uhr: {w: BEDENKZEIT, b: BEDENKZEIT}, seit: 0, uhrAus: false, ende: "",
+  anfrage: 0,        // Zähler: Antworten, die nach einer Rücknahme eintreffen, verwerfen
 };
 
 (function initTheme(){
@@ -284,7 +272,6 @@ const amZug = () => partie.fen.split(/\s+/)[1];
 const gegner = () => partie.engine === "w" ? "b" : "w";
 const letzterZug = () => partie.zuege[partie.zuege.length - 1];
 const zugfolge = () => partie.zuege.map(z => z.uci);
-const zeitUm = () => partie.uhr.w <= 0 || partie.uhr.b <= 0;
 const darfZiehen = () => partie.laeuft && !partie.busy && (amZug() !== partie.engine || partie.pausiert);
 
 async function post(pfad, daten){
@@ -300,57 +287,6 @@ async function post(pfad, daten){
   if(!res.ok) throw Object.assign(new Error(body.detail || `Fehler ${res.status}`), {status: res.status});
   return body;
 }
-
-/* ---------- Uhr ---------- */
-const uhrLaeuft = () => partie.laeuft && !partie.uhrAus;
-function restzeit(farbe){
-  let t = partie.uhr[farbe];
-  if(uhrLaeuft() && farbe === amZug()) t -= performance.now() - partie.seit;
-  return Math.max(0, t);
-}
-/* Verbrauchte Zeit der Zugpartei festschreiben. Muss vor jedem Wechsel der
-   Zugpartei laufen, weil restzeit() die Zugpartei aus der FEN liest. */
-function uhrAbrechnen(){
-  if(uhrLaeuft()) partie.uhr[amZug()] = restzeit(amZug());
-  partie.seit = performance.now();
-}
-function uhrText(ms){
-  // Unter 20 Sekunden mit Zehnteln, wie auf den grossen Schachseiten.
-  if(ms < 20000) return `0:${String(Math.floor(ms/1000)).padStart(2,"0")}.${Math.floor(ms/100) % 10}`;
-  const s = Math.ceil(ms / 1000);
-  return `${Math.floor(s/60)}:${String(s % 60).padStart(2,"0")}`;
-}
-function zeigeUhren(){
-  for(const [farbe, ort] of [[partie.engine, "Unten"], [gegner(), "Oben"]]){
-    const ms = restzeit(farbe);
-    $("#zeit" + ort).textContent = uhrText(ms);
-    const el = $("#uhr" + ort);
-    el.classList.toggle("aktiv", partie.laeuft && farbe === amZug());
-    el.classList.toggle("knapp", ms < 30000);
-    el.classList.toggle("angehalten", partie.laeuft && partie.uhrAus);
-  }
-}
-function zuWenigMaterial(farbe){
-  // Nur König, oder König und eine Leichtfigur: Damit lässt sich nicht mattsetzen.
-  const figuren = Object.values(fenToMap(partie.fen))
-    .filter(p => (p === p.toUpperCase()) === (farbe === "w") && p.toLowerCase() !== "k");
-  return figuren.length === 0 || (figuren.length === 1 && "nb".includes(figuren[0].toLowerCase()));
-}
-function zeitAbgelaufen(){
-  const verlierer = amZug(), sieger = verlierer === "w" ? "b" : "w";
-  partie.uhr[verlierer] = 0;
-  partie.laeuft = false; partie.busy = false; partie.pausiert = false; partie.anfrage++;
-  partie.ende = zuWenigMaterial(sieger)
-    ? `Zeit abgelaufen für ${FARBE[verlierer]} — remis, ${FARBE[sieger]} kann nicht mehr mattsetzen`
-    : `Zeit abgelaufen für ${FARBE[verlierer]} — ${FARBE[sieger]} gewinnt`;
-  setStatus(partie.ende, "over");
-  render();
-}
-setInterval(()=>{
-  if(!partie.laeuft) return;
-  zeigeUhren();
-  if(uhrLaeuft() && restzeit(amZug()) <= 0) zeitAbgelaufen();
-}, 100);
 
 /* ---------- Brett zeichnen ---------- */
 function fenToMap(fen){
@@ -391,18 +327,18 @@ function render(){
   $("#board").innerHTML = html;
   $("#board").classList.toggle("locked", !darfZiehen());
 
-  $("#nameUnten").innerHTML = `<strong>Engine</strong> · ${FARBE[partie.engine]}`;
-  $("#nameOben").innerHTML = `<strong>Gegner</strong> · ${FARBE[gegner()]}`;
-  $("#undo").disabled = !partie.zuege.length || zeitUm();
+  for(const [el, wer, farbe] of [["#spielerUnten", "Engine", partie.engine], ["#spielerOben", "Gegner", gegner()]]){
+    const amZugNun = partie.laeuft && farbe === amZug();
+    $(el).innerHTML = `<strong>${wer}</strong> · ${FARBE[farbe]}${amZugNun ? '<span class="amzug">am Zug</span>' : ""}`;
+    $(el).classList.toggle("aktiv", amZugNun);
+  }
+  $("#undo").disabled = !partie.zuege.length;
   $("#engineZug").hidden = !(partie.laeuft && partie.pausiert && !partie.busy && amZug() === partie.engine);
-  $("#uhrKnopf").disabled = !partie.laeuft;
-  $("#uhrKnopf").textContent = partie.uhrAus ? "Uhr weiterlaufen lassen" : "Uhr anhalten";
   const weiss = amZug() === "w";
   document.querySelectorAll("#promo [data-figur]").forEach(b=>{
     if(b.dataset.figur) b.textContent = PIECES[weiss ? b.dataset.figur.toUpperCase() : b.dataset.figur];
   });
   $("#promo").hidden = !partie.promo;
-  zeigeUhren();
   zugListe();
 }
 function setStatus(text, art){
@@ -467,19 +403,17 @@ function bewertung(v){
 
 /* ---------- Partieablauf ---------- */
 function zugEintragen(d, wer){
-  uhrAbrechnen();
   partie.zuege.push({uci: d.uci, san: d.san, fen: d.fen, wer, status: d.status, finished: d.finished});
   partie.fen = d.fen; partie.sel = null; partie.ziele = new Set(); partie.promo = null;
-  if(d.finished){ partie.laeuft = false; partie.ende = d.status; }
+  if(d.finished) partie.laeuft = false;
 }
 
 function partieStarten(){
   if(partie.laeuft && partie.zuege.length && !confirm("Die laufende Partie abbrechen und neu starten?")) return;
   partie.engine = document.querySelector('input[name="farbe"]:checked').value;
   Object.assign(partie, {
-    fen: START, zuege: [], laeuft: true, busy: false, pausiert: false, ende: "",
+    fen: START, zuege: [], laeuft: true, busy: false, pausiert: false,
     sel: null, ziele: new Set(), promo: null,
-    uhr: {w: BEDENKZEIT, b: BEDENKZEIT}, seit: performance.now(), uhrAus: false,
   });
   partie.anfrage++;
   for(const id of ["#infoEngine","#infoEval","#infoTiefe","#infoPv"]) $(id).textContent = "—";
@@ -533,13 +467,11 @@ async function handZug(uci){
 }
 
 function zuruecknehmen(){
-  if(!partie.zuege.length || zeitUm()) return;
+  if(!partie.zuege.length) return;
   partie.anfrage++;   // eine laufende Engine-Rechnung wird damit verworfen
-  uhrAbrechnen();
   const weg = partie.zuege.pop();
   partie.fen = letzterZug() ? letzterZug().fen : START;
-  Object.assign(partie, {busy: false, sel: null, ziele: new Set(), promo: null, ende: ""});
-  if(!partie.laeuft){ partie.laeuft = true; partie.seit = performance.now(); }
+  Object.assign(partie, {laeuft: true, busy: false, sel: null, ziele: new Set(), promo: null});
   // Ist danach die Engine am Zug, rechnet sie nicht sofort neu — sonst käme
   // man nie dazu, selbst einen anderen Zug für sie zu setzen.
   partie.pausiert = amZug() === partie.engine;
@@ -716,12 +648,6 @@ async function ladeAzure(fen){
 $("#start").addEventListener("click", partieStarten);
 $("#engineZug").addEventListener("click", engineZieht);
 $("#undo").addEventListener("click", zuruecknehmen);
-$("#uhrKnopf").addEventListener("click", ()=>{
-  if(!partie.laeuft) return;
-  if(partie.uhrAus){ partie.uhrAus = false; partie.seit = performance.now(); }
-  else { uhrAbrechnen(); partie.uhrAus = true; }
-  render();
-});
 document.querySelectorAll('input[name="farbe"]').forEach(r=>r.addEventListener("change", ()=>{
   document.querySelectorAll(".seg").forEach(s=>s.classList.toggle("on", s.querySelector("input").checked));
   // Vor dem Start gleich richtig herum zeigen; während einer Partie erst beim Neustart.

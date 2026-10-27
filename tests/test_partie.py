@@ -1,5 +1,5 @@
 """
-Engine-Test mit Uhr (/cheat): Zugfolge statt FEN, Partieende, Stockfish-Leiste.
+Engine-Test (/cheat): Zugfolge statt FEN, Partieende, Stockfish-Leiste.
 
 Geprüft wird vor allem, was die Seite still verfälschen würde: eine Remis-
 meldung einen Zug zu früh, ein Zug in der Folge, der nicht hätte gehen dürfen,
