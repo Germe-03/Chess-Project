@@ -109,6 +109,10 @@
   .sq.target::before{width:30%;height:30%;border-radius:50%;background:var(--marker)}
   .sq.capture::before{inset:6%;border-radius:50%;border:4px solid var(--marker)}
   .board.locked .sq{cursor:default}
+  .board{touch-action:none}   /* Ziehen mit dem Finger soll nicht die Seite scrollen */
+  .sq.gehoben .pc{opacity:.3}
+  .geist{position:fixed;z-index:50;pointer-events:none;transform:translate(-50%,-50%);line-height:1;
+    filter:drop-shadow(0 3px 4px rgba(0,0,0,.45))}
 
   .promo{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:10px;padding:10px 12px;
     border-radius:10px;border:1px solid var(--primary);background:var(--primary-weak);font-size:14px}
@@ -260,8 +264,8 @@ const partie = {
   fen: START, engine: "w", laeuft: false, busy: false,
   pausiert: false,   // Engine ist am Zug, wartet aber (nach einer Rücknahme)
   zuege: [],         // {uci, san, fen, wer: "engine" | "gegner" | "hand", status, finished}
-  sel: null, ziele: new Set(), promo: null,
-  anfrage: 0,        // Zähler: Antworten, die nach einer Rücknahme eintreffen, verwerfen
+  sel: null, ziele: new Set(), promo: null, gehoben: null,
+  anfrage: 0,       // Zähler: Antworten, die nach einer Rücknahme eintreffen, verwerfen
   uhr: {w: BEDENKZEIT, b: BEDENKZEIT}, seit: 0, uhrAus: false, ende: "",
 };
 
@@ -284,9 +288,14 @@ const zeitUm = () => partie.uhr.w <= 0 || partie.uhr.b <= 0;
 const darfZiehen = () => partie.laeuft && !partie.busy && (amZug() !== partie.engine || partie.pausiert);
 
 async function post(pfad, daten){
-  const res = await fetch(pfad, {
-    method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify(daten)
-  });
+  let res;
+  try{
+    res = await fetch(pfad, {
+      method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify(daten)
+    });
+  }catch{
+    throw Object.assign(new Error("Keine Verbindung zum Server. Läuft uvicorn noch?"), {status: 0});
+  }
   const body = await res.json().catch(()=>({}));
   if(!res.ok) throw Object.assign(new Error(body.detail || `Fehler ${res.status}`), {status: res.status});
   return body;
@@ -374,6 +383,7 @@ function render(){
     if(feld === nach) cls += " to";
     if(feld === partie.sel) cls += " sel";
     else if(partie.ziele.has(feld)) cls += p ? " capture" : " target";
+    if(feld === partie.gehoben) cls += " gehoben";
     const figur = p ? `<span class="pc ${p === p.toUpperCase() ? "white" : "black"}">${PIECES[p]}</span>` : "";
     const label = p ? `${feld}, ${p === p.toUpperCase() ? "weisse" : "schwarze"} ${NAMES[p.toLowerCase()]}` : `${feld}, leer`;
     html += `<div class="${cls}" data-square="${feld}" role="button" tabindex="0" aria-label="${label}">${figur}</div>`;
@@ -537,39 +547,101 @@ function zuruecknehmen(){
   render(); bewerteStellung();
 }
 
-/* ---------- Zugeingabe auf dem Brett ---------- */
-async function zeigeZuege(feld){
-  if(partie.sel === feld){ partie.sel = null; partie.ziele = new Set(); render(); return; }
+/* ---------- Zugeingabe auf dem Brett ----------
+   Zwei Wege wie auf den grossen Schachseiten: die Figur ziehen und loslassen,
+   oder erst die Figur und dann das Zielfeld anklicken. */
+function eigeneFigur(feld){
   const p = fenToMap(partie.fen)[feld];
-  if(!p || (p === p.toUpperCase()) !== (amZug() === "w")){   // nur Figuren der Zugpartei
-    partie.sel = null; partie.ziele = new Set(); render(); return;
-  }
+  return !!p && (p === p.toUpperCase()) === (amZug() === "w");
+}
+function waehle(feld){
+  // Figur auswählen und ihre Zielfelder vom Server holen. Das Promise braucht
+  // das Ziehen: Wird schneller losgelassen, als die Antwort da ist, wartet es.
   partie.sel = feld; partie.ziele = new Set(); partie.promo = null; render();
-  try{
-    const d = await post("/legal-moves", {fen: partie.fen, square: feld});
+  return post("/legal-moves", {fen: partie.fen, square: feld}).then(d=>{
     if(partie.sel !== feld) return;
     partie.ziele = new Set(d.targets || []);
     render();
-  }catch{ /* ohne Markierung weiterspielen */ }
+  }).catch(err=>{
+    if(partie.sel === feld) setStatus(err.message, "error");
+  });
+}
+function abwaehlen(){
+  if(!partie.sel) return;
+  partie.sel = null; partie.ziele = new Set(); render();
+}
+function ziehe(von, nach){
+  const p = fenToMap(partie.fen)[von];
+  if(p.toLowerCase() === "p" && (nach[1] === "8" || nach[1] === "1")){
+    partie.sel = von; partie.promo = von + nach; render(); $("#promoDame").focus(); return;
+  }
+  handZug(von + nach);
+}
+function warumGesperrt(feld){
+  // Sagen, warum nichts passiert, statt das Brett stumm bleiben zu lassen.
+  if(!partie.laeuft) return partie.zuege.length
+    ? "Die Partie ist vorbei. «Partie starten» beginnt eine neue."
+    : "Zuerst «Partie starten» klicken, vorher ist das Brett gesperrt.";
+  const p = fenToMap(partie.fen)[feld];
+  if(partie.busy || !p || eigeneFigur(feld)) return "";
+  return (p === p.toUpperCase() ? "w" : "b") === partie.engine
+    ? `Das sind die Figuren der Engine, und ${FARBE[amZug()]} ist am Zug. Willst du ihren letzten Zug ändern, nimm ihn zuerst zurück.`
+    : `Die Engine (${FARBE[partie.engine]}) ist am Zug. Zieh selbst für sie oder klick «Engine ziehen lassen».`;
+}
+function feldGewaehlt(feld){
+  if(darfZiehen() && partie.sel && partie.ziele.has(feld)){ ziehe(partie.sel, feld); return; }
+  if(darfZiehen() && eigeneFigur(feld) && partie.sel !== feld){ waehle(feld); return; }
+  abwaehlen();
+  const grund = warumGesperrt(feld);
+  if(grund) setStatus(grund, "");
 }
 
-$("#board").addEventListener("click", e=>{
-  const sq = e.target.closest(".sq");
-  if(!sq || !darfZiehen()) return;
+let gezogen = null;   // {von, x, y, warSchon, laden, geist}
+$("#board").addEventListener("pointerdown", e=>{
+  if(e.button !== 0) return;
+  const sq = e.target.closest(".sq"); if(!sq) return;
   const feld = sq.dataset.square;
-  if(partie.sel && partie.ziele.has(feld)){
-    const p = fenToMap(partie.fen)[partie.sel];
-    if(p.toLowerCase() === "p" && (feld[1] === "8" || feld[1] === "1")){
-      partie.promo = partie.sel + feld; render(); $("#promoDame").focus(); return;
-    }
-    handZug(partie.sel + feld); return;
-  }
-  zeigeZuege(feld);
+  if(!darfZiehen() || !eigeneFigur(feld)){ feldGewaehlt(feld); return; }
+  e.preventDefault();
+  const warSchon = partie.sel === feld;
+  gezogen = {von: feld, x: e.clientX, y: e.clientY, warSchon, geist: null,
+             laden: warSchon ? Promise.resolve() : waehle(feld)};
+  try{ $("#board").setPointerCapture(e.pointerId); }catch{ /* ohne Capture geht es auch */ }
 });
+$("#board").addEventListener("pointermove", e=>{
+  if(!gezogen) return;
+  if(!gezogen.geist){
+    if(Math.hypot(e.clientX - gezogen.x, e.clientY - gezogen.y) < 5) return;   // noch ein Klick
+    const quelle = $(`[data-square="${gezogen.von}"]`);
+    gezogen.geist = quelle.querySelector(".pc").cloneNode(true);
+    gezogen.geist.classList.add("geist");
+    gezogen.geist.style.fontSize = getComputedStyle(quelle).fontSize;
+    document.body.appendChild(gezogen.geist);
+    partie.gehoben = gezogen.von; render();
+  }
+  gezogen.geist.style.left = e.clientX + "px";
+  gezogen.geist.style.top = e.clientY + "px";
+});
+async function loslassen(e, abgebrochen){
+  if(!gezogen) return;
+  const z = gezogen; gezogen = null;
+  if(!z.geist){
+    if(z.warSchon && !abgebrochen) abwaehlen();   // zweiter Klick auf dieselbe Figur
+    return;
+  }
+  z.geist.remove(); partie.gehoben = null;
+  const ziel = abgebrochen ? null : document.elementFromPoint(e.clientX, e.clientY)?.closest("#board .sq");
+  await z.laden;
+  const nach = ziel && ziel.dataset.square;
+  if(nach && darfZiehen() && partie.sel === z.von && partie.ziele.has(nach)) ziehe(z.von, nach);
+  else render();   // zurück aufs Ausgangsfeld; die Figur bleibt für die Klick-Eingabe gewählt
+}
+$("#board").addEventListener("pointerup", e=>loslassen(e, false));
+$("#board").addEventListener("pointercancel", e=>loslassen(e, true));
 $("#board").addEventListener("keydown", e=>{
   if(e.key !== "Enter" && e.key !== " ") return;
   const sq = e.target.closest(".sq"); if(!sq) return;
-  e.preventDefault(); sq.click();
+  e.preventDefault(); feldGewaehlt(sq.dataset.square);
 });
 $("#promo").addEventListener("click", e=>{
   const b = e.target.closest("[data-figur]");
