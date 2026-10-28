@@ -84,6 +84,7 @@ from pathlib import Path
 
 import numpy as np
 
+from . import keep_awake
 from .engine import score_moves, terminal_value
 from .evaluate import endgame_trial, make_policy, summarize
 from .features import FEATURE_SIZE, board_to_features
@@ -490,6 +491,9 @@ def main() -> None:
     episode = start_episode = state["episodes_done"]
     stopped = False
     runner = Runner(args.workers)
+    # Ohne das legt Windows den Rechner nach einer Weile ohne Eingabe schlafen,
+    # und ein Lauf über Nacht steht still (keep_awake.py).
+    keep_awake.hold()
     try:
         with log_path.open(log_mode, newline="", encoding="utf-8") as log_file, \
                 eval_path.open(log_mode, newline="", encoding="utf-8") as eval_file:
@@ -592,6 +596,7 @@ def main() -> None:
             runner.terminate()
         else:
             runner.close()
+        keep_awake.release()
 
     hours = (time.time() - started) / 3600
     if stopped:
