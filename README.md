@@ -954,7 +954,11 @@ Partien endeten 176 mit Matt und 24 remis, im Mittel nach 116 Halbzügen. Mit
 sinkendem ε wurden die Partien länger (anfangs rund 65, gegen Ende rund 130
 Halbzüge), weil weniger zufällige Patzer sofort bestraft werden.
 
-### v7: dasselbe Rezept, mit korrigierter Suche
+### v7 und v7b: Weitertrainieren macht v6 nicht besser
+
+**Kurz: Beide Läufe spielen schwächer als v6, deshalb bleibt v6 aktiv.** Die
+Netze sind nicht im Register eingetragen. Der Abschnitt hält fest, was versucht
+wurde und warum es nicht aufging.
 
 v7 setzt auf dem Netz von v5 auf und trainiert mit **denselben Einstellungen
 wie v5** — nur rechnet die Suche im Training jetzt mit den Korrekturen von v6
@@ -970,7 +974,8 @@ python -m Code.rl.train --task full --resume models/full_v5.npz \
     --run-dir runs/v7 --out models/full_v7.npz
 ```
 
-Warum das Training die Korrekturen braucht und nicht erst die fertige Engine:
+Die Überlegung dahinter, warum das Training die Korrekturen braucht und nicht
+erst die fertige Engine:
 
 - **Deckel.** Mit ihm bewertet die Suche ein Blatt mit `0.9 · tanh(V + Φ)`.
   TD-Leaf rechnet das Lernziel deshalb zuerst zurück (`tdleaf.py`), damit `V`
@@ -978,20 +983,57 @@ Warum das Training die Korrekturen braucht und nicht erst die fertige Engine:
 - **Wiederholung.** Endet eine Hauptvariante in einer Wiederholung, ist ihr
   Wert ein exaktes Remis; das Blatt fällt wie Matt und Patt aus dem Lernbatch.
 - Weil die Engine im Self-Play jetzt Matt setzt, statt mit grossem Vorsprung
-  zu pendeln, enden mehr Partien mit einem echten Ausgang — das stärkste
-  Lernsignal, das es gibt.
+  zu pendeln, sollten mehr Partien mit einem echten Ausgang enden.
 
-Erwartete Dauer wie bei v5 rund fünf Stunden auf 12 Kernen; Anhalten und
-Fortsetzen wie oben (`--run-dir runs/v7 --stop`, dann derselbe Befehl).
-Danach die Zwischenstände messen, eintragen und erst aktivieren, wenn v7 gegen
-v6 vorne liegt:
+Die letzte Erwartung traf nicht ein: Von den 200 Partien endeten wie bei v5
+176 mit Matt und 24 remis.
+
+Weil v7 schwach abschnitt, folgte ein kurzer Gegenversuch **v7b**: 50 Partien,
+im Training nur die Wiederholungsregel, ohne Deckel (`--cap` weggelassen,
+`--run-dir runs/v7b --out models/full_v7b.npz`, sonst derselbe Befehl, gut
+eine Stunde). Gespielt und gemessen wird auch v7b mit beiden Korrekturen.
+
+**Messung.** Alle Netze spielen mit der Suche von v6 (2 Halbzüge, Deckel,
+Wiederholungsregel), je 200 Partien aus Zufallseröffnungen. Der Unterschied
+kommt also nur aus dem Netz.
+
+| Messung | **v6** | v7 (200 Partien) | v7b (50 Partien) |
+|---|---|---|---|
+| gegen Stockfish (Elo 1320) | **48.0 Punkteprozent** | 28.7 Punkteprozent | 44.2 Punkteprozent |
+| direkt gegen v6 | — | 26.0 Punkteprozent | 34.8 Punkteprozent |
+| Taktik-Test | **72.7 % gelöst** | 68.0 % gelöst | nicht gemessen |
+
+Die Zwischenstände von v7 gegen Stockfish lagen nach 25, 50, 75, 100, 125 und
+150 Partien bei 42.0, 32.0, 40.8, 31.8, 36.0 und 35.0 Punkteprozent — schon der
+erste Stand unter v6, danach kein Weg zurück. v7b lag gegen v6 nach 25 Partien
+bei 38.5, nach 50 bei 34.8 Punkteprozent. Bei 200 Partien schwankt ein Wert um
+rund 3.5 Punkte; ein Rückstand von 15 bis 24 Punkten im direkten Vergleich ist
+kein Zufall mehr.
+
+Was sich daraus ablesen lässt, mit Vorbehalt — die Ursachen sind vermutet,
+nicht einzeln nachgewiesen:
+
+- **Der Deckel gehört nicht ins Training.** Das Zurückrechnen mit `arctanh`
+  bläht Werte nahe am Deckel stark auf: Ein Blatt mit 0.89 wird zu rund 2.3,
+  nach dem Abschneiden auf [-1, 1] lernt `V` dort schlicht «gewonnen». Der
+  Unterschied zwischen guten und sehr guten Stellungen geht verloren. Ohne
+  Deckel im Training (v7b) ist der Rückstand deutlich kleiner.
+- **Das Rezept von v5 trägt nicht weiter.** Auch v7b ist nach 25 Partien schon
+  schwächer als sein Ausgangsnetz. Von v3 auf v5 halfen dieselben Einstellungen
+  stark (siehe [v5](#lernen-mit-vorausrechnen-v5)); ein schon trainiertes Netz
+  verschieben sie offenbar eher weg vom Guten. Kandidaten, nicht geprüft: die
+  Lernrate von `5e-4` ist für Feinarbeit zu gross, oder das Training mit 4
+  Halbzügen passt nicht zum Spiel mit 2.
+
+Die Netze `models/full_v7.npz` und `models/full_v7b.npz` liegen nur lokal und
+sind nicht eingecheckt. Ein nächster Versuch sollte nicht dasselbe Rezept
+wiederholen, sondern eine dieser Ursachen gezielt prüfen. Gemessen und
+eingetragen wird wie immer erst, wenn ein Netz gegen v6 vorne liegt:
 
 ```bash
 python -m Code.rl.evaluate --task full --model models/full_v7.npz --depth 2 \
     --cap 0.9 --repetition-draw --opponent models/full_v5.npz --opponent-depth 2 \
     --opponent-cap 0.9 --opponent-repetition-draw --games 200 --max-plies 400 --workers 12
-python -m Code.rl.registry --register v7 --file full_v7.npz --episodes 200 \
-    --parent v6 --depth 2 --cap 0.9 --repetition-draw --keep-active --notes "..."
 ```
 
 ## Resultate
@@ -1300,6 +1342,10 @@ lange. Für render.com (0.1 CPU) ist das zu viel.
   Halbzügen sichtbar werden. Mehr Tiefe hilft messbar (siehe
   [v6](#matt-und-wiederholung-v6)), braucht aber eine schnellere Suche
   (Transpositionstabelle, iterative Vertiefung) oder mehr Rechenleistung.
+- Weitertrainieren von v5 mit demselben Rezept macht das Netz schwächer, mit
+  und ohne Deckel im Training (siehe [v7 und v7b](#v7-und-v7b-weitertrainieren-macht-v6-nicht-besser)).
+  Die stärkste Version ist deshalb weiterhin v6, ein Netz von v5 mit
+  korrigierter Suche.
 - Die Stärke von v5 hängt an der Suche: Mit nur einem Halbzug spielt das Netz
   nicht besser als v3 (siehe [v5](#lernen-mit-vorausrechnen-v5)). Auf render.com
   ist die Tiefe auf 2 begrenzt; trainiert wurde mit 4.
