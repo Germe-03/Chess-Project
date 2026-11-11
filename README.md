@@ -956,9 +956,12 @@ Halbzüge), weil weniger zufällige Patzer sofort bestraft werden.
 
 ### v7 und v7b: Weitertrainieren macht v6 nicht besser
 
-**Kurz: Beide Läufe spielen schwächer als v6, deshalb bleibt v6 aktiv.** Die
-Netze sind nicht im Register eingetragen. Der Abschnitt hält fest, was versucht
-wurde und warum es nicht aufging.
+**Kurz: v7 spielt klar schwächer als v6. Das Rezept von v7b ergab lokal ein
+schwächeres Netz, in drei Wiederholungen auf Azure ML ein etwa gleich starkes
+(siehe [Gegenprobe auf Azure ML](#gegenprobe-auf-azure-ml)). Besser als v6 wird
+keines, deshalb bleibt v6 aktiv.** Die Netze sind nicht im Register
+eingetragen. Der Abschnitt hält fest, was versucht wurde und warum es nicht
+aufging.
 
 v7 setzt auf dem Netz von v5 auf und trainiert mit **denselben Einstellungen
 wie v5** — nur rechnet die Suche im Training jetzt mit den Korrekturen von v6
@@ -1018,12 +1021,12 @@ nicht einzeln nachgewiesen:
   nach dem Abschneiden auf [-1, 1] lernt `V` dort schlicht «gewonnen». Der
   Unterschied zwischen guten und sehr guten Stellungen geht verloren. Ohne
   Deckel im Training (v7b) ist der Rückstand deutlich kleiner.
-- **Das Rezept von v5 trägt nicht weiter.** Auch v7b ist nach 25 Partien schon
-  schwächer als sein Ausgangsnetz. Von v3 auf v5 halfen dieselben Einstellungen
-  stark (siehe [v5](#lernen-mit-vorausrechnen-v5)); ein schon trainiertes Netz
-  verschieben sie offenbar eher weg vom Guten. Kandidaten, nicht geprüft: die
-  Lernrate von `5e-4` ist für Feinarbeit zu gross, oder das Training mit 4
-  Halbzügen passt nicht zum Spiel mit 2.
+- **Das Rezept von v5 trägt nicht weiter.** Von v3 auf v5 halfen dieselben
+  Einstellungen stark (siehe [v5](#lernen-mit-vorausrechnen-v5)); ein schon
+  trainiertes Netz machen sie nicht besser. Ob v7b schwächer ist oder nur
+  gleich stark, entscheidet der Zufall des Laufs (siehe Gegenprobe unten).
+  Kandidaten, nicht geprüft: die Lernrate von `5e-4` ist für Feinarbeit zu
+  gross, oder das Training mit 4 Halbzügen passt nicht zum Spiel mit 2.
 
 Die Netze `models/full_v7.npz` und `models/full_v7b.npz` liegen nur lokal und
 sind nicht eingecheckt. Ein nächster Versuch sollte nicht dasselbe Rezept
@@ -1035,6 +1038,33 @@ python -m Code.rl.evaluate --task full --model models/full_v7.npz --depth 2 \
     --cap 0.9 --repetition-draw --opponent models/full_v5.npz --opponent-depth 2 \
     --opponent-cap 0.9 --opponent-repetition-draw --games 200 --max-plies 400 --workers 12
 ```
+
+#### Gegenprobe auf Azure ML
+
+Das Rezept von v7b lief am 10. und 11.11.2026 noch dreimal auf Azure ML, als
+Befehlsauftrag auf einem serverlosen Rechner mit 16 Kernen (F16s_v2). Einmal
+lief es Zeichen für Zeichen wie lokal, zweimal mit anderem Zufall
+(`--seed 1`, `--seed 2`). Gemessen wurde wie oben.
+
+| Lauf | Trainingszeit | gegen v6 nach 25 | gegen v6 nach 50 | gegen Stockfish 1320 |
+|---|---|---|---|---|
+| lokal, Seed 0 (v7b) | 67 min | 38.5 | 34.8 | 44.2 |
+| Azure, Seed 0 | 28 min | 52.2 | 53.0 | 45.0 |
+| Azure, Seed 1 | 39 min | 45.2 | 50.2 | 44.0 |
+| Azure, Seed 2 | 35 min | 61.0 | 48.8 | 48.0 |
+
+Alle Werte sind Punkteprozent. Alle drei Azure-Läufe liegen nach 50 Partien
+gegen v6 um 50 Punkteprozent und gegen Stockfish bei v6 (48.0) oder knapp
+darunter. Der lokale Lauf ist der Ausreisser. Ob das Pech war oder an 12
+statt 16 Prozessen beziehungsweise Windows statt Linux liegt, zeigen diese
+Läufe nicht. Die ersten zwei Partien verliefen auf Azure genau wie lokal,
+danach gehen die Läufe auseinander, weil die Partien in anderer Reihenfolge
+fertig werden. Der Wert 61.0 von Seed 2 nach 25 Partien müsste vor einer
+Aktivierung mit mehr Partien nachgemessen werden.
+
+Drei Läufe auf Azure kosteten zusammen rund 1.30 CHF. Startskript, Ablauf und
+Stolpersteine (PIM-Rolle, Anmeldung) stehen in
+[`azure_ml/TRAINING_AZURE.md`](azure_ml/TRAINING_AZURE.md).
 
 ## Resultate
 
@@ -1342,8 +1372,9 @@ lange. Für render.com (0.1 CPU) ist das zu viel.
   Halbzügen sichtbar werden. Mehr Tiefe hilft messbar (siehe
   [v6](#matt-und-wiederholung-v6)), braucht aber eine schnellere Suche
   (Transpositionstabelle, iterative Vertiefung) oder mehr Rechenleistung.
-- Weitertrainieren von v5 mit demselben Rezept macht das Netz schwächer, mit
-  und ohne Deckel im Training (siehe [v7 und v7b](#v7-und-v7b-weitertrainieren-macht-v6-nicht-besser)).
+- Weitertrainieren von v5 mit demselben Rezept macht das Netz nicht besser:
+  mit Deckel im Training klar schwächer, ohne Deckel je nach Lauf schwächer
+  oder gleich stark (siehe [v7 und v7b](#v7-und-v7b-weitertrainieren-macht-v6-nicht-besser)).
   Die stärkste Version ist deshalb weiterhin v6, ein Netz von v5 mit
   korrigierter Suche.
 - Die Stärke von v5 hängt an der Suche: Mit nur einem Halbzug spielt das Netz

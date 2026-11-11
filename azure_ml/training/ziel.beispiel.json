@@ -1,0 +1,6 @@
+{
+  "subscription_id": "<Abo-ID aus dem Azure-Portal>",
+  "resource_group": "<Ressourcengruppe>",
+  "workspace": "<Name des Azure-ML-Workspace>",
+  "tenant_id": "<Tenant-ID der Hochschule>"
+}

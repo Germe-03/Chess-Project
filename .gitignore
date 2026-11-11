@@ -26,3 +26,8 @@ Thumbs.db
 
 # Schlüssel des Azure-ML-Endpoints (Projektaufgabe 2), nie ins Repo
 azure_ml/endpoint_key.txt
+
+# Anmeldung für das Azure-ML-Training (nur Kontoname und Tenant, trotzdem nicht ins Repo)
+azure_ml/training/.anmeldung.json
+# Abo, Ressourcengruppe, Workspace und Tenant fürs Training, nur lokal (Vorlage: ziel.beispiel.json)
+azure_ml/training/ziel.json
