@@ -1,5 +1,5 @@
 {
-  "active": "v6",
+  "active": "v8",
   "versions": [
     {
       "name": "v1",
@@ -104,13 +104,43 @@
       "results": {
         "punkte_vs_stockfish_1320_eröffnungen": 0.48,
         "punkte_vs_v5_eröffnungen": 0.55,
-        "taktik_gelöst": 0.727
+        "taktik_gelöst": 0.727,
+        "punkte_vs_stockfish_1320_400_eröffnungen": 0.421
+      }
+    },
+    {
+      "name": "v8",
+      "file": "full_v8.npz",
+      "trained": "2026-11-11",
+      "episodes": 1000,
+      "parent": "v6",
+      "search_depth": 2,
+      "cap": 0.9,
+      "repetition_draw": true,
+      "notes": "Weitertrainiert vom Netz von v5/v6 auf Azure ML (Runde 1, Lauf B): 1000 Partien TD-Leaf mit 2 statt 4 Halbzügen Vorausschau, so tief wie die Engine spielt; Lernrate 5e-4, epsilon 0.1 bis 0.05, Wiederholungsregel im Training, 16 Kerne, 15 Minuten. Spielt wie v6 mit 2 Halbzügen, Deckel 0.9 und Wiederholungsregel. Bester von 16 Zwischenständen aus vier gleichzeitigen Läufen.",
+      "results": {
+        "punkte_vs_stockfish_1320_eröffnungen": 0.55,
+        "punkte_vs_v6_eröffnungen": 0.79,
+        "taktik_gelöst": 0.773,
+        "punkte_vs_stockfish_1320_400_eröffnungen": 0.575,
+        "punkte_vs_v6_400_eröffnungen": 0.76
+      },
+      "azure_ml": {
+        "auftrag": "crimson_mango_721vp6c5rc",
+        "zwischenstand": "outputs/run/snapshots/ep1000.npz",
+        "zwischenstände_punkte_vs_v6_400": {
+          "250": 0.639,
+          "500": 0.604,
+          "750": 0.516,
+          "1000": 0.76
+        }
       }
     }
   ],
   "messprotokoll": {
     "_eröffnungen": "200 Partien, je 100 Zufallseröffnungen (0 bis 8 Halbzüge ohne Materialverlust) mit beiden Farben, Abbruch nach 400 Halbzügen, Punkte = Siege + halbe Remis. Gemessen am 2026-10-14 mit python -m Code.rl.evaluate --opponent ...",
     "_grundstellung": "Erste Messungen: 25 Partien x 2 Seeds aus der Grundstellung, Abbruch nach 160 Halbzügen. Zwischen zwei eigenen Versionen nicht aussagekräftig, weil zwei deterministische Engines dort immer dieselbe Partie spielen.",
-    "_taktik": "Anteil der 150 Stellungen aus tests/fixtures/taktikstellungen.json, in denen der laut Stockfish klar beste Zug gefunden wird. python -m Code.rl.evaluate --task full --model ... --depth ... --tactics tests/fixtures/taktikstellungen.json"
+    "_taktik": "Anteil der 150 Stellungen aus tests/fixtures/taktikstellungen.json, in denen der laut Stockfish klar beste Zug gefunden wird. python -m Code.rl.evaluate --task full --model ... --depth ... --tactics tests/fixtures/taktikstellungen.json",
+    "_400_eröffnungen": "Wie _eröffnungen, aber 400 Partien (200 Zufallseröffnungen mit beiden Farben). Die ersten 200 Partien sind dieselben wie bei _eröffnungen, die zweiten 200 sind schwerer: v6 holt auf allen 400 nur 42.1 statt 48.0 Punkteprozent gegen Stockfish. Gemessen am 2026-11-11."
   }
 }

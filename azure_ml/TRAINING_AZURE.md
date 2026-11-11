@@ -180,6 +180,87 @@ gleichzeitig auf je einer F16s_v2. Sonst war alles gleich.
   das Portal und das Startskript. Danach musste die PIM-Rolle wieder
   aktiviert werden.
 
+## Plan: Grosses Training mit Ausscheidung (ab 11.11.2026)
+
+Ziel: ein Netz, das v6 schlägt. Ein einzelner langer Lauf mit dem alten
+Rezept bringt laut den drei Läufen oben nichts. Deshalb laufen mehrere
+Varianten gleichzeitig, und jede misst ihre Zwischenstände selbst gegen v6.
+Weiter geht es nur mit einem Stand, der v6 klar schlägt.
+
+**Runde 1:** vier Aufträge gleichzeitig, je eine F16s_v2, Start immer
+`models/full_v5.npz`:
+
+- **A:** Training mit 4 Halbzügen wie bisher, aber Lernrate `1e-4` statt
+  `5e-4`, 100 Partien. Prüft: Ist die Lernrate für Feinarbeit zu gross?
+- **B:** Training mit 2 Halbzügen, so tief wie die Engine spielt, Lernrate
+  `5e-4`, 1000 Partien. Prüft: Passt das Training mit 4 nicht zum Spiel mit 2?
+- **C:** wie B, aber Lernrate `1e-4`.
+- **D:** altes Rezept mit doppelt so vielen Partien (100, Seed 3), zum
+  Vergleich.
+
+Jeder Auftrag misst nach dem Training seine vier Zwischenstände mit je 400
+Partien gegen v6, noch auf Azure. Ein Stand gilt als besser, wenn er
+mindestens 55 % holt (bei 400 Partien schwankt der Wert um rund 2.5
+Punkte). Diesen Stand prüfe ich danach lokal gegen Stockfish, im
+Taktik-Test und im Prüfstand. Erst dann wird er v8. Aktiviert wird nur mit
+deinem OK.
+
+**Runde 2:** vom Sieger aus mit der besten Variante weiter, wieder vier
+Läufe gleichzeitig. Schlägt in einer Runde kein Stand v6, ist Schluss.
+
+Erwartete Kosten Runde 1: rund 3 CHF, höchstens etwa 6 CHF (Notbremse 3 h
+bei A und D, 1 h bei B und C).
+
+### Runde 1: Ergebnis (11.11.2026)
+
+Gestartet um 16:50, je 400 Partien gegen v6 pro Zwischenstand, Punkte in %:
+
+| Lauf | Auftrag | Stand 1 | Stand 2 | Stand 3 | Stand 4 | fertig |
+|---|---|---|---|---|---|---|
+| A: 4 Halbzüge, `1e-4`, 100 Partien | `frank_book_x4ym9n9gqq` | 50.2 | 49.0 | 43.6 | 45.1 | 18:08 |
+| B: 2 Halbzüge, `5e-4`, 1000 Partien | `crimson_mango_721vp6c5rc` | 63.9 | 60.4 | 51.6 | **76.0** | 17:48 |
+| C: 2 Halbzüge, `1e-4`, 1000 Partien | `red_pencil_nzlknf7mr1` | 54.1 | 53.9 | 64.0 | 56.4 | 17:48 |
+| D: altes Rezept, 100 Partien | `nice_quince_0t974g4y7d` | 53.2 | 56.2 | 51.6 | 53.5 | 18:29 |
+
+Stände bei A und D nach 25, 50, 75, 100 Partien, bei B und C nach 250,
+500, 750, 1000.
+
+- **Training mit 2 Halbzügen wirkt.** B und C schlagen v6 in fast allen
+  Ständen, B nach 1000 Partien mit 76.0 %. Damit ist die Vermutung aus dem
+  README bestätigt: Das Training mit 4 Halbzügen passte nicht zum Spiel mit 2.
+- **Kleinere Lernrate allein hilft nicht:** A bleibt bei oder unter v6.
+- **Das alte Rezept** (D) liegt mit 100 Partien knapp über v6 (51.6 bis
+  56.2), wie die drei Läufe mit 50 Partien.
+- **Dauer und Kosten:** Training mit 2 Halbzügen ist schnell: 1000 Partien
+  in 15 bis 17 Minuten, dazu rund 35 Minuten Messung. A und D brauchten 54
+  und 68 Minuten Training. Zusammen liefen die vier Rechner rund 4.6
+  Stunden, also etwa 3.30 CHF.
+- **Die Stände schwanken stark** (B: 63.9, 60.4, 51.6, 76.0). Darum zählt
+  nur ein Stand, der auch lokal gegen Stockfish und im Taktik-Test besteht.
+- **Nachmessung** des Zwischenstands von Seed 2 nach 25 Partien (61.0 %
+  bei 200 Partien): 60.8 % bei 400 Partien, 60.5 % nur auf den 200 neuen
+  Eröffnungen, gegen Stockfish 49.1 % (400 Partien). Er hält also.
+- **Stolperstein:** Die PIM-Rolle lief um 18:17 ab, bevor D fertig war.
+  D rechnete trotzdem zu Ende und wurde nach neuer Aktivierung um 22:09
+  heruntergeladen.
+
+**Lokale Prüfung des Siegers** (B nach 1000 Partien,
+`runs/azure/crimson_mango_721vp6c5rc/artifacts/outputs/run/snapshots/ep1000.npz`),
+gespielt wie v6 mit 2 Halbzügen, Deckel und Wiederholungsregel:
+
+| Messung | v6 | B nach 1000 Partien |
+|---|---|---|
+| direkt gegen v6, 400 Partien | 50 % | **76.0 %** |
+| gegen Stockfish 1320, dieselben 400 Partien | 42.1 % | **57.5 %** |
+| Taktik-Test (150 Stellungen) | 72.7 % | **77.3 %** |
+
+v6 holte auf den ersten 200 Eröffnungen 48.0 %, auf allen 400 nur 42.1 %:
+Die zweiten 200 sind schwerer. Verglichen wird darum immer auf denselben
+Eröffnungen. B ist in allen drei Messungen klar besser und damit der
+Kandidat für v8. Eingetragen als v8 (`models/full_v8.npz`). Im Prüfstand
+erster Platz: Teststellungen 45/50 (v6 41), Turnier 54.5/60 (v6 40.0),
+Genauigkeit 91.7 (v6 88.2).
+
 ## Kosten
 
 Der Preis hängt kaum von der VM-Grösse ab. Bezahlt werden Kernstunden, und

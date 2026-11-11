@@ -59,7 +59,27 @@ LAEUFE: dict[str, dict[str, int | str | float | None]] = {
         "out": "outputs/full_v7b_azure.npz",
         "timeout_hours": None,
     },
+    # Runde 1 des grossen Trainings (TRAINING_AZURE.md): vier Varianten
+    # gleichzeitig, jede misst ihre Zwischenstände danach selbst gegen v6.
+    "r1a": {  # Lernrate kleiner
+        "episodes": 100, "search_depth": 4, "max_plies": 400, "snapshot_every": 25,
+        "lr": "1e-4", "out": "outputs/netz.npz", "timeout_hours": 3, "messen": True,
+    },
+    "r1b": {  # Training so tief wie das Spiel
+        "episodes": 1000, "search_depth": 2, "max_plies": 400, "snapshot_every": 250,
+        "lr": "5e-4", "out": "outputs/netz.npz", "timeout_hours": 1, "messen": True,
+    },
+    "r1c": {  # beides
+        "episodes": 1000, "search_depth": 2, "max_plies": 400, "snapshot_every": 250,
+        "lr": "1e-4", "out": "outputs/netz.npz", "timeout_hours": 1, "messen": True,
+    },
+    "r1d": {  # altes Rezept, doppelt so lang, zum Vergleich
+        "episodes": 100, "search_depth": 4, "max_plies": 400, "snapshot_every": 25,
+        "lr": "5e-4", "seed": 3, "out": "outputs/netz.npz", "timeout_hours": 3, "messen": True,
+    },
 }
+# Messung wie bei v6: 2 Halbzüge, Deckel 0.9, Wiederholung = Remis, auf beiden Seiten.
+MESSPARTIEN = 400
 
 
 def trainingsbefehl(lauf: str, workers: int, seed: int = 0) -> str:
@@ -78,7 +98,7 @@ def trainingsbefehl(lauf: str, workers: int, seed: int = 0) -> str:
         f"--max-plies {profil['max_plies']}",
         "--eps-start 0.1",
         "--eps-end 0.05",
-        "--lr 5e-4",
+        f"--lr {profil.get('lr', '5e-4')}",
         "--eval-every 0",
         f"--snapshot-every {profil['snapshot_every']}",
         "--log-every 1",
@@ -86,9 +106,23 @@ def trainingsbefehl(lauf: str, workers: int, seed: int = 0) -> str:
         f"--out {profil['out']}",
     ]
     # Seed 0 ist der Standard von train.py; so bleibt der Befehl gleich wie bei v7b.
+    seed = seed or int(profil.get("seed", 0))
     if seed:
         teile.append(f"--seed {seed}")
-    return " ".join(teile)
+    befehl = " ".join(teile)
+    if profil.get("messen"):
+        befehl += " && " + messbefehl(workers)
+    return befehl
+
+
+def messbefehl(workers: int) -> str:
+    """Jeden Zwischenstand gegen v6 messen; die Ergebnisse landen in outputs/messung.txt."""
+    duell = (
+        "python -m Code.rl.evaluate --task full --model $f --depth 2 --cap 0.9 --repetition-draw "
+        "--opponent models/full_v5.npz --opponent-depth 2 --opponent-cap 0.9 "
+        f"--opponent-repetition-draw --games {MESSPARTIEN} --max-plies 400 --workers {workers}"
+    )
+    return f"(for f in outputs/run/snapshots/*.npz; do {duell}; done) 2>&1 | tee outputs/messung.txt"
 
 
 def hoechstlaufzeit(lauf: str, kerne: int) -> int:
@@ -229,7 +263,7 @@ def cmd_holen(args: argparse.Namespace) -> None:
     ml_client(anmelden()).jobs.download(args.name, download_path=str(ziel), all=True)
     print("Heruntergeladene Dateien:")
     for datei in sorted(ziel.rglob("*")):
-        if datei.is_file() and datei.suffix in {".npz", ".csv", ".json"}:
+        if datei.is_file() and datei.suffix in {".npz", ".csv", ".json", ".txt"}:
             print(datei.relative_to(ziel))
 
 
@@ -250,7 +284,7 @@ def main() -> None:
     unter = parser.add_subparsers(dest="befehl", required=True)
 
     starten = unter.add_parser("starten", help="Trainingsauftrag starten")
-    starten.add_argument("--lauf", choices=["probe", "haupt"], required=True)
+    starten.add_argument("--lauf", choices=list(LAEUFE), required=True)
     starten.add_argument("--vm", default="Standard_DS3_v2")
     starten.add_argument("--kerne", type=int, default=None)
     starten.add_argument("--workers", type=int, default=None)

@@ -231,6 +231,10 @@ Erst beides zusammen legt fest, wie eine Version spielt.
 | v4 | `full_v3.npz` | **2 Halbzüge** + Ruhesuche | was die Suche **allein** bringt, ohne neues Training |
 | v5 | `full_v5.npz` | **2 Halbzüge** + Ruhesuche | was **Lernen mit Suche** (TD-Leaf) bringt: Netz von v3, 200 Partien mit 4 Halbzügen weitertrainiert |
 | v6 | `full_v5.npz` | 2 Halbzüge + Ruhesuche, **korrigierte Suche** | was zwei Fehlerkorrekturen allein bringen: Matt gewinnt immer, Wiederholung gilt als Remis (siehe [v6](#matt-und-wiederholung-v6)) |
+| v8 | `full_v8.npz` | 2 Halbzüge + Ruhesuche, korrigierte Suche | was **Training so tief wie das Spiel** bringt: Netz von v6, auf Azure ML 1000 Partien mit 2 Halbzügen weitertrainiert (siehe [v8](#training-so-tief-wie-das-spiel-v8)) |
+
+Eine Version v7 gibt es nicht: Der Name gehört zu den Versuchen, die schwächer
+waren als v6 (siehe [v7 und v7b](#v7-und-v7b-weitertrainieren-macht-v6-nicht-besser)).
 
 Ab v6 gehören auch die **Korrekturen der Suche** zur Version (Felder `cap` und
 `repetition_draw` im Manifest). Fehlen sie, rechnet die Suche bitgenau wie bei
@@ -254,10 +258,12 @@ python -m Code.rl.registry --register v5 --file full_v5.npz --episodes 3000 \
 `--keep-active` trägt nur ein, ohne umzuschalten — aktiviert wird erst, wenn
 die Messung zeigt, dass die neue Version besser spielt.
 
-**Aktiv ist seit dem 27. Oktober 2026 v6.** Es schlägt v5 direkt (55
-Punkteprozent) und holt gegen Stockfish 48 statt 39 Punkteprozent (siehe
-[Matt und Wiederholung](#matt-und-wiederholung-v6)). Davor war vom 15. Oktober
-an v5 aktiv. v1 bis v5 bleiben über den Versionswähler erreichbar.
+**Aktiv ist seit dem 11. November 2026 v8.** Es schlägt v6 direkt (79
+Punkteprozent), holt gegen Stockfish 55 statt 48 Punkteprozent und führt im
+Prüfstand in allen drei Teilen (siehe
+[Training so tief wie das Spiel](#training-so-tief-wie-das-spiel-v8)). Davor
+war vom 27. Oktober an v6 aktiv, vom 15. Oktober an v5. Alle älteren Versionen
+bleiben über den Versionswähler erreichbar.
 
 Die Endspielmodelle sind bewusst **nicht** versioniert. Sie lösen eine feste
 Aufgabe und ändern sich nicht mehr; bei genau drei Figuren antworten immer sie,
@@ -959,7 +965,8 @@ Halbzüge), weil weniger zufällige Patzer sofort bestraft werden.
 **Kurz: v7 spielt klar schwächer als v6. Das Rezept von v7b ergab lokal ein
 schwächeres Netz, in drei Wiederholungen auf Azure ML ein etwa gleich starkes
 (siehe [Gegenprobe auf Azure ML](#gegenprobe-auf-azure-ml)). Besser als v6 wird
-keines, deshalb bleibt v6 aktiv.** Die Netze sind nicht im Register
+keines.** Was stattdessen half, zeigt [v8](#training-so-tief-wie-das-spiel-v8):
+Training mit 2 statt 4 Halbzügen. Die Netze von v7 und v7b sind nicht im Register
 eingetragen. Der Abschnitt hält fest, was versucht wurde und warum es nicht
 aufging.
 
@@ -1194,6 +1201,8 @@ aussagekräftig; Knotenlimits allein wirken nicht.
 | **v3** | 3 000 | **512 Neuronen, 397 k Parameter** | **400 Halbzüge** | 134 min |
 | v4 | – | Netz von v3, rechnet 2 Halbzüge voraus | – | – |
 | **v5** | 200 | 512 Neuronen, TD-Leaf mit 4 Halbzügen | 400 Halbzüge | 5.1 h auf 12 Kernen |
+| v6 | – | Netz von v5, korrigierte Suche | – | – |
+| **v8** | 1 000 | Netz von v6, TD-Leaf mit **2 Halbzügen** | 400 Halbzüge | 15 min auf 16 Kernen (Azure ML) |
 
 Zwei Änderungen machten v3 aus. Das Netz wurde per **Net2Net** verbreitert, also
 funktionserhaltend: v3 startete exakt auf v2-Niveau statt bei null, die Abweichung
@@ -1363,9 +1372,68 @@ Figur hängen gelassen. Mit 3 statt 2 Halbzügen holte v5 samt Wiederholungsrege
 gegen Stockfish Stufe 0 73 statt 48 Punkteprozent, rechnet aber rund 14-mal so
 lange. Für render.com (0.1 CPU) ist das zu viel.
 
+### Training so tief wie das Spiel: v8
+
+v8 ist das Netz von v6 (also von v5), auf Azure ML mit TD-Leaf weitertrainiert —
+diesmal mit **2 Halbzügen Vorausschau im Training**, genau so tief, wie die
+Engine spielt. Sonst wie bei v5: Lernrate `5e-4`, epsilon 0.1 bis 0.05, dazu die
+Wiederholungsregel im Training. 1000 Partien in 15 Minuten auf 16 Kernen.
+Gespielt wird wie v6, mit 2 Halbzügen, Deckel und Wiederholungsregel; jeder
+Unterschied kommt also aus dem Netz.
+
+Entstanden ist v8 in einer Ausscheidung. Vier Varianten liefen gleichzeitig auf
+je einem Azure-Rechner, und jede mass ihre vier Zwischenstände mit 400 Partien
+gegen v6 (Ablauf, Kosten und Startskript in
+[`azure_ml/TRAINING_AZURE.md`](azure_ml/TRAINING_AZURE.md)):
+
+| Variante | Zwischenstände gegen v6, Punkteprozent |
+|---|---|
+| 4 Halbzüge, Lernrate `1e-4`, 100 Partien | 50.2, 49.0, 43.6, 45.1 |
+| **2 Halbzüge, Lernrate `5e-4`, 1000 Partien** | 63.9, 60.4, 51.6, **76.0** (= v8) |
+| 2 Halbzüge, Lernrate `1e-4`, 1000 Partien | 54.1, 53.9, 64.0, 56.4 |
+| 4 Halbzüge, Lernrate `5e-4`, 100 Partien (Rezept von v5) | 53.2, 56.2, 51.6, 53.5 |
+
+| Messung | v6 | **v8** |
+|---|---|---|
+| gegen Stockfish (Elo 1320), 200 Partien (Protokoll wie oben) | 48.0 Punkteprozent | **55.0 Punkteprozent** |
+| gegen Stockfish (Elo 1320), 400 Partien | 42.1 Punkteprozent | **57.5 Punkteprozent** |
+| direkt gegeneinander, 200 Partien | 21.0 Punkteprozent | **79.0 Punkteprozent** |
+| Taktik-Test | 72.7 % gelöst | **77.3 % gelöst** |
+| Prüfstand: Teststellungen | 41 von 50 | **45 von 50** |
+| Prüfstand: Turnier gegen alle Versionen | 40.0 von 60 | **54.5 von 60** |
+| Prüfstand: Genauigkeit laut Stockfish | 88.2 | **91.7** |
+
+Gegen Stockfish gewinnt die Engine damit erstmals mehr, als sie verliert: 49.5
+Prozent Siege, 11 Prozent Remis, 39.5 Prozent Niederlagen. Die 400 Partien
+enthalten die 200 aus dem Protokoll und 200 weitere Eröffnungen, die schwerer
+sind; verglichen wird darum immer auf denselben Eröffnungen.
+
+- **Warum es diesmal wirkt.** Beim Rezept von v5 rechnet das Training 4
+  Halbzüge voraus, die Engine spielt mit 2. Vom schon trainierten Netz aus
+  führte das nicht weiter (v7, v7b und die gleiche Variante oben). Mit 2
+  Halbzügen lernt das Netz genau die Stellungen zu bewerten, bei denen die Suche
+  im Spiel ankommt — derselbe Gedanke wie bei TD-Leaf selbst. Und eine Partie
+  kostet rund 30-mal weniger Rechenzeit: Auf demselben Rechner haben in 15
+  Minuten 1000 Partien Platz statt rund 30.
+- **Zur Frage aus der Diskussion mit dem Dozenten** (siehe
+  [v5](#lernen-mit-vorausrechnen-v5)): Für das Weitertrainieren eines schon
+  guten Netzes gewinnen viele Partien mit flacher Suche klar gegen wenige mit
+  tiefer.
+- **Auswahl mit Vorbehalt.** v8 ist der beste von 16 Zwischenständen im
+  direkten Vergleich mit v6; dieser Wert kann darum etwas zu günstig sein (siehe
+  v5). Die Messungen gegen Stockfish und der Taktik-Test flossen nicht in die
+  Auswahl ein und zeigen unabhängig denselben Vorsprung.
+- **Die Zwischenstände schwanken stark**, im selben Lauf von 51.6 bis 76.0
+  Punkteprozent. Ein nächster Lauf sollte nur übernehmen, was sich in mehreren
+  Messungen bestätigt.
+
+```bash
+python azure_ml/training/starte_training.py starten --lauf r1b --vm Standard_F16s_v2
+```
+
 ## Grenzen und nächste Schritte
 
-- Gegen Stockfish (Elo 1320) holt v6 48 Punkteprozent und verliert noch 45
+- Gegen Stockfish (Elo 1320) holt v8 55 Punkteprozent und verliert noch 39.5
   Prozent der Partien. Für ein Netz mit 397 000 Parametern und zwei Halbzügen
   Vorausschau ist das zu erwarten und wird hier bewusst so ausgewiesen.
 - Die meisten verbliebenen Fehler sind Drohungen, die erst nach drei oder mehr
@@ -1375,13 +1443,16 @@ lange. Für render.com (0.1 CPU) ist das zu viel.
 - Weitertrainieren von v5 mit demselben Rezept macht das Netz nicht besser:
   mit Deckel im Training klar schwächer, ohne Deckel je nach Lauf schwächer
   oder gleich stark (siehe [v7 und v7b](#v7-und-v7b-weitertrainieren-macht-v6-nicht-besser)).
-  Die stärkste Version ist deshalb weiterhin v6, ein Netz von v5 mit
-  korrigierter Suche.
+  Weiter kam erst das Training mit 2 Halbzügen, so tief wie das Spiel (v8).
 - Die Stärke von v5 hängt an der Suche: Mit nur einem Halbzug spielt das Netz
   nicht besser als v3 (siehe [v5](#lernen-mit-vorausrechnen-v5)). Auf render.com
-  ist die Tiefe auf 2 begrenzt; trainiert wurde mit 4.
+  ist die Tiefe auf 2 begrenzt; v5 wurde mit 4 trainiert, v8 mit 2.
 - Der Vergleich «wenige Partien, tiefe Suche» gegen «viele Partien, flache
-  Suche» ist nur zur Hälfte gerechnet (Variante C, nicht A).
+  Suche» ist nur für das Weitertrainieren gerechnet (v8). Ob ein untrainiertes
+  Netz wie v3 ebenfalls mehr von flacher Suche hätte, ist offen.
+- v8 ist der beste von 16 Zwischenständen; die Stände schwanken stark. Ein
+  nächster Lauf vom Netz von v8 aus ist der naheliegende Schritt, am besten
+  wieder mit mehreren Varianten gleichzeitig.
 - Die Ruhesuche darf auch im Schach stehen bleiben. Ein Matt genau am Horizont
   kann ihr dadurch entgehen.
 - Die Material-Heuristik kommt nur noch zum Zug, wenn gar kein Modell zuständig
