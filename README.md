@@ -232,6 +232,7 @@ Erst beides zusammen legt fest, wie eine Version spielt.
 | v5 | `full_v5.npz` | **2 Halbzüge** + Ruhesuche | was **Lernen mit Suche** (TD-Leaf) bringt: Netz von v3, 200 Partien mit 4 Halbzügen weitertrainiert |
 | v6 | `full_v5.npz` | 2 Halbzüge + Ruhesuche, **korrigierte Suche** | was zwei Fehlerkorrekturen allein bringen: Matt gewinnt immer, Wiederholung gilt als Remis (siehe [v6](#matt-und-wiederholung-v6)) |
 | v8 | `full_v8.npz` | 2 Halbzüge + Ruhesuche, korrigierte Suche | was **Training so tief wie das Spiel** bringt: Netz von v6, auf Azure ML 1000 Partien mit 2 Halbzügen weitertrainiert (siehe [v8](#training-so-tief-wie-das-spiel-v8)) |
+| v9 | `full_v9.npz` | 2 Halbzüge + Ruhesuche, korrigierte Suche | was **längeres Training mit Ausscheidung** bringt: Netz von v8, auf Azure ML 3000 weitere Partien, Sieger aus sechs Varianten, auf neuen Eröffnungen nachgemessen (siehe [v9](#weitertrainieren-ab-v8-v9)) |
 
 Eine Version v7 gibt es nicht: Der Name gehört zu den Versuchen, die schwächer
 waren als v6 (siehe [v7 und v7b](#v7-und-v7b-weitertrainieren-macht-v6-nicht-besser)).
@@ -258,12 +259,13 @@ python -m Code.rl.registry --register v5 --file full_v5.npz --episodes 3000 \
 `--keep-active` trägt nur ein, ohne umzuschalten — aktiviert wird erst, wenn
 die Messung zeigt, dass die neue Version besser spielt.
 
-**Aktiv ist seit dem 11. November 2026 v8.** Es schlägt v6 direkt (79
-Punkteprozent), holt gegen Stockfish 55 statt 48 Punkteprozent und führt im
-Prüfstand in allen drei Teilen (siehe
-[Training so tief wie das Spiel](#training-so-tief-wie-das-spiel-v8)). Davor
-war vom 27. Oktober an v6 aktiv, vom 15. Oktober an v5. Alle älteren Versionen
-bleiben über den Versionswähler erreichbar.
+**Aktiv ist seit dem 16. November 2026 v9.** Es schlägt v8 direkt (66
+Punkteprozent, auch auf 400 neuen Eröffnungen), holt gegen Stockfish 68 statt
+55 Punkteprozent und führt im Prüfstand in allen drei Teilen (siehe
+[v9](#weitertrainieren-ab-v8-v9)). Davor war vom 11. November an v8 aktiv
+(siehe [Training so tief wie das Spiel](#training-so-tief-wie-das-spiel-v8)),
+vom 27. Oktober an v6, vom 15. Oktober an v5. Alle älteren Versionen bleiben
+über den Versionswähler erreichbar.
 
 Die Endspielmodelle sind bewusst **nicht** versioniert. Sie lösen eine feste
 Aufgabe und ändern sich nicht mehr; bei genau drei Figuren antworten immer sie,
@@ -1203,6 +1205,7 @@ aussagekräftig; Knotenlimits allein wirken nicht.
 | **v5** | 200 | 512 Neuronen, TD-Leaf mit 4 Halbzügen | 400 Halbzüge | 5.1 h auf 12 Kernen |
 | v6 | – | Netz von v5, korrigierte Suche | – | – |
 | **v8** | 1 000 | Netz von v6, TD-Leaf mit **2 Halbzügen** | 400 Halbzüge | 15 min auf 16 Kernen (Azure ML) |
+| v9 | 3 000 | Netz von v8, TD-Leaf mit 2 Halbzügen | 400 Halbzüge | 48 min auf 16 Kernen (Azure ML) |
 
 Zwei Änderungen machten v3 aus. Das Netz wurde per **Net2Net** verbreitert, also
 funktionserhaltend: v3 startete exakt auf v2-Niveau statt bei null, die Abweichung
@@ -1431,9 +1434,66 @@ sind; verglichen wird darum immer auf denselben Eröffnungen.
 python azure_ml/training/starte_training.py starten --lauf r1b --vm Standard_F16s_v2
 ```
 
+### Weitertrainieren ab v8: v9
+
+v9 ist das Netz von v8, auf Azure ML mit dem Rezept von v8 um 3000 Partien
+weitertrainiert (Seed 3, 48 Minuten auf 16 Kernen). Gespielt wird wie bei v8;
+jeder Unterschied kommt also wieder aus dem Netz.
+
+Auch v9 stammt aus einer Ausscheidung, diesmal mit sechs Varianten
+gleichzeitig. Jede legte alle 500 Partien einen Zwischenstand ab und mass ihn
+mit 400 Partien gegen v8. Runde 2 kostete rund 5.80 CHF (Einzelheiten in
+[`azure_ml/TRAINING_AZURE.md`](azure_ml/TRAINING_AZURE.md)):
+
+| Variante (Start: Netz von v8) | Zwischenstände gegen v8, Punkteprozent |
+|---|---|
+| Rezept von v8, Seed 1 | 56.4, 53.1, 47.4, 54.4, 59.7, 52.6 |
+| Rezept von v8, Seed 2 | 45.5, 46.0, 62.1, 45.8, 52.5, 65.5 |
+| **Rezept von v8, Seed 3** | 61.2, 56.6, 42.5, 48.6, 43.6, **66.0** (= v9) |
+| Lernrate `2.5e-4` | 62.4, 51.3, 56.8, 51.7, 57.5, 67.6 |
+| Deckel 0.9 auch im Training | 21.4, 23.1, 25.2, 37.8, 38.1, 42.5 |
+| mehr Erkundung (epsilon ab 0.2) | 50.5, 55.0, 47.4, 61.2, 36.2, 54.0 |
+
+Weil der beste von 36 Ständen schon durch Zufall zu gut aussehen kann, wurden
+die drei besten **auf 400 neuen Eröffnungen nachgemessen**
+(`python -m Code.rl.evaluate ... --first-game 400`). Alle drei hielten
+(65.0, 66.0 und 65.5 Punkteprozent). Den Ausschlag gab danach Stockfish, das
+in die Auswahl nicht eingeflossen war.
+
+| Messung | v8 | **v9** |
+|---|---|---|
+| gegen Stockfish (Elo 1320), 200 Partien (Protokoll wie oben) | 55.0 Punkteprozent | **68.0 Punkteprozent** |
+| gegen Stockfish (Elo 1320), 400 Partien | 57.5 Punkteprozent | **70.8 Punkteprozent** |
+| direkt gegeneinander, 400 Partien | 34.0 Punkteprozent | **66.0 Punkteprozent** |
+| direkt gegeneinander, 400 neue Eröffnungen | 34.0 Punkteprozent | **66.0 Punkteprozent** |
+| Taktik-Test | **77.3 % gelöst** | 76.7 % gelöst |
+| Prüfstand: Teststellungen | 45 von 50 | **46 von 50** |
+| Prüfstand: Turnier gegen alle Versionen | 58.5 von 70 | **61.0 von 70** |
+| Prüfstand: Genauigkeit laut Stockfish | 91.5 | **91.9** |
+
+Gegen Stockfish gewinnt v9 60.5 Prozent der Partien, 15 Prozent enden remis,
+24.5 Prozent gehen verloren. Die Prüfstand-Werte stammen aus dem Bericht mit
+v9; weil nun acht Versionen gegeneinander spielen, sind es 70 statt 60
+Turnierpunkte, und auch die Werte von v8 haben sich leicht verschoben.
+
+- **Weitertrainieren lohnt sich weiter.** Drei von vier Läufen ohne Deckel
+  schlagen v8 nach 3000 Partien mit 65 bis 68 Punkteprozent.
+- **Der Deckel gehört nur ins Spiel.** Mit Deckel auch im Training fällt das
+  Netz weit unter v8, wie schon bei v7.
+- **Taktik nicht besser.** Im Taktik-Test löst v9 eine Stellung weniger als
+  v8 (115 statt 116 von 150). Das liegt im Rahmen der Schwankung; die
+  Mehrstärke zeigt sich in ganzen Partien.
+- **Der Zufall bleibt gross.** Dasselbe Rezept endet je nach Seed bei 52.6,
+  65.5 oder 66.0 Punkteprozent. Wie in Runde 1 war oft der letzte Stand der
+  beste; ob das mehr als Zufall ist, zeigen diese Läufe nicht.
+
+```bash
+python azure_ml/training/starte_training.py starten --lauf r2c --vm Standard_F16s_v2
+```
+
 ## Grenzen und nächste Schritte
 
-- Gegen Stockfish (Elo 1320) holt v8 55 Punkteprozent und verliert noch 39.5
+- Gegen Stockfish (Elo 1320) holt v9 68 Punkteprozent und verliert noch 24.5
   Prozent der Partien. Für ein Netz mit 397 000 Parametern und zwei Halbzügen
   Vorausschau ist das zu erwarten und wird hier bewusst so ausgewiesen.
 - Die meisten verbliebenen Fehler sind Drohungen, die erst nach drei oder mehr
@@ -1443,16 +1503,17 @@ python azure_ml/training/starte_training.py starten --lauf r1b --vm Standard_F16
 - Weitertrainieren von v5 mit demselben Rezept macht das Netz nicht besser:
   mit Deckel im Training klar schwächer, ohne Deckel je nach Lauf schwächer
   oder gleich stark (siehe [v7 und v7b](#v7-und-v7b-weitertrainieren-macht-v6-nicht-besser)).
-  Weiter kam erst das Training mit 2 Halbzügen, so tief wie das Spiel (v8).
+  Weiter kam erst das Training mit 2 Halbzügen, so tief wie das Spiel (v8, v9).
 - Die Stärke von v5 hängt an der Suche: Mit nur einem Halbzug spielt das Netz
   nicht besser als v3 (siehe [v5](#lernen-mit-vorausrechnen-v5)). Auf render.com
-  ist die Tiefe auf 2 begrenzt; v5 wurde mit 4 trainiert, v8 mit 2.
+  ist die Tiefe auf 2 begrenzt; v5 wurde mit 4 trainiert, v8 und v9 mit 2.
 - Der Vergleich «wenige Partien, tiefe Suche» gegen «viele Partien, flache
-  Suche» ist nur für das Weitertrainieren gerechnet (v8). Ob ein untrainiertes
+  Suche» ist nur für das Weitertrainieren gerechnet (v8, v9). Ob ein untrainiertes
   Netz wie v3 ebenfalls mehr von flacher Suche hätte, ist offen.
-- v8 ist der beste von 16 Zwischenständen; die Stände schwanken stark. Ein
-  nächster Lauf vom Netz von v8 aus ist der naheliegende Schritt, am besten
-  wieder mit mehreren Varianten gleichzeitig.
+- Die Zwischenstände schwanken stark, auch zwischen Seeds desselben Rezepts.
+  v9 wurde deshalb auf neuen Eröffnungen nachgemessen. Ein nächster Lauf vom
+  Netz von v9 aus liegt nahe, am besten wieder mit mehreren Seeds und der
+  kleineren Lernrate, die in Runde 2 am stetigsten war.
 - Die Ruhesuche darf auch im Schach stehen bleiben. Ein Matt genau am Horizont
   kann ihr dadurch entgehen.
 - Die Material-Heuristik kommt nur noch zum Zug, wenn gar kein Modell zuständig

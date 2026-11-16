@@ -5,6 +5,7 @@ Details und Hintergründe stehen in azure_ml/TRAINING_AZURE.md.
 Die vier Befehle sind:
     python azure_ml/training/starte_training.py starten --lauf probe
     python azure_ml/training/starte_training.py starten --lauf haupt --vm Standard_F16s_v2
+    python azure_ml/training/starte_training.py starten --lauf r2a --vm Standard_F16s_v2  (Runde 2: r2a bis r2f)
     python azure_ml/training/starte_training.py status <auftragsname>
     python azure_ml/training/starte_training.py holen <auftragsname>
     python azure_ml/training/starte_training.py umgebung
@@ -78,6 +79,23 @@ LAEUFE: dict[str, dict[str, int | str | float | None]] = {
         "lr": "5e-4", "seed": 3, "out": "outputs/netz.npz", "timeout_hours": 3, "messen": True,
     },
 }
+# Runde 2 (TRAINING_AZURE.md): sechs Varianten gleichzeitig, Start beim Netz von
+# v8, Grundrezept wie v8 (2 Halbzüge, Lernrate 5e-4), je 3000 Partien. Jede misst
+# danach ihre sechs Zwischenstände selbst gegen v8. Notbremse 2.25 h je Auftrag,
+# damit sechs Aufträge zusammen sicher unter 10 CHF bleiben.
+RUNDE2: dict[str, int | str | float | None] = {
+    "episodes": 3000, "search_depth": 2, "max_plies": 400, "snapshot_every": 500,
+    "lr": "5e-4", "start": "full_v8.npz", "gegner": "full_v8.npz",
+    "out": "outputs/netz.npz", "timeout_hours": 2.25, "messen": True,
+}
+LAEUFE.update({
+    "r2a": {**RUNDE2, "seed": 1},  # Rezept von v8, drei Seeds zeigen die Streuung
+    "r2b": {**RUNDE2, "seed": 2},
+    "r2c": {**RUNDE2, "seed": 3},
+    "r2d": {**RUNDE2, "seed": 1, "lr": "2.5e-4"},  # halbe Lernrate für die Feinarbeit
+    "r2e": {**RUNDE2, "seed": 1, "cap": 0.9},  # Deckel 0.9 auch im Training, ganz wie im Spiel
+    "r2f": {**RUNDE2, "seed": 1, "eps_start": 0.2},  # mehr Erkundung am Anfang
+})
 # Messung wie bei v6: 2 Halbzüge, Deckel 0.9, Wiederholung = Remis, auf beiden Seiten.
 MESSPARTIEN = 400
 
@@ -90,13 +108,13 @@ def trainingsbefehl(lauf: str, workers: int, seed: int = 0) -> str:
         "&&",
         "python -m Code.rl.train",
         "--task full",
-        "--resume models/full_v5.npz",
+        f"--resume models/{profil.get('start', 'full_v5.npz')}",
         f"--search-depth {profil['search_depth']}",
         "--repetition-draw",
         f"--workers {workers}",
         f"--episodes {profil['episodes']}",
         f"--max-plies {profil['max_plies']}",
-        "--eps-start 0.1",
+        f"--eps-start {profil.get('eps_start', 0.1)}",
         "--eps-end 0.05",
         f"--lr {profil.get('lr', '5e-4')}",
         "--eval-every 0",
@@ -109,17 +127,22 @@ def trainingsbefehl(lauf: str, workers: int, seed: int = 0) -> str:
     seed = seed or int(profil.get("seed", 0))
     if seed:
         teile.append(f"--seed {seed}")
+    if profil.get("cap") is not None:
+        teile.append(f"--cap {profil['cap']}")
     befehl = " ".join(teile)
     if profil.get("messen"):
-        befehl += " && " + messbefehl(workers)
+        befehl += " && " + messbefehl(workers, str(profil.get("gegner", "full_v5.npz")))
     return befehl
 
 
-def messbefehl(workers: int) -> str:
-    """Jeden Zwischenstand gegen v6 messen; die Ergebnisse landen in outputs/messung.txt."""
+def messbefehl(workers: int, gegner: str = "full_v5.npz") -> str:
+    """Jeden Zwischenstand gegen das Gegnernetz messen (Runde 1: v6, Runde 2: v8).
+
+    Die Ergebnisse landen in outputs/messung.txt.
+    """
     duell = (
         "python -m Code.rl.evaluate --task full --model $f --depth 2 --cap 0.9 --repetition-draw "
-        "--opponent models/full_v5.npz --opponent-depth 2 --opponent-cap 0.9 "
+        f"--opponent models/{gegner} --opponent-depth 2 --opponent-cap 0.9 "
         f"--opponent-repetition-draw --games {MESSPARTIEN} --max-plies 400 --workers {workers}"
     )
     return f"(for f in outputs/run/snapshots/*.npz; do {duell}; done) 2>&1 | tee outputs/messung.txt"
@@ -133,10 +156,12 @@ def hoechstlaufzeit(lauf: str, kerne: int) -> int:
     return 3 * 3600 if kerne >= 16 else 6 * 3600
 
 
-def paket_vorbereiten() -> Path:
-    modell = PROJEKT / "models" / "full_v5.npz"
-    if not modell.is_file():
-        raise SystemExit(f"Startmodell nicht gefunden: {modell}")
+def paket_vorbereiten(lauf: str) -> Path:
+    profil = LAEUFE[lauf]
+    namen = sorted({str(profil.get("start", "full_v5.npz")), str(profil.get("gegner", "full_v5.npz"))})
+    for name in namen:
+        if not (PROJEKT / "models" / name).is_file():
+            raise SystemExit(f"Modell nicht gefunden: {PROJEKT / 'models' / name}")
 
     ziel = Path(tempfile.mkdtemp(prefix="schach-azure-"))
     shutil.copytree(
@@ -146,7 +171,8 @@ def paket_vorbereiten() -> Path:
     )
     modelle = ziel / "models"
     modelle.mkdir()
-    shutil.copy2(modell, modelle / "full_v5.npz")
+    for name in namen:
+        shutil.copy2(PROJEKT / "models" / name, modelle / name)
 
     groesse = sum(datei.stat().st_size for datei in ziel.rglob("*") if datei.is_file())
     print(f"Paketgrösse: {groesse / (1024 * 1024):.1f} MB")
@@ -202,6 +228,8 @@ def cmd_starten(args: argparse.Namespace) -> None:
     workers = args.workers or kerne
     befehl = trainingsbefehl(args.lauf, workers, args.seed)
     timeout = hoechstlaufzeit(args.lauf, kerne)
+    # Wirksamer Seed: aus --seed oder aus dem Profil, wie in trainingsbefehl().
+    args.seed = args.seed or int(LAEUFE[args.lauf].get("seed", 0))
 
     print(
         f"Lauf: {args.lauf}\n"
@@ -217,7 +245,7 @@ def cmd_starten(args: argparse.Namespace) -> None:
         print("Trockenlauf: nichts an Azure geschickt.")
         return
 
-    code_dir = paket_vorbereiten()
+    code_dir = paket_vorbereiten(args.lauf)
     try:
         from azure.ai.ml import command
 

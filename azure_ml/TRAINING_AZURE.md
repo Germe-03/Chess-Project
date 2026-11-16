@@ -261,6 +261,112 @@ Kandidat für v8. Eingetragen als v8 (`models/full_v8.npz`). Im Prüfstand
 erster Platz: Teststellungen 45/50 (v6 41), Turnier 54.5/60 (v6 40.0),
 Genauigkeit 91.7 (v6 88.2).
 
+### Runde 2: Plan (13.11.2026, Budget 10 CHF)
+
+Ziel: ein Netz, das v8 klar schlägt. Sechs Aufträge gleichzeitig, je eine
+F16s_v2, Start immer beim Netz von v8 (`models/full_v8.npz`), je 3000
+Partien mit Zwischenstand alle 500. Grundrezept wie v8: 2 Halbzüge,
+Lernrate `5e-4`, Wiederholung = Remis. Profile `r2a` bis `r2f` in
+`training/starte_training.py`:
+
+- **r2a, r2b, r2c:** Grundrezept mit Seed 1, 2 und 3. Prüft: Bringt
+  längeres Training ab v8 noch etwas, und wie stark streut es? In Runde 1
+  schwankten die Stände von B zwischen 51.6 und 76.0 %.
+- **r2d:** wie r2a, aber Lernrate `2.5e-4`. Prüft: Braucht die Feinarbeit
+  ab v8 kleinere Schritte?
+- **r2e:** wie r2a, aber Deckel 0.9 auch im Training. Prüft: Hilft es,
+  wenn das Training ganz genau so rechnet wie das Spiel?
+- **r2f:** wie r2a, aber am Anfang mehr Erkundung (Zufallszüge 20 statt
+  10 %). Prüft: Lernt das Netz mehr, wenn es mehr neue Stellungen sieht?
+
+r2d, r2e und r2f unterscheiden sich von r2a nur in einer Einstellung, so
+ist der Vergleich fair.
+
+**Messung:** Jeder Auftrag misst nach dem Training seine sechs Stände mit
+je 400 Partien gegen v8, wie in Runde 1 (2 Halbzüge, Deckel 0.9,
+Wiederholung = Remis auf beiden Seiten). Bei 36 Ständen liegt der beste
+schon durch Zufall einige Punkte zu hoch. Darum gilt neu:
+
+1. Kandidat ist ein Stand mit mindestens 55 % gegen v8.
+2. Die drei besten Kandidaten messe ich lokal noch einmal gegen v8, auf
+   400 neuen Eröffnungen (`python -m Code.rl.evaluate ... --first-game 400`).
+   Weiter kommt nur, wer dort auch mindestens 55 % holt.
+3. Der Beste davon muss lokal gegen Stockfish (dieselben 400 Eröffnungen
+   wie v8), im Taktik-Test und im Prüfstand besser sein als v8. Erst dann
+   wird er v9, aktiviert nur mit OK.
+
+**Zeit und Kosten:** In Runde 1 brauchten 1000 Partien 15 bis 17 Minuten
+und vier Messungen rund 35 Minuten. Pro Auftrag also etwa 50 Minuten
+Training, 55 Minuten Messung und 3 Minuten Anwerfen, zusammen rund 1 h 45.
+Sechs Aufträge zu 0.71 CHF pro Stunde kosten damit **rund 7.50 CHF**. Die
+Notbremse steht bei 2.25 h pro Auftrag, das ergibt **höchstens 9.60 CHF**.
+Bisher hat das Azure-Training rund 4.60 CHF gekostet.
+
+**Vor dem Start:** PIM-Rolle aktivieren (gilt 4 h, reicht für Lauf und
+Download). Gestartet wird mit:
+
+```
+for l in r2a r2b r2c r2d r2e r2f; do
+  python azure_ml/training/starte_training.py starten --lauf $l --vm Standard_F16s_v2
+done
+```
+
+**Offenes Risiko:** Ob Azure bei einem Abbruch durch die Notbremse die
+Ausgaben noch hochlädt, ist nicht geprüft. Ein Auftrag, der die Notbremse
+erreicht, verliert dann womöglich seine letzten Messungen.
+
+### Runde 2: Ergebnis (13.11.2026)
+
+Gestartet um 14:09, alle sechs liefen ab 14:11 bis 14:13. Je 400 Partien
+gegen v8 pro Zwischenstand, Punkte in %:
+
+| Lauf | Auftrag | 500 | 1000 | 1500 | 2000 | 2500 | 3000 | Dauer |
+|---|---|---|---|---|---|---|---|---|
+| r2a: Grundrezept, Seed 1 | `polite_piano_xk8ljv4j7c` | 56.4 | 53.1 | 47.4 | 54.4 | 59.7 | 52.6 | 86 min |
+| r2b: Grundrezept, Seed 2 | `silver_plate_xkb1brk7jj` | 45.5 | 46.0 | 62.1 | 45.8 | 52.5 | **65.5** | 71 min |
+| r2c: Grundrezept, Seed 3 | `upbeat_piano_wvy6ndsnqs` | 61.2 | 56.6 | 42.5 | 48.6 | 43.6 | **66.0** | 88 min |
+| r2d: Lernrate `2.5e-4` | `cool_octopus_s77zgtp152` | 62.4 | 51.3 | 56.8 | 51.7 | 57.5 | **67.6** | 70 min |
+| r2e: Deckel auch im Training | `lucid_camel_r36blzbv0n` | 21.4 | 23.1 | 25.2 | 37.8 | 38.1 | 42.5 | 85 min |
+| r2f: mehr Erkundung | `frosty_office_t0h3lrxsdz` | 50.5 | 55.0 | 47.4 | 61.2 | 36.2 | 54.0 | 87 min |
+
+- **Weitertrainieren ab v8 bringt noch etwas:** Drei Läufe schlagen v8
+  nach 3000 Partien mit 65 bis 68 %.
+- **Halbe Lernrate (r2d)** ist am stetigsten: kein Stand unter 51 %, am
+  Schluss 67.6 %.
+- **Deckel im Training (r2e) schadet deutlich:** alle Stände unter v8,
+  anfangs nur rund 22 %. Der Deckel gehört nur ins Spiel.
+- **Mehr Erkundung (r2f)** bringt nichts Klares (36 bis 61 %).
+- **Streuung:** Dasselbe Rezept endet je nach Seed bei 52.6, 65.5 oder
+  66.0 %. Auffällig ist, dass wie in Runde 1 oft der letzte Stand der beste
+  ist. Ob das Zufall ist, lässt sich mit diesen Läufen nicht sagen.
+- **Dauer und Kosten:** Training 36 bis 48 Minuten, Messung 25 bis 40
+  Minuten. Die sechs Rechner liefen zusammen 486 Minuten, also rund
+  8.1 Stunden oder **etwa 5.80 CHF**, weniger als die geschätzten 7.50.
+  Damit hat das Azure-Training insgesamt rund 10.40 CHF gekostet.
+
+**Lokale Nachmessung** der drei besten Stände (jeweils nach 3000 Partien),
+gespielt wie v8 mit 2 Halbzügen, Deckel und Wiederholungsregel:
+
+| Messung | v8 | r2d (`2.5e-4`) | r2c (Seed 3) | r2b (Seed 2) |
+|---|---|---|---|---|
+| gegen v8, Partien 0 bis 399 (Azure) | 50 | 67.6 | 66.0 | 65.5 |
+| gegen v8, neue Partien 400 bis 799 | 50 | 65.0 | **66.0** | 65.5 |
+| gegen Stockfish 1320, dieselben 400 Partien wie v8 | 57.5 | 65.4 | **70.8** | 66.0 |
+| Taktik-Test (150 Stellungen) | **77.3** (116) | 75.3 (113) | 76.7 (115) | 76.7 (115) |
+
+- Alle drei halten auf den neuen Eröffnungen, der Vorsprung auf v8 ist
+  also kein Zufall der Auswahl.
+- Gegen Stockfish legen alle drei klar zu, r2c am meisten (70.8 statt
+  57.5 %).
+- Im Taktik-Test liegen alle knapp unter v8, r2c um eine Stellung. Das ist
+  im Rahmen der Schwankung, aber kein Fortschritt.
+- **Kandidat für v9: r2c nach 3000 Partien**
+  (`runs/azure/upbeat_piano_wvy6ndsnqs/artifacts/outputs/run/snapshots/ep3000.npz`).
+  Am 14.11. eingetragen als v9 (`models/full_v9.npz`), noch nicht aktiv.
+  Gegen Stockfish auf den üblichen 200 Partien: 68.0 % (v8 55.0, v6 48.0).
+  Im Prüfstand erster Platz in allen drei Teilen: Teststellungen 46/50
+  (v8 45), Turnier 61.0/70 (v8 58.5), Genauigkeit 91.9 (v8 91.5).
+
 ## Kosten
 
 Der Preis hängt kaum von der VM-Grösse ab. Bezahlt werden Kernstunden, und

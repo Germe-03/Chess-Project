@@ -261,10 +261,14 @@ def print_results(task: str, results: dict, games: int, seeds: int) -> None:
 def duel(
     model: str, depth: int, opponent: tuple, games: int, max_plies: int, workers: int,
     gamma: float = 0.99, openings: bool = True, options: SearchOptions = CLASSIC,
+    first_game: int = 0,
 ) -> dict:
     """
     Modell gegen einen Gegner, siehe Duell-Modus oben. Punkte zählen ein
-    Remis als halben Sieg, wie in den bisherigen Tabellen.
+    Remis als halben Sieg, wie in den bisherigen Tabellen. Mit first_game
+    (gerade Zahl, z.B. 400) laufen die Partien ab dieser Nummer, also auf
+    anderen Eröffnungen; so lässt sich ein ausgewählter Stand unabhängig
+    nachmessen.
     """
     from .parallel import Runner, eval_game_task
 
@@ -275,7 +279,7 @@ def duel(
             (shared, {"game": game, "seed": 1000 + game, "gamma": gamma, "depth": depth,
                       "opponent": opponent, "max_plies": max_plies, "options": options,
                       "opening": 5000 + game // 2 if openings else None})
-            for game in range(games)
+            for game in range(first_game, first_game + games)
         ]
         stats = summarize(runner.map(eval_game_task, jobs))
     stats["points"] = stats["win_rate"] + 0.5 * stats["draw_rate"]
@@ -340,6 +344,8 @@ def main() -> None:
     parser.add_argument("--opponent-repetition-draw", action="store_true",
                         help="Wie --repetition-draw, für den Gegner, wenn er ein Modell ist")
     parser.add_argument("--workers", type=int, default=1, help="Partien, die gleichzeitig laufen")
+    parser.add_argument("--first-game", type=int, default=0,
+                        help="Duell ab dieser Partienummer (gerade Zahl), also auf anderen Eröffnungen")
     parser.add_argument("--tactics", default=None,
                         help="Taktik-Test: Anteil der Stellungen aus dieser Datei, in denen das Modell "
                              "den klar besten Zug findet (z. B. tests/fixtures/taktikstellungen.json)")
@@ -370,9 +376,11 @@ def main() -> None:
             spec = ("modell", args.opponent, args.opponent_depth, opponent_options)
             label = f"{args.opponent}, Tiefe {args.opponent_depth}{_options_label(opponent_options)}"
         stats = duel(args.model, args.depth, spec, args.games, args.max_plies, args.workers,
-                     args.gamma, openings=not args.from_start, options=options)
+                     args.gamma, openings=not args.from_start, options=options,
+                     first_game=args.first_game)
+        ab = f" ab Nr. {args.first_game}" if args.first_game else ""
         print(f"\n{args.model}, Tiefe {args.depth}{_options_label(options)}  gegen  {label}  "
-              f"({args.games} Partien)")
+              f"({args.games} Partien{ab})")
         print(f"  Sieg {stats['win_rate']:6.1%}   Remis {stats['draw_rate']:6.1%}   "
               f"Niederlage {stats['loss_rate']:6.1%}   Punkte {stats['points']:6.1%}")
         return
