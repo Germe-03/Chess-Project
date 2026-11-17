@@ -29,11 +29,18 @@ Aus demselben Grund gehören die Korrekturen der Suche ab v6 zur Version
 (Felder "cap" und "repetition_draw", siehe search.SearchOptions). Fehlen sie,
 rechnet die Suche wie bei v1 bis v5.
 
+Ab v10 kann eine Version zusätzlich Schachtheorie bekommen (Feld "theorie" mit
+"eroeffnung" und "endspiel", siehe theorie.py): Steht die Stellung im
+Eröffnungsbuch oder hat sie höchstens fünf Steine, spielt sie den Theoriezug,
+sonst rechnet sie wie ihr Netz. Die Theorie-Dateien liegen nur lokal; wo sie
+fehlen (render.com), blendet sichtbare_versionen() solche Versionen aus.
+
 Aufruf:
     python -m Code.rl.registry                  Versionen anzeigen
     python -m Code.rl.registry --activate v1    aktive Version umschalten
     python -m Code.rl.registry --register v5 --file full_v5.npz --depth 2 ...
     python -m Code.rl.registry --register v6 --file full_v5.npz --depth 2 --cap 0.9 --repetition-draw ...
+    python -m Code.rl.registry --register v10 --file full_v9.npz ... --eroeffnung --keep-active
 """
 from __future__ import annotations
 
@@ -43,6 +50,7 @@ from datetime import date
 from pathlib import Path
 
 from .search import SearchOptions
+from .theorie import KEINE, TheorieOptionen, verfuegbar
 from .valuenet import ValueNet
 
 MODELS_DIR = Path(__file__).resolve().parents[2] / "models"
@@ -95,7 +103,20 @@ def search_depth(name: str | None = None) -> int:
 def search_options(name: str | None = None) -> SearchOptions:
     """Korrekturen der Suche, die zu einer Version gehören; ohne Namen die der aktiven."""
     entry = find(name or active_name() or "") or {}
-    return SearchOptions(cap=entry.get("cap"), repetition_draw=bool(entry.get("repetition_draw", False)))
+    return SearchOptions(cap=entry.get("cap"), repetition_draw=bool(entry.get("repetition_draw", False)),
+                         schnell=bool(entry.get("schnelle_suche", False)))
+
+
+def theorie_optionen(name: str | None = None) -> TheorieOptionen:
+    """Schachtheorie einer Version (ab v10); ohne Namen die der aktiven. Ohne Feld: keine."""
+    entry = find(name or active_name() or "") or {}
+    theorie = entry.get("theorie") or {}
+    return TheorieOptionen(eroeffnung=bool(theorie.get("eroeffnung")), endspiel=bool(theorie.get("endspiel")))
+
+
+def sichtbare_versionen() -> list[dict]:
+    """Versionen, die hier spielbar sind. Versionen mit Theorie nur, wenn deren Dateien vorhanden sind."""
+    return [v for v in versions() if verfuegbar(theorie_optionen(v["name"]))]
 
 
 def load_model(name: str | None = None) -> ValueNet | None:
@@ -131,6 +152,7 @@ def register(
     depth: int = 1,
     activate: bool = True,
     options: SearchOptions = SearchOptions(),
+    theorie: TheorieOptionen = KEINE,
 ) -> dict:
     """Neue Version eintragen. Bestehende Einträge werden nicht überschrieben."""
     if find(name) is not None:
@@ -149,6 +171,10 @@ def register(
         entry["cap"] = options.cap
     if options.repetition_draw:
         entry["repetition_draw"] = True
+    if options.schnell:
+        entry["schnelle_suche"] = True
+    if theorie:
+        entry["theorie"] = {"eroeffnung": theorie.eroeffnung, "endspiel": theorie.endspiel}
     entry.update({"notes": notes, "results": {}})
     data.setdefault("versions", []).append(entry)
     if activate:
@@ -172,6 +198,12 @@ def main() -> None:
                         help="Gesamtbewertung unter diesen Wert stauchen, damit Matt immer gewinnt (ab v6: 0.9)")
     parser.add_argument("--repetition-draw", action="store_true",
                         help="Stellungswiederholung in der Suche als Remis werten (ab v6)")
+    parser.add_argument("--schnell", action="store_true",
+                        help="Schnelle Suche aus suche2.py verwenden (ab v11, für mehr Tiefe)")
+    parser.add_argument("--eroeffnung", action="store_true",
+                        help="Schachtheorie: Eröffnungsbuch theorie/buch.bin verwenden (ab v10)")
+    parser.add_argument("--endspiel", action="store_true",
+                        help="Schachtheorie: Endspieltabellen theorie/syzygy verwenden (ab v10)")
     args = parser.parse_args()
 
     if args.register:
@@ -179,7 +211,8 @@ def main() -> None:
             parser.error("--register braucht --file")
         register(args.register, args.file, args.episodes, args.parent, args.notes,
                  depth=args.depth, activate=not args.keep_active,
-                 options=SearchOptions(cap=args.cap, repetition_draw=args.repetition_draw))
+                 options=SearchOptions(cap=args.cap, repetition_draw=args.repetition_draw, schnell=args.schnell),
+                 theorie=TheorieOptionen(eroeffnung=args.eroeffnung, endspiel=args.endspiel))
         print(f"Version {args.register} eingetragen"
               + (".\n" if args.keep_active else " und aktiviert.\n"))
     if args.activate:
@@ -198,6 +231,10 @@ def main() -> None:
     korrigiert = [v["name"] for v in versions() if "cap" in v or v.get("repetition_draw")]
     if korrigiert:
         print(f"Mit korrigierter Suche (Deckel, Wiederholung = Remis): {', '.join(korrigiert)}")
+    mit_theorie = [f"{v['name']} ({theorie_optionen(v['name']).kennung()})" for v in versions()
+                   if theorie_optionen(v["name"])]
+    if mit_theorie:
+        print(f"Mit Schachtheorie (buch = Eröffnungsbuch, tb = Endspieltabellen): {', '.join(mit_theorie)}")
 
 
 if __name__ == "__main__":

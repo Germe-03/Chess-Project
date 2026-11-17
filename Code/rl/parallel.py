@@ -45,6 +45,7 @@ import chess
 import numpy as np
 
 from .search import CLASSIC
+from .theorie import KEINE
 from .valuenet import ValueNet
 
 _THREAD_VARIABLES = ("OPENBLAS_NUM_THREADS", "OMP_NUM_THREADS", "MKL_NUM_THREADS")
@@ -166,9 +167,19 @@ def episode_task(shared, params: dict):
     if params["depth"] > 1:
         from .tdleaf import play_episode_tdleaf
 
+        buch_anteil = params.get("buch_anteil", 0.0)
+        endspiel = params.get("endspiel", False)
+        extra = {}
+        if buch_anteil > 0 or endspiel:
+            from .theorie import TheorieOptionen, theorie_fuer
+
+            extra = {
+                "theorie": theorie_fuer(TheorieOptionen(eroeffnung=buch_anteil > 0, endspiel=endspiel)),
+                "buch_anteil": buch_anteil, "endspiel": endspiel,
+            }
         X, targets, result, plies = play_episode_tdleaf(
             net, rng, params["gamma"], params["epsilon"], params["max_plies"],
-            params["td_lambda"], params["depth"], options=params.get("options", CLASSIC),
+            params["td_lambda"], params["depth"], options=params.get("options", CLASSIC), **extra,
         )
     else:
         from .train import play_episode
@@ -186,7 +197,8 @@ def eval_game_task(shared, params: dict) -> str:
 
     net = _as_net(shared)
     rng = np.random.default_rng(params["seed"])
-    agent = make_policy("rl", rng, net, params["gamma"], params["depth"], params.get("options", CLASSIC))
+    agent = make_policy("rl", rng, net, params["gamma"], params["depth"], params.get("options", CLASSIC),
+                        params.get("theorie", KEINE))
     color = chess.WHITE if params["game"] % 2 == 0 else chess.BLACK
     start = None
     if params.get("opening") is not None:
@@ -200,8 +212,10 @@ def eval_game_task(shared, params: dict) -> str:
 def _opponent(spec: tuple, gamma: float):
     """
     Gegner aus einer Beschreibung, damit er sich an andere Prozesse schicken
-    lässt: ("material",), ("stockfish", Pfad, Tiefe, Elo) oder
-    ("modell", Datei, Tiefe), optional mit SearchOptions als viertem Eintrag.
+    lässt: ("material",), ("stockfish", Pfad, Tiefe, Elo[, Zeit pro Zug in
+    Sekunden[, neues_spiel (frischer Hash je Partie)]]) oder
+    ("modell", Datei, Tiefe), optional mit SearchOptions als viertem und
+    TheorieOptionen (ab v10) als fünftem Eintrag.
     Engines bleiben je Prozess offen und werden erst beim Prozessende
     geschlossen.
     """
@@ -223,14 +237,19 @@ def _opponent(spec: tuple, gamma: float):
             # hängen. Finalize läuft in einem Kindprozess vor diesem Warten;
             # im Hauptprozess schliesst Runner.close() die Engines.
             multiprocessing.util.Finalize(None, close_opponents, exitpriority=10)
-        _, path, depth, elo = spec
-        policy = _state["stack"].enter_context(stockfish_policy(path, depth=depth, elo=elo))
+        path, depth, elo = spec[1], spec[2], spec[3]
+        zeit = spec[4] if len(spec) > 4 else None
+        neues_spiel = bool(spec[5]) if len(spec) > 5 else False
+        policy = _state["stack"].enter_context(
+            stockfish_policy(path, depth=depth, elo=elo, zeit=zeit, neues_spiel=neues_spiel)
+        )
     elif kind == "modell":
         from .evaluate import make_policy
 
         path, depth = spec[1], spec[2]
         options = spec[3] if len(spec) > 3 else CLASSIC
-        policy = make_policy("rl", None, ValueNet.load(path), gamma, depth, options)
+        theorie = spec[4] if len(spec) > 4 else KEINE
+        policy = make_policy("rl", None, ValueNet.load(path), gamma, depth, options, theorie)
     else:
         raise ValueError(f"Unbekannter Gegner: {spec}")
     _state["opponents"][spec] = policy

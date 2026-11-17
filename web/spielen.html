@@ -303,7 +303,9 @@ async function sendeZug(uci){
     spiel.verlauf.push(d.fen);
     spiel.from = d.engine_uci ? d.engine_uci.slice(0,2) : null;
     spiel.to   = d.engine_uci ? d.engine_uci.slice(2,4) : null;
-    if(d.engine) $("#infoEngine").textContent = d.engine === "rl" ? `RL-Modell ${d.version}` : "Material-Heuristik";
+    if(d.engine) $("#infoEngine").textContent = d.engine === "rl" ? `RL-Modell ${d.version}`
+      : d.engine === "theorie" ? `Theoriezug (${d.version.endsWith("-buch") ? "Eröffnungsbuch" : "Endspieltabelle"})`
+      : "Material-Heuristik";
     $("#infoEval").textContent = bewertung(d.evaluation);
     if(d.engine_san){
       const t = d.depth || 1;

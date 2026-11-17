@@ -55,8 +55,30 @@ def find_stockfish(path: str | None = None) -> str | None:
         candidates += [str(found) for found in sorted(TOOLS_DIR.glob("stockfish*")) if found.is_file()]
     for candidate in candidates:
         if candidate and Path(candidate).exists():
-            return str(candidate)
+            return candidate
     return None
+
+
+class PartieErkennung:
+    """Erkennt, ob eine Zugliste eine neue Partie begonnen hat."""
+
+    def __init__(self) -> None:
+        self._zuege: list[chess.Move] | None = None
+
+    def ist_neu(self, zuege: list[chess.Move]) -> bool:
+        """
+        Gibt an, ob die Zugliste zu einer neuen Partie gehört.
+
+        Eine Partie ist neu beim ersten Aufruf, wenn die Zugliste nicht länger
+        als die zuletzt gemerkte ist oder wenn ihr bisheriger Verlauf abweicht.
+        """
+        ist_neu = (
+            self._zuege is None
+            or len(zuege) <= len(self._zuege)
+            or zuege[:len(self._zuege)] != self._zuege
+        )
+        self._zuege = list(zuege)
+        return ist_neu
 
 
 @contextmanager
@@ -66,9 +88,14 @@ def stockfish_policy(
     nodes: int | None = None,
     elo: int | None = None,
     skill: int | None = None,
+    zeit: float | None = None,
+    neues_spiel: bool = False,
 ):
     """
     Liefert eine Zugfunktion wie die anderen Strategien auch.
+
+    `zeit` begrenzt die Denkzeit pro Zug. Mit `neues_spiel` wird ein neuer
+    Engine-Spielkontext für jede erkannte Partie verwendet.
 
     Als Kontextmanager, damit der Engine-Prozess am Ende zuverlässig beendet
     wird — sonst bleiben bei einer Auswertung über mehrere Seeds mehrere
@@ -81,17 +108,29 @@ def stockfish_policy(
             "STOCKFISH_PATH setzen."
         )
 
-    engine = chess.engine.SimpleEngine.popen_uci(executable)
+    # Ohne Zeitgrenze für die Antwort: Schläft der Rechner während einer langen
+    # Messung, antwortet Stockfish erst nach dem Aufwachen. Mit der üblichen
+    # Grenze von 10 Sekunden brach dann die ganze Messung ab (17.11.2026).
+    engine = chess.engine.SimpleEngine.popen_uci(executable, timeout=None)
     try:
+        if neues_spiel or zeit is not None:
+            engine.configure({"Threads": 1, "Hash": 16})
         if elo is not None:
             engine.configure({"UCI_LimitStrength": True, "UCI_Elo": elo})
         if skill is not None:
             engine.configure({"Skill Level": skill})
-        limit = chess.engine.Limit(depth=depth, nodes=nodes)
+        limit = chess.engine.Limit(time=zeit, depth=depth, nodes=nodes)
+        partie_erkennung = PartieErkennung() if neues_spiel else None
+        game: object | None = None
 
         def policy(board: chess.Board) -> chess.Move | None:
+            nonlocal game
             if board.is_game_over():
                 return None
+            if partie_erkennung is not None:
+                if partie_erkennung.ist_neu(board.move_stack):
+                    game = object()
+                return engine.play(board, limit, game=game).move
             return engine.play(board, limit).move
 
         yield policy

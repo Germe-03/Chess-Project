@@ -63,6 +63,7 @@ from .features import FEATURE_SIZE, board_to_features
 from .positions import sample_start
 from .search import CLASSIC, QUIESCENCE_PLIES, SearchOptions, leaf_of, search
 from .shaping import potential_open
+from .theorie import Theorie
 from .valuenet import ValueNet
 
 
@@ -77,14 +78,22 @@ def play_episode_tdleaf(
     quiescence_plies: int = QUIESCENCE_PLIES,
     start: chess.Board | None = None,
     options: SearchOptions = CLASSIC,
+    theorie: Theorie | None = None,
+    buch_anteil: float = 0.0,
+    endspiel: bool = False,
 ):
     """
     Eine Self-Play-Partie mit Suche. Rückgabe wie train.play_episode:
     Merkmale der Blätter, Lernziele für V an diesen Blättern, Ausgang, Halbzüge.
 
     'start' ersetzt die Zufallseröffnung, etwa für Tests mit fester Stellung.
+
+    Schachtheorie (Runde 3): 'buch_anteil' ist der Anteil der Partien, die in
+    einer Stellung aus dem Eröffnungsbuch starten. Mit 'endspiel' endet die
+    Partie, sobald die Endspieltabellen die Stellung kennen (result "tabelle");
+    der Ausgang laut Tabelle ersetzt dann die Suche als exaktes Ziel.
     """
-    board = start.copy() if start is not None else sample_start("full", rng)
+    board = start.copy() if start is not None else sample_start("full", rng, buch_anteil=buch_anteil, theorie=theorie)
     search_values: list[float] = []          # W_t
     outcomes: list[float | None] = []        # Reward, falls der Zug die Partie beendet
     leaves: list[tuple[int, np.ndarray, float, float]] = []   # (t, Merkmale, Φ, Faktor)
@@ -114,6 +123,13 @@ def play_episode_tdleaf(
         if outcome is not None:
             result = "mate" if outcome == 1.0 else "draw"
             break
+        if endspiel and theorie is not None:
+            wert = theorie.endspiel_wert(board)
+            if wert is not None:
+                # wert gilt für die Seite, die jetzt am Zug ist; belohnt wird, wer gezogen hat.
+                outcomes[-1] = -wert
+                result = "tabelle"
+                break
 
     if not search_values:
         return np.zeros((0, FEATURE_SIZE), dtype=np.float32), np.zeros(0, dtype=np.float32), result, plies

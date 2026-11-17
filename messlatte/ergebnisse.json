@@ -1,0 +1,137 @@
+[
+ {
+  "version": "v9",
+  "tiefe": 2,
+  "datum": "2026-11-17T09:59",
+  "stockfish": "Stockfish 19",
+  "sf_zeit": 0.2,
+  "partien": 200,
+  "stufen": [
+   {
+    "stufe": 1400,
+    "sieg": 64,
+    "remis": 11,
+    "niederlage": 125,
+    "punkte": 69.5,
+    "leistung": 1291.0
+   },
+   {
+    "stufe": 1600,
+    "sieg": 13,
+    "remis": 3,
+    "niederlage": 184,
+    "punkte": 14.5,
+    "leistung": 1157.0
+   },
+   {
+    "stufe": 1800,
+    "sieg": 7,
+    "remis": 0,
+    "niederlage": 193,
+    "punkte": 7.0,
+    "leistung": 1224.0
+   },
+   {
+    "stufe": 2000,
+    "sieg": 2,
+    "remis": 1,
+    "niederlage": 197,
+    "punkte": 2.5,
+    "leistung": 1241.0
+   }
+  ],
+  "elo": 1250.0,
+  "fehler": 20.4,
+  "dauer_minuten": 24.7
+ },
+ {
+  "version": "v11",
+  "tiefe": 3,
+  "datum": "2026-11-17T16:47",
+  "stockfish": "Stockfish 19",
+  "sf_zeit": 0.2,
+  "partien": 200,
+  "stufen": [
+   {
+    "stufe": 1400,
+    "sieg": 101,
+    "remis": 9,
+    "niederlage": 90,
+    "punkte": 105.5,
+    "leistung": 1419.0
+   },
+   {
+    "stufe": 1600,
+    "sieg": 36,
+    "remis": 4,
+    "niederlage": 160,
+    "punkte": 38.0,
+    "leistung": 1348.0
+   },
+   {
+    "stufe": 1800,
+    "sieg": 13,
+    "remis": 0,
+    "niederlage": 187,
+    "punkte": 13.0,
+    "leistung": 1337.0
+   },
+   {
+    "stufe": 2000,
+    "sieg": 4,
+    "remis": 0,
+    "niederlage": 196,
+    "punkte": 4.0,
+    "leistung": 1324.0
+   }
+  ],
+  "elo": 1381.0,
+  "fehler": 17.0,
+  "dauer_minuten": 62.7
+ },
+ {
+  "version": "v11.1",
+  "tiefe": 4,
+  "datum": "2026-11-17T18:52",
+  "stockfish": "Stockfish 19",
+  "sf_zeit": 0.2,
+  "partien": 200,
+  "stufen": [
+   {
+    "stufe": 1400,
+    "sieg": 129,
+    "remis": 8,
+    "niederlage": 63,
+    "punkte": 133.0,
+    "leistung": 1519.0
+   },
+   {
+    "stufe": 1600,
+    "sieg": 46,
+    "remis": 3,
+    "niederlage": 151,
+    "punkte": 47.5,
+    "leistung": 1397.0
+   },
+   {
+    "stufe": 1800,
+    "sieg": 16,
+    "remis": 2,
+    "niederlage": 182,
+    "punkte": 17.0,
+    "leistung": 1387.0
+   },
+   {
+    "stufe": 2000,
+    "sieg": 16,
+    "remis": 1,
+    "niederlage": 183,
+    "punkte": 16.5,
+    "leistung": 1582.0
+   }
+  ],
+  "elo": 1463.0,
+  "fehler": 15.8,
+  "dauer_minuten": 125.4
+ }
+]

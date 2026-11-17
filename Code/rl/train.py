@@ -93,6 +93,7 @@ from .positions import OPENING_PLIES, sample_start
 from .search import CLASSIC, SearchOptions
 from .shaping import potential
 from .stockfish import find_stockfish
+from .theorie import buch_verfuegbar, endspiel_verfuegbar
 from .valuenet import ValueNet
 
 
@@ -315,6 +316,12 @@ def main() -> None:
                         help="Korrektur ab v6: Gesamtbewertung in der Suche unter diesen Wert stauchen (0.9)")
     parser.add_argument("--repetition-draw", action="store_true",
                         help="Korrektur ab v6: Stellungswiederholung in der Suche als Remis werten")
+    parser.add_argument("--buch-anteil", type=float, default=0.0,
+                        help="Anteil der Partien, die in einer Stellung aus dem Eröffnungsbuch "
+                             "theorie/buch.bin starten (Runde 3)")
+    parser.add_argument("--endspieltabellen", action="store_true",
+                        help="Partien mit höchstens 5 Steinen nach den Syzygy-Tabellen theorie/syzygy "
+                             "werten und beenden")
     parser.add_argument("--snapshot-every", type=int, default=0,
                         help="Alle N Episoden einen Zwischenstand in <run-dir>/snapshots ablegen")
     parser.add_argument("--stop", action="store_true",
@@ -344,7 +351,8 @@ def main() -> None:
             return
         session_args = {name: getattr(args, name) for name in _SESSION_ARGS}
         # Läufe von vor v6 kennen die Korrekturen der Suche nicht und rechnen ohne.
-        config = {"cap": None, "repetition_draw": False, **state["config"]}
+        config = {"cap": None, "repetition_draw": False, "buch_anteil": 0.0, "endspieltabellen": False,
+                  **state["config"]}
         args = argparse.Namespace(**config, **session_args)
         net = ValueNet.load(run.checkpoint)
     else:
@@ -374,6 +382,16 @@ def main() -> None:
     options = SearchOptions(cap=args.cap, repetition_draw=args.repetition_draw)
     if options != CLASSIC and args.search_depth < 2:
         parser.error("--cap und --repetition-draw wirken nur in der Suche, also ab --search-depth 2")
+
+    if args.buch_anteil or args.endspieltabellen:
+        if args.search_depth < 2 or args.task != "full":
+            parser.error("--buch-anteil und --endspieltabellen brauchen --search-depth ab 2 und --task full")
+        if not 0.0 <= args.buch_anteil <= 1.0:
+            parser.error("--buch-anteil muss zwischen 0 und 1 liegen")
+        if args.buch_anteil > 0 and not buch_verfuegbar():
+            parser.error("Eröffnungsbuch theorie/buch.bin fehlt (--buch-anteil)")
+        if args.endspieltabellen and not endspiel_verfuegbar():
+            parser.error("Syzygy-Tabellen in theorie/syzygy fehlen (--endspieltabellen)")
 
     eps_episodes = args.eps_episodes or max(1, int(0.7 * args.episodes))
     curriculum_episodes = args.curriculum_episodes if args.curriculum_episodes is not None else int(0.5 * args.episodes)
@@ -417,6 +435,10 @@ def main() -> None:
                       + (["Wiederholung = Remis"] if options.repetition_draw else []))
             or "keine (Suche wie bis v5)",
         ),
+        *((("Schachtheorie", ", ".join(
+            ([f"Eröffnungsbuch in {args.buch_anteil:.0%} der Partien"] if args.buch_anteil > 0 else [])
+            + (["Endspieltabellen (höchstens 5 Steine)"] if args.endspieltabellen else []))),)
+          if args.buch_anteil > 0 or args.endspieltabellen else ()),
         ("Prozesse", args.workers),
         (
             "Prüfgegner",
@@ -483,6 +505,7 @@ def main() -> None:
             "seed": [args.seed, game], "task": args.task, "gamma": args.gamma, "epsilon": epsilon,
             "max_plies": args.max_plies, "difficulty": difficulty, "td_lambda": args.td_lambda,
             "depth": args.search_depth, "options": options,
+            "buch_anteil": args.buch_anteil, "endspiel": args.endspieltabellen,
         }
         return runner.share(net, updates), params
 

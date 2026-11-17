@@ -82,6 +82,14 @@ nichts mit dem Training zu tun haben:
 
 Beides ist je Version im Manifest eingeschaltet (registry.py). Ohne Optionen
 rechnet die Suche bitgenau wie bei v1 bis v5.
+
+Schnelle Suche ab v11 (SearchOptions.schnell)
+---------------------------------------------
+Für mehr Tiefe gibt es eine zweite Suche mit Transpositionstabelle, iterativer
+Vertiefung, Zugsortierung ohne Vorab-Bewertung und Reduktionen (suche2.py).
+Sie bewertet Stellungen genau wie diese hier, rechnet aber deutlich weniger
+davon. Eingeschaltet wird sie je Version ("schnelle_suche" im Manifest); ohne
+den Schalter bleibt alles wie oben.
 """
 from __future__ import annotations
 
@@ -109,6 +117,7 @@ class SearchOptions:
     """Korrekturen ab v6, siehe oben. Unveränderlich, damit sie sich an Prozesse schicken lassen."""
     cap: float | None = None           # Gesamtbewertung unter diesen Wert stauchen
     repetition_draw: bool = False      # Wiederholung gilt als Remis
+    schnell: bool = False              # schnelle Suche aus suche2.py (ab v11)
 
     def squash(self, totals: np.ndarray) -> np.ndarray:
         """Gesamtbewertung laufender Stellungen, gestaucht auf (-cap, cap)."""
@@ -151,6 +160,10 @@ def search(
     """
     if depth < 1:
         raise ValueError("Die Suchtiefe muss mindestens 1 sein.")
+    if options.schnell:
+        from .suche2 import schnellsuche   # hier importiert: suche2 baut auf diesem Modul auf
+
+        return schnellsuche(board, net, depth, gamma, quiescence_plies, options)
     if not any(board.legal_moves):
         return SearchResult(None, 0.0)
     searcher = _Searcher(net, gamma, quiescence_plies, options)

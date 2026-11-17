@@ -23,9 +23,14 @@ die Evaluation läuft immer auf gleichverteilten Stellungen (difficulty = 1).
 """
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
 import chess
 
 from .shaping import loses_material
+
+if TYPE_CHECKING:
+    from .theorie import Theorie
 
 TASKS = ("kqk", "krk", "full")
 
@@ -41,12 +46,23 @@ _RING2 = [
 ]
 
 
-def sample_start(task: str, rng, difficulty: float = 1.0) -> chess.Board:
+def sample_start(
+    task: str,
+    rng,
+    difficulty: float = 1.0,
+    buch_anteil: float = 0.0,
+    theorie: "Theorie | None" = None,
+) -> chess.Board:
     """
     Zufällige Startstellung. difficulty = 0 heisst nur einfache Ecken-
     stellungen, difficulty = 1 heisst gleichverteilt über das ganze Brett.
+    Für volle Partien kann buch_anteil einen Teil der Starts ins Eröffnungsbuch
+    verlegen; dafür muss theorie angegeben sein.
     """
     if task == "full":
+        if buch_anteil > 0 and theorie is not None:
+            if rng.random() < buch_anteil:
+                return buch_eroeffnung(rng, theorie)
         return _random_opening(rng)
     piece = _STRONG_PIECE[task]
     easy = rng.random() >= difficulty
@@ -54,6 +70,48 @@ def sample_start(task: str, rng, difficulty: float = 1.0) -> chess.Board:
         board = _build_easy(rng, piece) if easy else _build_uniform(rng, piece)
         if board is not None:
             return board
+
+
+def buch_eroeffnung(
+    rng,
+    theorie: "Theorie",
+    max_buch_halbzuege: int = 20,
+    extra_halbzuege: int = 4,
+) -> chess.Board:
+    """Erstellt eine Startstellung mit zufälligen Buchzügen und Zusatzhalbzügen."""
+    board = chess.Board()
+    ziel_laenge = int(rng.integers(0, max_buch_halbzuege + 1))
+
+    for _ in range(ziel_laenge):
+        if board.is_game_over():
+            break
+        buch_zuege = sorted(theorie.buch_zuege(board), key=lambda kandidat: kandidat[0].uci())
+        if not buch_zuege:
+            break
+
+        gewichte = [max(gewicht, 0) for _, gewicht in buch_zuege]
+        gesamtgewicht = sum(gewichte)
+        if gesamtgewicht == 0:
+            move = buch_zuege[int(rng.integers(len(buch_zuege)))][0]
+        else:
+            schwelle = rng.random() * gesamtgewicht
+            kumulativ = 0
+            move = buch_zuege[-1][0]
+            for (kandidat, _), gewicht in zip(buch_zuege, gewichte):
+                kumulativ += gewicht
+                if schwelle < kumulativ:
+                    move = kandidat
+                    break
+        board.push(move)
+
+    for _ in range(int(rng.integers(0, extra_halbzuege + 1))):
+        if board.is_game_over():
+            break
+        moves = [move for move in board.legal_moves if not loses_material(board, move)]
+        if not moves:
+            break
+        board.push(moves[int(rng.integers(len(moves)))])
+    return board
 
 
 def _random_opening(rng, max_plies: int = OPENING_PLIES) -> chess.Board:
@@ -73,7 +131,9 @@ def _random_opening(rng, max_plies: int = OPENING_PLIES) -> chess.Board:
 
     Bewusst keine Eröffnungsbibliothek: Gebraucht wird Streuung, nicht
     Korrektheit. Der Agent muss gerade auch Stellungen bewerten können, in die
-    er durch eigene Fehler gerät.
+    er durch eigene Fehler gerät. Ab Runde 3 startet ein Teil der Partien
+    optional im Eröffnungsbuch (buch_anteil, siehe buch_eroeffnung); der Rest
+    bleibt zufällig für die Streuung.
     """
     board = chess.Board()
     for _ in range(int(rng.integers(max_plies + 1))):

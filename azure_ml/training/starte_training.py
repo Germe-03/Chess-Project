@@ -96,6 +96,27 @@ LAEUFE.update({
     "r2e": {**RUNDE2, "seed": 1, "cap": 0.9},  # Deckel 0.9 auch im Training, ganz wie im Spiel
     "r2f": {**RUNDE2, "seed": 1, "eps_start": 0.2},  # mehr Erkundung am Anfang
 })
+# Runde 3: Training mit Schachtheorie. Start beim Netz von v9, Rezept von v9.
+# Die Hälfte der Partien beginnt in einer Stellung aus dem Eröffnungsbuch, und
+# Stellungen mit höchstens 5 Steinen werden nach den Endspieltabellen gewertet.
+# Gemessen wird mit Theorie auf beiden Seiten gegen v10.2 (Netz von v9 mit Buch
+# und Tabellen); so zeigt sich, was das neue Netz unter gleicher Theorie bringt.
+RUNDE3: dict[str, int | str | float | None] = {
+    **RUNDE2, "start": "full_v9.npz", "gegner": "full_v9.npz",
+    "buch_anteil": 0.5, "endspiel": True, "theorie_messen": True,
+}
+LAEUFE.update({
+    "r3a": {**RUNDE3, "seed": 1},  # Buchstarts und Tabellen, drei Seeds
+    "r3b": {**RUNDE3, "seed": 2},
+    "r3c": {**RUNDE3, "seed": 3},
+    "r3d": {**RUNDE3, "seed": 1, "endspiel": False},  # nur Buchstarts
+    "r3e": {**RUNDE3, "seed": 1, "buch_anteil": 0.0},  # nur Tabellen
+    "r3f": {**RUNDE3, "seed": 1, "lr": "2.5e-4"},  # beides, halbe Lernrate
+})
+# Endspieltabellen (Syzygy, bis 5 Steine, 984 MB) als Datenbestand im Workspace;
+# einmal hochladen mit: starte_training.py tabellen-hochladen
+TABELLEN_ASSET = "syzygy-5"
+TABELLEN_VERSION = "1"
 # Messung wie bei v6: 2 Halbzüge, Deckel 0.9, Wiederholung = Remis, auf beiden Seiten.
 MESSPARTIEN = 400
 
@@ -129,21 +150,41 @@ def trainingsbefehl(lauf: str, workers: int, seed: int = 0) -> str:
         teile.append(f"--seed {seed}")
     if profil.get("cap") is not None:
         teile.append(f"--cap {profil['cap']}")
+    if profil.get("buch_anteil"):
+        teile.append(f"--buch-anteil {profil['buch_anteil']}")
+    if profil.get("endspiel"):
+        teile.append("--endspieltabellen")
     befehl = " ".join(teile)
+    if braucht_tabellen(lauf):
+        # Die Tabellen kommen als Datenbestand; train.py und evaluate.py suchen sie unter theorie/syzygy.
+        befehl = "mkdir -p theorie && ln -sfn ${{inputs.syzygy}} theorie/syzygy && " + befehl
     if profil.get("messen"):
-        befehl += " && " + messbefehl(workers, str(profil.get("gegner", "full_v5.npz")))
+        befehl += " && " + messbefehl(workers, str(profil.get("gegner", "full_v5.npz")),
+                                       bool(profil.get("theorie_messen")))
     return befehl
 
 
-def messbefehl(workers: int, gegner: str = "full_v5.npz") -> str:
-    """Jeden Zwischenstand gegen das Gegnernetz messen (Runde 1: v6, Runde 2: v8).
+def braucht_tabellen(lauf: str) -> bool:
+    profil = LAEUFE[lauf]
+    return bool(profil.get("endspiel") or profil.get("theorie_messen"))
 
+
+def braucht_buch(lauf: str) -> bool:
+    profil = LAEUFE[lauf]
+    return bool(profil.get("buch_anteil") or profil.get("theorie_messen"))
+
+
+def messbefehl(workers: int, gegner: str = "full_v5.npz", theorie: bool = False) -> str:
+    """Jeden Zwischenstand gegen das Gegnernetz messen (Runde 1: v6, Runde 2: v8, Runde 3: v10.2).
+
+    Mit theorie spielen beide Seiten mit Eröffnungsbuch und Endspieltabellen.
     Die Ergebnisse landen in outputs/messung.txt.
     """
+    schalter = "--eroeffnung --endspiel --opponent-eroeffnung --opponent-endspiel " if theorie else ""
     duell = (
         "python -m Code.rl.evaluate --task full --model $f --depth 2 --cap 0.9 --repetition-draw "
         f"--opponent models/{gegner} --opponent-depth 2 --opponent-cap 0.9 "
-        f"--opponent-repetition-draw --games {MESSPARTIEN} --max-plies 400 --workers {workers}"
+        f"--opponent-repetition-draw {schalter}--games {MESSPARTIEN} --max-plies 400 --workers {workers}"
     )
     return f"(for f in outputs/run/snapshots/*.npz; do {duell}; done) 2>&1 | tee outputs/messung.txt"
 
@@ -173,6 +214,13 @@ def paket_vorbereiten(lauf: str) -> Path:
     modelle.mkdir()
     for name in namen:
         shutil.copy2(PROJEKT / "models" / name, modelle / name)
+    if braucht_buch(lauf):
+        # Das Buch ist klein (rund 250 KB) und reist im Code-Paket mit.
+        buch = PROJEKT / "theorie" / "buch.bin"
+        if not buch.is_file():
+            raise SystemExit(f"Eröffnungsbuch fehlt: {buch} (python -m Code.rl.buch ...)")
+        (ziel / "theorie").mkdir()
+        shutil.copy2(buch, ziel / "theorie" / "buch.bin")
 
     groesse = sum(datei.stat().st_size for datei in ziel.rglob("*") if datei.is_file())
     print(f"Paketgrösse: {groesse / (1024 * 1024):.1f} MB")
@@ -247,11 +295,20 @@ def cmd_starten(args: argparse.Namespace) -> None:
 
     code_dir = paket_vorbereiten(args.lauf)
     try:
-        from azure.ai.ml import command
+        from azure.ai.ml import Input, command
+        from azure.ai.ml.constants import AssetTypes, InputOutputModes
 
+        eingaben = {}
+        if braucht_tabellen(args.lauf):
+            eingaben["syzygy"] = Input(
+                type=AssetTypes.URI_FOLDER,
+                path=f"azureml:{TABELLEN_ASSET}:{TABELLEN_VERSION}",
+                mode=InputOutputModes.RO_MOUNT,
+            )
         job = command(
             code=str(code_dir),
             command=befehl,
+            inputs=eingaben or None,
             environment=ENVIRONMENT,
             environment_variables={
                 "OPENBLAS_NUM_THREADS": "1",
@@ -295,6 +352,31 @@ def cmd_holen(args: argparse.Namespace) -> None:
             print(datei.relative_to(ziel))
 
 
+def cmd_tabellen_hochladen(args: argparse.Namespace) -> None:
+    """Endspieltabellen einmal als Datenbestand in den Workspace laden (für Runde 3)."""
+    from azure.ai.ml.constants import AssetTypes
+    from azure.ai.ml.entities import Data
+
+    ordner = PROJEKT / "theorie" / "syzygy"
+    dateien = sorted(ordner.glob("*.rtb[wz]"))
+    if not dateien:
+        raise SystemExit(f"Keine Tabellen in {ordner}")
+    groesse = sum(d.stat().st_size for d in dateien) / 1e6
+    print(f"{len(dateien)} Dateien, {groesse:.0f} MB")
+    if args.trockenlauf:
+        print("Trockenlauf: nichts hochgeladen.")
+        return
+    daten = Data(
+        name=TABELLEN_ASSET,
+        version=TABELLEN_VERSION,
+        type=AssetTypes.URI_FOLDER,
+        path=str(ordner),
+        description="Syzygy-Endspieltabellen bis 5 Steine (WDL und DTZ) von tablebase.lichess.ovh",
+    )
+    erstellt = ml_client(anmelden()).data.create_or_update(daten)
+    print(f"Datenbestand: {erstellt.name}:{erstellt.version}")
+
+
 def cmd_umgebung(args: argparse.Namespace) -> None:
     from azure.ai.ml import MLClient
 
@@ -330,6 +412,10 @@ def main() -> None:
 
     umgebung = unter.add_parser("umgebung", help="Azure-ML-Umgebung anzeigen")
     umgebung.set_defaults(handler=cmd_umgebung)
+
+    tabellen = unter.add_parser("tabellen-hochladen", help="Endspieltabellen als Datenbestand hochladen")
+    tabellen.add_argument("--trockenlauf", action="store_true")
+    tabellen.set_defaults(handler=cmd_tabellen_hochladen)
 
     args = parser.parse_args()
     args.handler(args)

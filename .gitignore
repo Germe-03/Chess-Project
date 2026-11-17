@@ -31,3 +31,6 @@ azure_ml/endpoint_key.txt
 azure_ml/training/.anmeldung.json
 # Abo, Ressourcengruppe, Workspace und Tenant fürs Training, nur lokal (Vorlage: ziel.beispiel.json)
 azure_ml/training/ziel.json
+
+# Schachtheorie (Eröffnungsbuch, Endspieltabellen): gross und heruntergeladen, nicht im Repo
+theorie/

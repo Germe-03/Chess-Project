@@ -59,8 +59,9 @@ from . import azure_lage, stockfish_analyse
 from .rl.engine import material_evaluation, material_move, value_move
 from .rl.features import board_to_features
 from .rl.registry import active_name, load_model, search_depth, search_options
-from .rl.registry import versions as registry_versions
+from .rl.registry import sichtbare_versionen, theorie_optionen
 from .rl.search import CLASSIC, SearchOptions, search
+from .rl.theorie import theorie_fuer
 from .rl.valuenet import ValueNet
 from .vision.finder import find_board
 from .vision.recognizer import TileClassifier, tiles_to_fen
@@ -125,7 +126,7 @@ class MoveResponse(BaseModel):
         "n/a", description="Wie die Stellung ermittelt wurde: 'fen', 'placeholder', ..."
     )
     engine: str = Field(
-        "material", description="Welche Engine den Zug gewählt hat: 'rl' oder 'material'"
+        "material", description="Welche Engine den Zug gewählt hat: 'rl', 'material' oder 'theorie'"
     )
     version: str = Field(
         "", description="Welches Modell geantwortet hat, z. B. 'v2' oder 'endspiel-queen'"
@@ -160,7 +161,7 @@ class PlayResponse(BaseModel):
     status: str = Field(..., description="Klartext für die Anzeige")
     finished: bool = Field(False, description="Ist die Partie zu Ende?")
     evaluation: float = Field(0.0, description="Bewertung aus Sicht von Weiss")
-    engine: str = Field("", description="'rl' oder 'material'")
+    engine: str = Field("", description="'rl', 'material' oder 'theorie'")
     version: str = Field("", description="Welches Modell geantwortet hat")
     depth: int = Field(1, description="Mit wie vielen Halbzügen Vorausschau gerechnet wurde")
     pv: list[str] = Field(
@@ -240,7 +241,7 @@ def select_agent(
 class Choice(NamedTuple):
     move: chess.Move | None
     evaluation: float          # aus Sicht von Weiss
-    engine: str                # 'rl' oder 'material'
+    engine: str                # 'rl', 'material' oder 'theorie' (Buch/Endspieltabelle, ab v10)
     label: str                 # Modellname
     depth: int                 # tatsächlich gerechnete Halbzüge
     pv: list[chess.Move]       # erwartete Zugfolge
@@ -258,7 +259,23 @@ def choose_move(board: chess.Board, version: str | None = None) -> Choice:
     Ab Tiefe 2 rechnet die Alpha-Beta-Suche, und als Bewertung wird ihr
     Suchwert gemeldet — also das, was die Engine nach dem Vorausrechnen
     erwartet, nicht der Blick auf die Stellung allein.
+
+    Hat die Version Schachtheorie (ab v10) und steht die Stellung im
+    Eröffnungsbuch oder in den Endspieltabellen, kommt der Theoriezug zuerst.
+    Die Tabellen gehen auch den Endspiel-Spezialisten für drei Steine vor.
     """
+    name = version or active_name()
+    theorie = theorie_fuer(theorie_optionen(name)) if name else None
+    zug = theorie.zug(board) if theorie is not None else None
+    if zug is not None:
+        if zug.wert is not None:
+            value = zug.wert
+        else:
+            model = load_model(name)
+            value = float(model.value(board_to_features(board)[None, :])[0]) if model is not None else 0.0
+        evaluation = value if board.turn == chess.WHITE else -value
+        return Choice(zug.move, evaluation, "theorie", f"{name}-{zug.quelle}", 0, [zug.move])
+
     agent, label, depth, options = select_agent(board, version)
     if agent is None:
         move = material_move(board)
@@ -470,7 +487,10 @@ def parse_move(board: chess.Board, uci: str) -> chess.Move:
 @app.get("/versions", tags=["modelle"])
 def list_versions() -> dict:
     """Verfügbare Modellversionen für die Auswahl in der Oberfläche."""
-    return {"active": active_name(), "versions": registry_versions()}
+    # Versionen, die tiefer rechnen, als dieser Server erlaubt (render.com: 2),
+    # würden hier nur gekappt spielen; sie laufen bloss lokal und bleiben verborgen.
+    sichtbar = [v for v in sichtbare_versionen() if search_depth(v["name"]) <= MAX_SEARCH_DEPTH]
+    return {"active": active_name(), "versions": sichtbar}
 
 
 @app.post("/spielen/zug", response_model=PlayResponse, tags=["schach"])
@@ -547,7 +567,7 @@ class PartieResponse(BaseModel):
     finished: bool = Field(False, description="Ist die Partie zu Ende?")
     result: str = Field("*", description="Ergebnis: '1-0', '0-1', '1/2-1/2' oder '*'")
     evaluation: float | None = Field(None, description="Nur Engine-Zug: Bewertung aus Sicht von Weiss")
-    engine: str = Field("", description="Nur Engine-Zug: 'rl' oder 'material'")
+    engine: str = Field("", description="Nur Engine-Zug: 'rl', 'material' oder 'theorie'")
     version: str = Field("", description="Nur Engine-Zug: welches Modell geantwortet hat")
     depth: int = Field(0, description="Nur Engine-Zug: Halbzüge Vorausschau")
     pv: list[str] = Field(default_factory=list, description="Nur Engine-Zug: erwartete Zugfolge in SAN")

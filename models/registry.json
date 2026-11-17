@@ -165,6 +165,80 @@
           "3000": 0.66
         }
       }
+    },
+    {
+      "name": "v10",
+      "file": "full_v9.npz",
+      "trained": "2026-11-16",
+      "episodes": 0,
+      "parent": "v9",
+      "search_depth": 2,
+      "cap": 0.9,
+      "repetition_draw": true,
+      "theorie": {
+        "eroeffnung": true,
+        "endspiel": false
+      },
+      "notes": "Netz und Suche von v9 unverändert, dazu Schachtheorie für die Eröffnung: Eröffnungsbuch aus rund 300 000 Lichess-Partien (2500+ gegen 2300+, November 2025), erste 20 Halbzüge, nur Züge aus mindestens 20 Partien mit mindestens 45 Prozent Punkten; gespielt wird der häufigste Zug. Zeigt, was das Buch allein bringt. Nur lokal (theorie/).",
+      "results": {}
+    },
+    {
+      "name": "v10.1",
+      "file": "full_v9.npz",
+      "trained": "2026-11-16",
+      "episodes": 0,
+      "parent": "v9",
+      "search_depth": 2,
+      "cap": 0.9,
+      "repetition_draw": true,
+      "theorie": {
+        "eroeffnung": false,
+        "endspiel": true
+      },
+      "notes": "Netz und Suche von v9 unverändert, dazu Schachtheorie für das Endspiel: Syzygy-Endspieltabellen für alle Stellungen mit höchstens 5 Steinen; dort spielt die Version den perfekten Zug. Zeigt, was die Tabellen allein bringen. Nur lokal (theorie/).",
+      "results": {}
+    },
+    {
+      "name": "v10.2",
+      "file": "full_v9.npz",
+      "trained": "2026-11-16",
+      "episodes": 0,
+      "parent": "v9",
+      "search_depth": 2,
+      "cap": 0.9,
+      "repetition_draw": true,
+      "theorie": {
+        "eroeffnung": true,
+        "endspiel": true
+      },
+      "notes": "Netz und Suche von v9 unverändert, dazu beides: Eröffnungsbuch wie v10 und Endspieltabellen wie v10.1. Nur lokal (theorie/).",
+      "results": {}
+    },
+    {
+      "name": "v11",
+      "file": "full_v9.npz",
+      "trained": "2026-11-17",
+      "episodes": 0,
+      "parent": "v9",
+      "search_depth": 3,
+      "cap": 0.9,
+      "repetition_draw": true,
+      "schnelle_suche": true,
+      "notes": "Netz von v9 unverändert, rechnet aber 3 statt 2 Halbzüge voraus, mit der schnellen Suche (suche2.py: Bewertungs-Cache, Transpositionstabelle, iterative Vertiefung, Zugsortierung, Nullzug und späte Reduktionen). Zeigt, was ein Halbzug mehr bringt. Nur lokal; render.com rechnet höchstens 2 Halbzüge.",
+      "results": {}
+    },
+    {
+      "name": "v11.1",
+      "file": "full_v9.npz",
+      "trained": "2026-11-17",
+      "episodes": 0,
+      "parent": "v9",
+      "search_depth": 4,
+      "cap": 0.9,
+      "repetition_draw": true,
+      "schnelle_suche": true,
+      "notes": "Wie v11, aber 4 Halbzüge Vorausschau. Nur lokal.",
+      "results": {}
     }
   ],
   "messprotokoll": {

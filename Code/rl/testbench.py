@@ -60,10 +60,11 @@ import numpy as np
 
 from .parallel import Runner
 from .positions import sample_start
-from .registry import MODELS_DIR, search_depth, search_options
+from .registry import MODELS_DIR, search_depth, search_options, theorie_optionen
 from .registry import versions as registry_versions
 from .shaping import loses_material
 from .stockfish import find_stockfish
+from .theorie import verfuegbar
 
 ROOT = Path(__file__).resolve().parents[2]
 TESTBENCH_DIR = ROOT / "testbench"
@@ -474,9 +475,11 @@ def _play_and_analyse(white: str, black: str, opening: int) -> dict:
 # --------------------------------------------------------------------------- #
 def fingerprint(version: dict) -> str:
     """
-    Kennung einer Version: Netzdatei, Suchtiefe und Korrekturen der Suche.
-    Ändert sich eines, wird neu geprüft. Die Korrekturen hängen nur an, wenn
-    sie eingeschaltet sind — so bleiben die Kennungen von v1 bis v5 gleich.
+    Kennung einer Version: Netzdatei, Suchtiefe, Korrekturen der Suche und
+    Schachtheorie. Ändert sich eines, wird neu geprüft. Korrekturen und
+    Theorie hängen nur an, wenn sie eingeschaltet sind — so bleiben die
+    Kennungen älterer Versionen gleich. Die Theorie-Dateien selbst liegen nur
+    lokal und gehen darum nicht in die Kennung ein.
     """
     digest = hashlib.sha256((MODELS_DIR / version["file"]).read_bytes()).hexdigest()[:16]
     key = f"{digest}:{search_depth(version['name'])}"
@@ -485,6 +488,11 @@ def fingerprint(version: dict) -> str:
         key += f":cap{options.cap}"
     if options.repetition_draw:
         key += ":wdh"
+    if options.schnell:
+        key += ":schnell"
+    theorie = theorie_optionen(version["name"])
+    if theorie:
+        key += f":{theorie.kennung()}"
     return key
 
 
@@ -548,6 +556,10 @@ def run(workers: int) -> dict:
         raise SystemExit("Es gibt noch keine Teststellungen. Zuerst einmalig: "
                          "python -m Code.rl.testbench --generate-positions")
     positions = json.loads(POSITIONS_PATH.read_text(encoding="utf-8"))["stellungen"]
+    # Der Prüfstand misst jede Version in ihrer eingetragenen Tiefe. Die Obergrenze
+    # der Webseite (MAX_SEARCH_DEPTH, für render.com) gilt hier nicht; die
+    # Prozesse des Prüfstands erben diese Einstellung.
+    os.environ["MAX_SEARCH_DEPTH"] = "99"
     report = json.loads(REPORT_PATH.read_text(encoding="utf-8")) if REPORT_PATH.exists() else {}
     registry = registry_versions()
     names = [v["name"] for v in registry]
@@ -559,6 +571,13 @@ def run(workers: int) -> dict:
     old_games = {g["schluessel"]: g for g in report.get("partien", [])}
     plan = game_plan(names)
     missing = [(w, b, o) for w, b, o in plan if _game_key(w, b, o, prints) not in old_games]
+    # Ohne ihre Dateien würde eine Theorie-Version still wie ihr Netz spielen
+    # und falsche Ergebnisse in den Bericht schreiben.
+    zu_rechnen = set(solve) | {name for w, b, _ in missing for name in (w, b)}
+    ohne_dateien = sorted(n for n in zu_rechnen if not verfuegbar(theorie_optionen(n)))
+    if ohne_dateien:
+        raise SystemExit(f"Theorie-Dateien fehlen für {', '.join(ohne_dateien)} "
+                         "(theorie/buch.bin bzw. theorie/syzygy). Prüfstand abgebrochen.")
     print(f"{len(names)} Versionen | Teststellungen zu rechnen: {solve or 'keine'} | "
           f"Partien zu rechnen: {len(missing)} von {len(plan)}", flush=True)
 
@@ -586,6 +605,7 @@ def run(workers: int) -> dict:
         "klassen": {key: {"name": label, "symbol": symbol} for key, (label, symbol) in CLASSES.items()},
         "versionen": [
             {"name": v["name"], "tiefe": search_depth(v["name"]), "schluessel": prints[v["name"]],
+             "theorie": theorie_optionen(v["name"]).kennung(),
              "episoden": v.get("episodes"), "notizen": v.get("notes", "")}
             for v in registry
         ],

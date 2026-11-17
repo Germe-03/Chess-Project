@@ -233,6 +233,11 @@ Erst beides zusammen legt fest, wie eine Version spielt.
 | v6 | `full_v5.npz` | 2 Halbzüge + Ruhesuche, **korrigierte Suche** | was zwei Fehlerkorrekturen allein bringen: Matt gewinnt immer, Wiederholung gilt als Remis (siehe [v6](#matt-und-wiederholung-v6)) |
 | v8 | `full_v8.npz` | 2 Halbzüge + Ruhesuche, korrigierte Suche | was **Training so tief wie das Spiel** bringt: Netz von v6, auf Azure ML 1000 Partien mit 2 Halbzügen weitertrainiert (siehe [v8](#training-so-tief-wie-das-spiel-v8)) |
 | v9 | `full_v9.npz` | 2 Halbzüge + Ruhesuche, korrigierte Suche | was **längeres Training mit Ausscheidung** bringt: Netz von v8, auf Azure ML 3000 weitere Partien, Sieger aus sechs Varianten, auf neuen Eröffnungen nachgemessen (siehe [v9](#weitertrainieren-ab-v8-v9)) |
+| v10 | `full_v9.npz` | wie v9, dazu **Eröffnungsbuch** | was Eröffnungstheorie bringt; nur lokal (siehe [Schachtheorie](#schachtheorie-v10-v101-und-v102)) |
+| v10.1 | `full_v9.npz` | wie v9, dazu **Endspieltabellen** | was perfektes Endspiel bis fünf Steine bringt; nur lokal |
+| v10.2 | `full_v9.npz` | wie v9, dazu Buch und Tabellen | beides zusammen; nur lokal |
+| v11 | `full_v9.npz` | **3 Halbzüge**, schnelle Suche | was ein Halbzug mehr bringt; nur lokal (siehe [Messlatte](#messlatte-und-mehr-tiefe-v11-und-v111)) |
+| v11.1 | `full_v9.npz` | **4 Halbzüge**, schnelle Suche | was zwei Halbzüge mehr bringen; nur lokal |
 
 Eine Version v7 gibt es nicht: Der Name gehört zu den Versuchen, die schwächer
 waren als v6 (siehe [v7 und v7b](#v7-und-v7b-weitertrainieren-macht-v6-nicht-besser)).
@@ -1491,15 +1496,129 @@ Turnierpunkte, und auch die Werte von v8 haben sich leicht verschoben.
 python azure_ml/training/starte_training.py starten --lauf r2c --vm Standard_F16s_v2
 ```
 
+### Schachtheorie: v10, v10.1 und v10.2
+
+Diese drei Versionen behalten Netz und Suche von v9 und schlagen zusätzlich
+Theorie nach (`Code/rl/theorie.py`, Feld `theorie` im Manifest). Steht die
+Stellung im Eröffnungsbuch oder hat sie höchstens fünf Steine, spielt die
+Version den Theoriezug, sonst rechnet sie wie v9:
+
+- **v10:** Eröffnungsbuch, selbst gebaut mit `python -m Code.rl.buch` aus
+  280 246 Partien der Lichess Elite Database (Spieler ab 2500 gegen ab 2300,
+  November 2025). Ins Buch kommen die ersten 20 Halbzüge, nur Züge aus
+  mindestens 20 Partien mit mindestens 45 Prozent Punkten: 15 530 Einträge in
+  11 290 Stellungen. Gespielt wird der häufigste Zug; die Hauptlinie ist
+  Nimzo-Indisch (1.d4 Sf6 2.c4 e6 3.Sc3 Lb4).
+- **v10.1:** Endspieltabellen (Syzygy, alle Stellungen bis fünf Steine, 290
+  Dateien, 984 MB von tablebase.lichess.ovh). Dort spielt die Version perfekt.
+- **v10.2:** beides.
+
+Die Dateien liegen nur lokal in `theorie/` (nicht im Repo); render.com blendet
+die drei Versionen deshalb aus.
+
+| Messung | v9 | v10 (Buch) | v10.1 (Tabellen) | v10.2 (beides) |
+|---|---|---|---|---|
+| direkt gegen v9, 400 Zufallseröffnungen | 50 | 48.9 | 48.1 | 49.5 |
+| gegen Stockfish 1320, 400 Zufallseröffnungen | 61.6 / 62.9 | 60.8 | 60.7 | 61.6 |
+| gegen Stockfish 1320, 200 Partien aus der Grundstellung | 72.0 | 70.5 | 69.8 | 69.5 |
+| Prüfstand: Teststellungen | 46 von 50 | 46 | 47 | 47 |
+| Prüfstand: Turnier gegen alle Versionen | 70.5 von 100 | **81.0** | 73.5 | 79.5 |
+| Prüfstand: direkt gegen v9, 10 Partien | – | 6.5 | 6.0 | 8.0 |
+| Prüfstand: Genauigkeit laut Stockfish | 91.3 | 90.9 | 91.1 | 90.9 |
+
+Punkteprozent bzw. Punkte; alle Stockfish-Werte stammen aus derselben
+Messreihe vom 16. und 17. November.
+
+- **In den grossen Messungen kein Unterschied.** Mit Zufallseröffnungen
+  verlässt die Partie das Buch fast sofort, und aus der Grundstellung gegen
+  Stockfish bringt das Buch ebenfalls nichts Messbares.
+- **Im Turnier des Prüfstands liegen die Theorie-Versionen vorne.** Dort
+  beginnen die Partien mit fünf bekannten Eröffnungen, in denen das Buch
+  weiterführt. Mit nur zehn Partien je Paar ist das aber ein Hinweis, kein
+  Beleg.
+- **Warum nicht mehr?** Die Engine verliert ihre Partien im Mittelspiel, wo sie
+  mit zwei Halbzügen Drohungen zu spät sieht. Dort hilft weder Buch noch Tabelle.
+- **Die Stockfish-Messung streut stärker als gedacht.** Dieselbe Messung von
+  v9 auf denselben 400 Partien ergab am 13. November 70.8, am 17. November
+  61.6 und 62.9 Punkteprozent; Netz, Stockfish und Befehl waren gleich.
+  Vergleiche gegen Stockfish gelten darum nur innerhalb einer Messreihe.
+
+Keine der drei Versionen wird aktiviert.
+
+```bash
+python -m Code.rl.buch --pgn theorie/quellen/lichess_elite_2025-11.zip --out theorie/buch.bin
+python -m Code.rl.evaluate --task full --model models/full_v9.npz --depth 2 --cap 0.9 \
+    --repetition-draw --eroeffnung --endspiel --opponent stockfish --games 400 --max-plies 400
+```
+
+### Messlatte und mehr Tiefe: v11 und v11.1
+
+**Messlatte.** Die bisherige Zahl «gegen Stockfish 1320» ist keine Elo:
+Stockfish rechnet dort nur einen Halbzug, und dieselbe Messung von v9 streute
+zwischen 62 und 71 Punkteprozent. `python -m Code.rl.messlatte --version v9`
+misst darum anders: Stockfish 19 ohne Tiefenbegrenzung mit 0.2 Sekunden pro
+Zug, auf den Stufen 1400, 1600, 1800 und 2000 (`UCI_Elo`), je 200 Partien auf
+denselben Zufallseröffnungen, jede Partie mit leerem Speicher. Aus allen Stufen
+zusammen wird die Elo geschätzt, die die Ergebnisse am besten erklärt
+(Maximum Likelihood). Grenzen: Stockfish ist für längere Bedenkzeit geeicht und
+spielt mit 0.2 Sekunden eher schwächer; die Schätzung ist darum eher zu hoch,
+und sie ist keine FIDE-Elo. Ergebnisse stehen in `messlatte/ergebnisse.json`.
+
+**Schnelle Suche.** Für mehr Tiefe gibt es eine zweite Suche
+(`Code/rl/suche2.py`, Schalter `schnelle_suche` im Manifest). Sie bewertet
+Stellungen genau wie bisher, aber jede nur einmal (Zwischenspeicher), sortiert
+die Züge in inneren Knoten ohne Vorab-Bewertung (Tabellenzug, Schlagzüge,
+Killerzüge, Erfolgsgeschichte), merkt sich Ergebnisse in einer
+Transpositionstabelle und verkürzt aussichtslose Äste (Nullzug, späte Züge).
+Ohne Tabelle und Verkürzungen liefert sie exakt den Wert der alten Suche
+(`tests/test_suche2.py`). Mit 3 Halbzügen bewertet sie gut die Hälfte weniger
+Stellungen und braucht etwa halb so lange (1.2 statt 2.4 Sekunden pro Zug,
+gemessen neben anderen Rechnungen), 4 Halbzüge kosten rund 6 Sekunden.
+
+**v11 und v11.1** behalten das Netz von v9 und rechnen mit der schnellen Suche
+3 bzw. 4 Halbzüge voraus. Sie laufen nur lokal; render.com rechnet höchstens 2
+Halbzüge und blendet sie aus.
+
+| Version | Vorausschau | gegen 1400 | 1600 | 1800 | 2000 | Elo laut Messlatte |
+|---|---|---|---|---|---|---|
+| v9 | 2 Halbzüge | 34.8 | 7.2 | 3.5 | 1.2 | 1250 ± 20 |
+| v11 | 3 Halbzüge | 52.8 | 19.0 | 6.5 | 2.0 | 1381 ± 17 |
+| v11.1 | 4 Halbzüge | 66.5 | 23.8 | 8.5 | 8.2 | **1463 ± 16** |
+
+Punkteprozent gegen Stockfish auf der jeweiligen Stufe, gemessen am
+17. November 2026.
+
+Im Prüfstand (jetzt 13 Versionen, 120 Turnierpartien je Version) führt
+v11.1 klar: Turnier **119 von 120** Punkten, Teststellungen 47 von 50,
+Genauigkeit 92.1. v11 folgt mit 98 von 120 (46 von 50, 91.3), v9 hat 73 von
+120 (46 von 50, 90.5). Direkt gegen v9 holen v11 8 und v11.1 9.5 von 10
+Punkten; v11.1 gewinnt alle zehn Partien gegen v11.
+
+- **v9 liegt bei rund 1250 Elo**, deutlich unter dem, was die alte Messung
+  nahelegte.
+- **Jeder Halbzug bringt viel:** der dritte rund 130 Elo, der vierte rund 80.
+  Das bestätigt, dass die Engine vor allem an der Tiefe scheitert.
+- **Bis 2000 fehlen noch gut 500 Elo.** Mehr Tiefe braucht eine viel
+  schnellere Bewertung; der grösste Teil der Rechenzeit steckt in Φ
+  (Abtausch- und Zentrumsrechnung) und den Merkmalen, nicht im Netz.
+  Ausserdem ist das Netz mit 2 Halbzügen trainiert; nach v8 sollte Training in
+  der Tiefe, in der gespielt wird, noch einmal helfen.
+
+```bash
+python -m Code.rl.messlatte --version v11.1 --stufen 1400 1600 1800 2000 --partien 200 --sf-zeit 0.2
+```
+
 ## Grenzen und nächste Schritte
 
-- Gegen Stockfish (Elo 1320) holt v9 68 Punkteprozent und verliert noch 24.5
-  Prozent der Partien. Für ein Netz mit 397 000 Parametern und zwei Halbzügen
-  Vorausschau ist das zu erwarten und wird hier bewusst so ausgewiesen.
+- Auf der Messlatte liegt v9 bei rund 1250 Elo, mit 4 Halbzügen (v11.1) bei
+  rund 1460 (siehe [Messlatte](#messlatte-und-mehr-tiefe-v11-und-v111)). Die
+  ältere Angabe «68 Punkteprozent gegen Stockfish 1320» bezieht sich auf einen
+  Stockfish, der nur einen Halbzug rechnet, und ist keine Elo.
 - Die meisten verbliebenen Fehler sind Drohungen, die erst nach drei oder mehr
-  Halbzügen sichtbar werden. Mehr Tiefe hilft messbar (siehe
-  [v6](#matt-und-wiederholung-v6)), braucht aber eine schnellere Suche
-  (Transpositionstabelle, iterative Vertiefung) oder mehr Rechenleistung.
+  Halbzügen sichtbar werden. Mehr Tiefe hilft messbar (v11, v11.1), kostet in
+  Python aber viel Zeit: Schon 4 Halbzüge brauchen mit der schnellen Suche
+  mehrere Sekunden pro Zug. Für noch mehr Tiefe müsste vor allem Φ schneller
+  werden, etwa in kompiliertem Code.
 - Weitertrainieren von v5 mit demselben Rezept macht das Netz nicht besser:
   mit Deckel im Training klar schwächer, ohne Deckel je nach Lauf schwächer
   oder gleich stark (siehe [v7 und v7b](#v7-und-v7b-weitertrainieren-macht-v6-nicht-besser)).

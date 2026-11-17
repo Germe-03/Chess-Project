@@ -56,26 +56,39 @@ from .engine import material_evaluation, material_move, random_move, terminal_va
 from .positions import sample_start
 from .search import CLASSIC, SearchOptions, search
 from .stockfish import find_stockfish, stockfish_policy
+from .theorie import KEINE, TheorieOptionen, theorie_fuer
 from .valuenet import ValueNet
 
 
 def make_policy(
     name: str, rng, net: ValueNet | None = None, gamma: float = 0.99, depth: int = 1,
-    options: SearchOptions = CLASSIC,
+    options: SearchOptions = CLASSIC, theorie: TheorieOptionen = KEINE,
 ):
     """
     Name -> Funktion, die zu einer Stellung einen Zug liefert.
 
     'depth' und 'options' gelten für die Strategie 'rl': Tiefe 1 ist die
     bisherige Zugwahl (value_move), ab Tiefe 2 rechnet die Alpha-Beta-Suche,
-    auf Wunsch mit den Korrekturen ab v6.
+    auf Wunsch mit den Korrekturen ab v6. Mit 'theorie' (ab v10) kommt zuerst
+    der Zug aus Eröffnungsbuch oder Endspieltabelle, falls es einen gibt.
     """
     if name == "rl":
         if net is None:
             raise ValueError("Für die Strategie 'rl' wird ein Modell benötigt.")
         if depth > 1:
-            return lambda board: search(board, net, depth, gamma, options=options).move
-        return lambda board: value_move(board, net, gamma)
+            base = lambda board: search(board, net, depth, gamma, options=options).move  # noqa: E731
+        else:
+            base = lambda board: value_move(board, net, gamma)  # noqa: E731
+        if not theorie:
+            return base
+
+        def mit_theorie(board: chess.Board):
+            # Erst im aufrufenden Prozess öffnen: Die Dateien bleiben je Prozess offen.
+            quelle = theorie_fuer(theorie)
+            zug = quelle.zug(board) if quelle is not None else None
+            return zug.move if zug is not None else base(board)
+
+        return mit_theorie
     if name == "material":
         return material_move
     if name == "random":
@@ -261,7 +274,7 @@ def print_results(task: str, results: dict, games: int, seeds: int) -> None:
 def duel(
     model: str, depth: int, opponent: tuple, games: int, max_plies: int, workers: int,
     gamma: float = 0.99, openings: bool = True, options: SearchOptions = CLASSIC,
-    first_game: int = 0,
+    first_game: int = 0, theorie: TheorieOptionen = KEINE,
 ) -> dict:
     """
     Modell gegen einen Gegner, siehe Duell-Modus oben. Punkte zählen ein
@@ -278,7 +291,7 @@ def duel(
         jobs = [
             (shared, {"game": game, "seed": 1000 + game, "gamma": gamma, "depth": depth,
                       "opponent": opponent, "max_plies": max_plies, "options": options,
-                      "opening": 5000 + game // 2 if openings else None})
+                      "opening": 5000 + game // 2 if openings else None, "theorie": theorie})
             for game in range(first_game, first_game + games)
         ]
         stats = summarize(runner.map(eval_game_task, jobs))
@@ -288,6 +301,7 @@ def duel(
 
 def tactics(
     model: str, depth: int, path: str, gamma: float = 0.99, options: SearchOptions = CLASSIC,
+    theorie: TheorieOptionen = KEINE,
 ) -> tuple[int, int]:
     """
     Taktik-Test: In jeder Stellung der Datei gibt es laut Stockfish genau einen
@@ -299,15 +313,18 @@ def tactics(
     from pathlib import Path
 
     net = ValueNet.load(model)
-    policy = make_policy("rl", None, net, gamma, depth, options)
+    policy = make_policy("rl", None, net, gamma, depth, options, theorie)
     cases = json.loads(Path(path).read_text(encoding="utf-8"))["fälle"]
     solved = sum(policy(chess.Board(case["fen"])).uci() == case["zug"] for case in cases)
     return solved, len(cases)
 
 
-def _options_label(options: SearchOptions) -> str:
+def _options_label(options: SearchOptions, theorie: TheorieOptionen = KEINE) -> str:
     parts = ([f"Deckel {options.cap}"] if options.cap is not None else []) + \
-            (["Wiederholung = Remis"] if options.repetition_draw else [])
+            (["Wiederholung = Remis"] if options.repetition_draw else []) + \
+            (["schnelle Suche"] if options.schnell else []) + \
+            (["Eröffnungsbuch"] if theorie.eroeffnung else []) + \
+            (["Endspieltabellen"] if theorie.endspiel else [])
     return f" ({', '.join(parts)})" if parts else ""
 
 
@@ -346,19 +363,34 @@ def main() -> None:
     parser.add_argument("--workers", type=int, default=1, help="Partien, die gleichzeitig laufen")
     parser.add_argument("--first-game", type=int, default=0,
                         help="Duell ab dieser Partienummer (gerade Zahl), also auf anderen Eröffnungen")
+    parser.add_argument("--schnell", action="store_true",
+                        help="Schnelle Suche aus suche2.py für das Modell (ab v11)")
+    parser.add_argument("--opponent-schnell", action="store_true",
+                        help="Wie --schnell, für den Gegner, wenn er ein Modell ist")
+    parser.add_argument("--eroeffnung", action="store_true",
+                        help="Schachtheorie ab v10: Eröffnungsbuch theorie/buch.bin für das Modell")
+    parser.add_argument("--endspiel", action="store_true",
+                        help="Schachtheorie ab v10: Endspieltabellen theorie/syzygy für das Modell")
+    parser.add_argument("--opponent-eroeffnung", action="store_true",
+                        help="Wie --eroeffnung, für den Gegner, wenn er ein Modell ist")
+    parser.add_argument("--opponent-endspiel", action="store_true",
+                        help="Wie --endspiel, für den Gegner, wenn er ein Modell ist")
     parser.add_argument("--tactics", default=None,
                         help="Taktik-Test: Anteil der Stellungen aus dieser Datei, in denen das Modell "
                              "den klar besten Zug findet (z. B. tests/fixtures/taktikstellungen.json)")
     args = parser.parse_args()
-    options = SearchOptions(cap=args.cap, repetition_draw=args.repetition_draw)
-    opponent_options = SearchOptions(cap=args.opponent_cap, repetition_draw=args.opponent_repetition_draw)
+    options = SearchOptions(cap=args.cap, repetition_draw=args.repetition_draw, schnell=args.schnell)
+    opponent_options = SearchOptions(cap=args.opponent_cap, repetition_draw=args.opponent_repetition_draw,
+                                     schnell=args.opponent_schnell)
+    theorie = TheorieOptionen(eroeffnung=args.eroeffnung, endspiel=args.endspiel)
+    opponent_theorie = TheorieOptionen(eroeffnung=args.opponent_eroeffnung, endspiel=args.opponent_endspiel)
 
     if args.tactics is not None:
         if not args.model:
             parser.error("Der Taktik-Test braucht --model")
-        solved, total = tactics(args.model, args.depth, args.tactics, args.gamma, options)
-        print(f"\n{args.model}, Tiefe {args.depth}: {solved} von {total} Taktikstellungen gelöst "
-              f"({solved / total:.1%})")
+        solved, total = tactics(args.model, args.depth, args.tactics, args.gamma, options, theorie)
+        print(f"\n{args.model}, Tiefe {args.depth}{_options_label(KEINE, theorie)}: {solved} von {total} "
+              f"Taktikstellungen gelöst ({solved / total:.1%})")
         return
 
     if args.opponent is not None:
@@ -374,13 +406,17 @@ def main() -> None:
             spec, label = ("material",), "Material-Heuristik"
         else:
             spec = ("modell", args.opponent, args.opponent_depth, opponent_options)
-            label = f"{args.opponent}, Tiefe {args.opponent_depth}{_options_label(opponent_options)}"
+            if opponent_theorie:
+                spec += (opponent_theorie,)
+            label = (f"{args.opponent}, Tiefe {args.opponent_depth}"
+                     f"{_options_label(opponent_options, opponent_theorie)}")
         stats = duel(args.model, args.depth, spec, args.games, args.max_plies, args.workers,
                      args.gamma, openings=not args.from_start, options=options,
-                     first_game=args.first_game)
+                     first_game=args.first_game, theorie=theorie)
         ab = f" ab Nr. {args.first_game}" if args.first_game else ""
-        print(f"\n{args.model}, Tiefe {args.depth}{_options_label(options)}  gegen  {label}  "
-              f"({args.games} Partien{ab})")
+        start = ", Grundstellung" if args.from_start else ""
+        print(f"\n{args.model}, Tiefe {args.depth}{_options_label(options, theorie)}  gegen  {label}  "
+              f"({args.games} Partien{ab}{start})")
         print(f"  Sieg {stats['win_rate']:6.1%}   Remis {stats['draw_rate']:6.1%}   "
               f"Niederlage {stats['loss_rate']:6.1%}   Punkte {stats['points']:6.1%}")
         return
