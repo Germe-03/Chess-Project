@@ -1,0 +1,7 @@
+# Nur Werkzeug-Einstellungen; das Projekt wird nicht als Paket gebaut.
+
+[tool.bandit]
+# Geprüft wird der eigene Code (Code/, azure_ml/, ops/); Tests und die
+# virtuelle Umgebung nicht. Achtung: Bandit vergleicht Teilstrings, ein
+# Eintrag "theorie" würde auch Code/rl/theorie.py ausschliessen.
+exclude_dirs = [".venv", "tests"]

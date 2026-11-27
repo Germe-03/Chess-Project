@@ -1,0 +1,5 @@
+# Modelldateien und Prüfstellungen Byte für Byte gleich auf allen Systemen.
+# Sonst wandelt Git unter Windows die Zeilenenden um, und die SHA-256-
+# Prüfsummen in models/SHA256SUMS stimmen unter Linux (GitHub Actions) nicht.
+models/** -text
+testbench/stellungen.json -text

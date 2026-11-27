@@ -1,0 +1,51 @@
+name: Supply-Chain-Prüfung
+
+# Projektaufgabe 3.2: Läuft bei jedem Push auf main (parallel zum Deploy auf
+# render.com), bei Pull Requests, jeden Montag (neue Lücken in unveränderten
+# Paketen) und von Hand.
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+  schedule:
+    - cron: '0 6 * * 1'  # Montag 06:00 UTC
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  pruefen:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Repository klonen
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # ganzer Verlauf, für die Schlüssel-Suche
+
+      - name: Python einrichten
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Abhängigkeiten installieren
+        run: pip install -r requirements.txt -r requirements-dev.txt
+
+      - name: Abhängigkeiten auf bekannte Lücken (pip-audit)
+        run: pip-audit -r requirements.txt --strict
+
+      - name: Eigener Code (Bandit)
+        run: bandit -r Code azure_ml ops -c pyproject.toml --severity-level medium
+
+      - name: Schlüssel in den Dateien (detect-secrets)
+        run: git ls-files -z | xargs -0 detect-secrets-hook --baseline .secrets.baseline
+
+      - name: Schlüssel im Git-Verlauf
+        run: python -m ops.schluessel_suche
+
+      - name: Modell-Prüfsummen (SHA-256)
+        run: python -m ops.hashes --verify
+
+      - name: Tests
+        run: python -m pytest tests/ -q

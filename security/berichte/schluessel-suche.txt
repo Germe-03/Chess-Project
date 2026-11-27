@@ -1,0 +1,13 @@
+# Schlüssel-Suche, 2026-11-27 15:22
+
+## 1) Aktuelle Dateien: detect-secrets 1.5.0 auf allen versionierten Dateien (git ls-files)
+Keine Schlüssel gefunden (Exit 0). Versionierte Dateien: 89
+
+## 2) Git-Verlauf: python -m ops.schluessel_suche
+Commits durchsucht: 21
+Treffer nach Mustern: 0
+Echter Azure-Endpoint-Schlüssel im Verlauf: nein
+
+## 3) Schlüsseldatei des Azure-Endpoints
+.gitignore:28:azure_ml/endpoint_key.txt	azure_ml/endpoint_key.txt
+Commits, die azure_ml/endpoint_key.txt je enthielten: 0

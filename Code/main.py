@@ -42,6 +42,7 @@ import os
 for _variable in ("OPENBLAS_NUM_THREADS", "OMP_NUM_THREADS", "MKL_NUM_THREADS"):
     os.environ.setdefault(_variable, "1")
 
+from contextlib import asynccontextmanager
 from io import BytesIO
 from pathlib import Path
 from typing import NamedTuple
@@ -70,10 +71,22 @@ from .vision.tiles import board_to_tiles
 # --------------------------------------------------------------------------- #
 # App-Grundgerüst
 # --------------------------------------------------------------------------- #
+@asynccontextmanager
+async def lebenszyklus(_app: FastAPI):
+    """Beim Herunterfahren den Stockfish-Prozess beenden.
+
+    Seit Starlette 1.0 gibt es app.add_event_handler("shutdown", …) nicht mehr;
+    der Lifespan-Kontext ist der neue Weg dafür.
+    """
+    yield
+    stockfish_analyse.beenden()
+
+
 app = FastAPI(
     title="Schach-Assistent API",
     version="0.1.0",
     description="Erkennt eine Schachstellung (aus Bild oder FEN) und liefert den optimalen Zug.",
+    lifespan=lebenszyklus,
 )
 
 # CORS offen halten, damit die UI auch von einem anderen Origin (z. B. lokalem
@@ -408,9 +421,6 @@ def stockfish(req: StockfishRequest) -> StockfishResponse:
         fen=board.fen(), cp=bewertung.cp, mate=bewertung.matt, depth=bewertung.tiefe,
         best_san=pv[0] if pv else "", pv=pv,
     )
-
-
-app.add_event_handler("shutdown", stockfish_analyse.beenden)
 
 
 async def recognize_board(image: UploadFile, side: str, flipped: bool) -> tuple[chess.Board, float]:

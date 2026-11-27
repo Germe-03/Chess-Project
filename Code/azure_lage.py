@@ -75,13 +75,19 @@ def bewerte(board: chess.Board) -> str:
     if key is None:
         raise NichtKonfiguriert("Kein Schlüssel für den Azure-ML-Endpoint hinterlegt.")
 
+    # Bandit B310: urlopen öffnet auch file:// und andere Schemata. Der Schlüssel
+    # geht deshalb nur an eine HTTPS-Adresse, sonst bleibt die Funktion aus.
+    adresse = url()
+    if not adresse.startswith("https://"):
+        raise NichtKonfiguriert("AZURE_ML_URL muss mit https:// beginnen.")
+
     kopf = {"Content-Type": "application/json", "Authorization": f"Bearer {key}"}
     deployment = os.environ.get("AZURE_ML_DEPLOYMENT")
     if deployment:
         kopf["azureml-model-deployment"] = deployment
-    anfrage = urllib.request.Request(url(), json.dumps(nutzlast(board)).encode(), kopf)
+    anfrage = urllib.request.Request(adresse, json.dumps(nutzlast(board)).encode(), kopf)
     try:
-        with urllib.request.urlopen(anfrage, timeout=TIMEOUT_SEKUNDEN) as antwort:
+        with urllib.request.urlopen(anfrage, timeout=TIMEOUT_SEKUNDEN) as antwort:  # nosec B310 # nur https, oben geprüft
             daten = json.loads(antwort.read())
     except (urllib.error.URLError, TimeoutError, ValueError) as fehler:
         raise AzureFehler(f"Azure-Endpoint nicht erreichbar: {fehler}") from fehler

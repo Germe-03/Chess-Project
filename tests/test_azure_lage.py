@@ -50,6 +50,18 @@ def test_ohne_schluessel_ist_die_funktion_aus(ohne_schluessel):
     assert fehler.value.status_code == 503
 
 
+def test_schluessel_geht_nur_ueber_https(mit_schluessel, monkeypatch):
+    """Bandit B310: urlopen würde auch file:// öffnen; der Schlüssel darf nie dorthin."""
+    monkeypatch.setenv("AZURE_ML_URL", "file:///etc/passwd")
+    aufgerufen = []
+    monkeypatch.setattr(azure_lage.urllib.request, "urlopen",
+                        lambda *args, **kwargs: aufgerufen.append(args))
+    with pytest.raises(HTTPException) as fehler:
+        lage(LageRequest(fen=chess.STARTING_FEN))
+    assert fehler.value.status_code == 503
+    assert not aufgerufen
+
+
 def test_anfrage_hat_die_spalten_des_trainings(mit_schluessel, monkeypatch):
     gesendet = {}
 

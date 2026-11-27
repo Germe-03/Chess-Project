@@ -1,0 +1,73 @@
+{
+  "entities": [
+    "PERSON",
+    "LOCATION",
+    "EMAIL_ADDRESS",
+    "PHONE_NUMBER",
+    "IBAN_CODE",
+    "CREDIT_CARD",
+    "IP_ADDRESS",
+    "AHV_NUMBER"
+  ],
+  "score_threshold": 0.4,
+  "ignore_words": [],
+  "block_message": "Blockiert: Die Anfrage enthält einen Zugangsschlüssel (Token, Passwort oder privater Schlüssel). Bitte entfernen und neu senden.",
+  "rules": [
+    {
+      "name": "AZURE_ML_KEY",
+      "pattern": "(?<=(?:azure_ml_key|api[_-]?key|prim(?:ä|ae)rschl(?:ü|ue)ssel|sekund(?:ä|ae)rschl(?:ü|ue)ssel|primary[_ ]?key|secondary[_ ]?key|bearer)(?:[\"']?\\s*[:=]\\s*[\"']?|\\s+))[A-Za-z0-9+/_-]{20,}={0,2}",
+      "ignore_case": true,
+      "action": "mask",
+      "enabled": true
+    },
+    {
+      "name": "ZUFALLSSCHLUESSEL",
+      "pattern": "(?<![A-Za-z0-9])(?=[A-Za-z0-9]{0,99}[A-Z])(?=[A-Za-z0-9]{0,99}[a-z])(?=[A-Za-z0-9]{0,99}[0-9])[A-Za-z0-9]{32,100}(?![A-Za-z0-9])",
+      "ignore_case": false,
+      "action": "mask",
+      "enabled": true
+    },
+    {
+      "name": "GITHUB_TOKEN",
+      "pattern": "\\b(?:gh[pousr]_[A-Za-z0-9]{36,}|github_pat_[A-Za-z0-9_]{60,})",
+      "ignore_case": false,
+      "action": "block",
+      "enabled": true
+    },
+    {
+      "name": "RENDER_DEPLOY_HOOK",
+      "pattern": "api\\.render\\.com/deploy/srv-[a-z0-9]+\\?key=[A-Za-z0-9_-]+",
+      "ignore_case": true,
+      "action": "block",
+      "enabled": true
+    },
+    {
+      "name": "PRIVATER_SCHLUESSEL",
+      "pattern": "-----BEGIN [A-Z ]*PRIVATE KEY-----",
+      "ignore_case": false,
+      "action": "block",
+      "enabled": true
+    },
+    {
+      "name": "PASSWORT",
+      "pattern": "\\b(?:passwort|password|passwd|kennwort|pwd?)\\b(?:\\s*[:=]\\s*\\S+|\\s+(?:ist|lautet|is|heisst)\\s+\\S*[0-9!$%&*#@]\\S*)",
+      "ignore_case": true,
+      "action": "block",
+      "enabled": true
+    },
+    {
+      "name": "JUPYTER_TOKEN",
+      "pattern": "(?<=[?&]token=)[0-9a-f]{32,}",
+      "ignore_case": false,
+      "action": "mask",
+      "enabled": true
+    },
+    {
+      "name": "AZURE_ENDPOINT",
+      "pattern": "https://[a-z0-9-]+\\.[a-z0-9]+\\.inference\\.ml\\.azure\\.com[^\\s\"'<>]*",
+      "ignore_case": true,
+      "action": "mask",
+      "enabled": true
+    }
+  ]
+}

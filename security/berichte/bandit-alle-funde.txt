@@ -1,0 +1,8 @@
+# Bandit ohne nosec-Ausnahmen (alle Funde), 2026-11-27 15:13
+filename,test_name,test_id,issue_severity,issue_confidence,issue_cwe
+Code\azure_lage.py,blacklist,B310,MEDIUM,HIGH,https://cwe.mitre.org/data/definitions/22.html
+Code\rl\parallel.py,hardcoded_password_string,B105,LOW,MEDIUM,https://cwe.mitre.org/data/definitions/259.html
+Code\rl\testbench.py,try_except_pass,B110,LOW,HIGH,https://cwe.mitre.org/data/definitions/703.html
+ops\hashes.py,blacklist,B404,LOW,HIGH,https://cwe.mitre.org/data/definitions/78.html
+ops\hashes.py,start_process_with_partial_path,B607,LOW,HIGH,https://cwe.mitre.org/data/definitions/78.html
+ops\hashes.py,subprocess_without_shell_equals_true,B603,LOW,HIGH,https://cwe.mitre.org/data/definitions/78.html

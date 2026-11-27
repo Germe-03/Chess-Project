@@ -182,7 +182,7 @@ def _close_engines() -> None:
     for engine in _engines.values():
         try:
             engine.quit()
-        except Exception:
+        except Exception:  # nosec B110 # Aufräumen beim Beenden, ein Fehler hier ändert nichts
             pass
     _engines.clear()
 

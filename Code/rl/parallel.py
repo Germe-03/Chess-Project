@@ -51,7 +51,7 @@ from .valuenet import ValueNet
 _THREAD_VARIABLES = ("OPENBLAS_NUM_THREADS", "OMP_NUM_THREADS", "MKL_NUM_THREADS")
 
 # Zustand je Prozess: das zuletzt ausgepackte Netz und offene Gegner-Engines.
-_state: dict = {"token": None, "net": None, "opponents": {}, "stack": None}
+_state: dict = {"token": None, "net": None, "opponents": {}, "stack": None}  # nosec B105 # Kennung des geladenen Netzes, kein Passwort
 
 
 class Runner:

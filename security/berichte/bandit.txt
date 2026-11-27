@@ -1,0 +1,32 @@
+# Bandit, 2026-11-27 15:33, Befehl: bandit -r Code azure_ml ops -c pyproject.toml
+[main]	INFO	profile include tests: None
+[main]	INFO	profile exclude tests: None
+[main]	INFO	cli include tests: None
+[main]	INFO	cli exclude tests: None
+[main]	INFO	using config: pyproject.toml
+[main]	INFO	running on Python 3.12.6
+[tester]	WARNING	nosec encountered (B105), but no failed test on file Code\rl\parallel.py:54
+[tester]	WARNING	nosec encountered (B105), but no failed test on file Code\rl\parallel.py:54
+[tester]	WARNING	nosec encountered (B105), but no failed test on file Code\rl\parallel.py:54
+Run started:2026-11-27 14:33:05.132371+00:00
+
+Test results:
+	No issues identified.
+
+Code scanned:
+	Total lines of code: 6182
+	Total lines skipped (#nosec): 0
+	Total potential issues skipped due to specifically being disabled (e.g., #nosec BXXX): 9
+
+Run metrics:
+	Total issues (by severity):
+		Undefined: 0
+		Low: 0
+		Medium: 0
+		High: 0
+	Total issues (by confidence):
+		Undefined: 0
+		Low: 0
+		Medium: 0
+		High: 0
+Files skipped (0):
