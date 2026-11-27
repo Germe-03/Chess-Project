@@ -5,9 +5,9 @@ Zwei Arten von Prüfungen:
 
 1. Nichts Bestehendes hat sich verändert. Die Referenzdateien in fixtures/
    wurden VOR dem Einbau der Suche aufgenommen (Commit ec4d4c8): die Antworten
-   von v1 bis v3 auf 40 Stellungen und Φ auf 611 Stellungen. Verglichen wird
-   bitgenau, nicht ungefähr — wer v3 auswählt, soll exakt dieselbe Engine
-   bekommen wie vorher.
+   von v1 bis v3 auf 40 Stellungen und Φ auf 611 Stellungen. Züge müssen exakt
+   gleich sein, Bewertungen bis auf Rundungsrauschen (siehe _gleich) — wer v3
+   auswählt, soll dieselbe Engine bekommen wie vorher.
 
 2. Die Suche rechnet richtig. Alpha-Beta, Killer-Heuristik und das Abbrechen
    über die Ein-Zug-Bewertung sind reine Abkürzungen; sie dürfen das Ergebnis
@@ -38,6 +38,18 @@ def _referenz(name: str) -> list[dict]:
     return json.loads((FIXTURES / name).read_text(encoding="utf-8"))["fälle"]
 
 
+def _gleich(ist: float, soll: float) -> bool:
+    """
+    Gleich bis auf Rundungsrauschen.
+
+    Die Referenzen wurden unter Windows aufgenommen. Unter Linux (GitHub
+    Actions) summieren NumPy und die Mathe-Bibliothek in anderer Reihenfolge;
+    gemessen wichen die Werte um 4e-9 (Netz, float32) bzw. 2e-17 (Φ) ab.
+    Eine echte Änderung an Engine oder Φ liegt um Grössenordnungen darüber.
+    """
+    return math.isclose(ist, soll, rel_tol=1e-6, abs_tol=1e-9)
+
+
 @pytest.fixture(scope="module")
 def v3() -> ValueNet:
     return ValueNet.load(MODELS / "full_v3.npz")
@@ -58,22 +70,22 @@ def test_v1_bis_v3_antworten_wie_vorher():
         auswahl = choose_move(chess.Board(fall["fen"]), fall["version"])
         assert auswahl.depth == 1
         assert auswahl.move.uci() == fall["best_move"], (fall["version"], fall["fen"])
-        assert auswahl.evaluation == fall["evaluation"], (fall["version"], fall["fen"])
+        assert _gleich(auswahl.evaluation, fall["evaluation"]), (fall["version"], fall["fen"])
 
 
 def test_potential_wie_vorher():
-    """Die beschleunigte Fassung von Φ liefert dieselben Werte, Bit für Bit."""
+    """Die beschleunigte Fassung von Φ liefert dieselben Werte wie vorher."""
     for fall in _referenz("referenz_potential.json"):
         board = chess.Board(fall["fen"])
         ich = board.turn
-        assert shaping.potential(board) == fall["potential"], fall["fen"]
+        assert _gleich(shaping.potential(board), fall["potential"]), fall["fen"]
         assert shaping.material(board, ich) == fall["material"]
-        assert shaping.center(board, ich) == fall["center"]
-        assert shaping.exchange(board, ich) == fall["exchange"]
+        assert _gleich(shaping.center(board, ich), fall["center"])
+        assert _gleich(shaping.exchange(board, ich), fall["exchange"])
         assert shaping.best_exchange(board, ich) == fall["best_exchange_ich"]
         assert shaping.best_exchange(board, not ich) == fall["best_exchange_gegner"]
         if not board.is_game_over():
-            assert shaping.potential_open(board) == fall["potential"]
+            assert _gleich(shaping.potential_open(board), fall["potential"])
 
 
 def _merkmale_alt(board: chess.Board) -> np.ndarray:
